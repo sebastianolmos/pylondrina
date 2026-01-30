@@ -47,6 +47,7 @@ def import_trips_from_dataframe(
     field_correspondence: Optional[FieldCorrespondence] = None,
     value_correspondence: Optional[ValueCorrespondence] = None,
     provenance: Optional[Dict[str, Any]] = None,
+    h3_resolution: int = 8,
 ) -> Tuple[TripDataset, ImportReport]:
     """
     Importa (convierte) un DataFrame de viajes desde un formato externo al formato Golondrina.
@@ -74,6 +75,11 @@ def import_trips_from_dataframe(
         Correspondencia de valores categóricos por campo: campo -> (valor_fuente -> valor_canónico).
     provenance : dict, optional
         Metadatos de procedencia adicionales (periodo, zona, versión del dataset, etc.).
+        Debe ser JSON-serializable.
+    h3_resolution : int, default=8
+        Resolución H3 a utilizar para derivar índices de celdas (origen/destino) cuando sea aplicable.
+        Debe estar en el rango permitido por H3 (típicamente 0..15). Esta resolución se registra en
+        los metadatos del dataset para reproducibilidad.
 
     Returns
     -------
@@ -84,7 +90,7 @@ def import_trips_from_dataframe(
 
     Raises
     ------
-    ImportMappingError
+    ImportError
         Si faltan campos obligatorios y options.strict=True (o política equivalente).
     """
     raise NotImplementedError
@@ -170,8 +176,6 @@ def build_import_metadata(
     applied_field_map: Dict[str, str],
     applied_value_maps: Dict[str, Dict[str, str]],
     domains_effective: Dict[str, Any],
-    provenance: Optional[Dict[str, Any]],
-    validation_summary: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Construye metadatos mínimos de trazabilidad para un TripDataset importado.
@@ -181,21 +185,17 @@ def build_import_metadata(
     schema : TripSchema
         Esquema aplicado.
     source_name : str, optional
-        Fuente declarada.
+        Fuente declarada (p. ej., "EOD", "ADATRAP").
     applied_field_map : dict
-        Correspondencia de campos aplicada.
+        Correspondencia de campos aplicada (campo estándar -> columna/field de origen).
     applied_value_maps : dict
-        Correspondencia de valores aplicada.
+        Correspondencia de valores aplicada por campo (campo -> {valor_origen -> valor_canónico}).
     domains_effective : dict
-        Dominios efectivos (incluye extensiones controladas).
-    provenance : dict, optional
-        Metadatos externos.
-    validation_summary : dict, optional
-        Resumen estructurado de validación (si se realizó en importación).
+        Dominios efectivos por campo categórico, incluyendo extensiones controladas si aplica.
 
     Returns
     -------
     dict
-        Metadatos listos para almacenarse en TripDataset.metadata/provenance.
+        Metadatos listos para almacenarse en `TripDataset.metadata`.
     """
     raise NotImplementedError

@@ -2,9 +2,10 @@
 # file: pylondrina/transforms/flows.py
 # -------------------------
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional, Sequence, Literal
+from typing import Any, Mapping, Optional, Sequence, Literal, Tuple
 
 from ..datasets import TripDataset, FlowDataset
+from ..reports import FlowBuildReport, Issue
 
 
 TimeAggregation = Literal["hour", "day", "week", "month", "none"]
@@ -80,7 +81,7 @@ def build_flows(
     origin_time_field: str = "origin_time",
     destination_time_field: str = "destination_time",
     extra_metadata: Optional[Mapping[str, Any]] = None,
-) -> FlowDataset:
+) -> Tuple[FlowDataset, FlowBuildReport]:
     """
     Construye un `FlowDataset` agregando viajes OD del `TripDataset`.
 

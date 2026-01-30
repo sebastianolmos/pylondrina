@@ -17,6 +17,8 @@ def validate_trips(
     *,
     domains_effective: Optional[Dict[str, Any]] = None,
     strict: bool = False,
+    max_issues: int = 1000,
+    sample_rows_per_issue: int = 20,
 ) -> ValidationReport:
     """
     Valida un DataFrame de viajes contra el TripSchema.
@@ -38,6 +40,10 @@ def validate_trips(
         Dominios efectivos del dataset. Si se proveen, se valida coherencia con dominios usados.
     strict : bool, default=False
         Si True, la presencia de errores puede gatillar excepciones en niveles superiores.
+    max_issues : int, default 10000
+        Límite superior de Issues acumulados para evitar explosión de memoria.
+    sample_rows_per_issue : int, default 20
+        Máximo de índices de filas muestreadas a registrar por Issue (si aplica).
 
     Returns
     -------

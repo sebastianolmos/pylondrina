@@ -16,7 +16,7 @@ class Issue:
 
     Attributes
     ----------
-    level : {"ERROR", "WARNING", "INFO"}
+    level : {"info","warning","error"}
         Severidad del hallazgo.
     code : str
         Código estable para clasificación (p. ej. "MISSING_REQUIRED_FIELD").
@@ -57,6 +57,7 @@ class ValidationReport:
     ok: bool
     issues: List[Issue] = field(default_factory=list)
     summary: Dict[str, Any] = field(default_factory=dict)
+    parameters: Dict[str, Any] = field(default_factory=dict) 
 
 
 @dataclass
@@ -81,6 +82,10 @@ class ImportReport:
     """
     ok: bool
     issues: List[Issue] = field(default_factory=list)
+
+    summary: Dict[str, Any] = field(default_factory=dict)      # NUEVO
+    parameters: Dict[str, Any] = field(default_factory=dict) 
+
     field_correspondence: Dict[str, str] = field(default_factory=dict)
     value_correspondence: Dict[str, Dict[str, str]] = field(default_factory=dict)
     schema_version: str = "0.0.0"
@@ -128,6 +133,7 @@ class FlowBuildReport:
     ok: bool
     issues: List[Issue] = field(default_factory=list)
     summary: Dict[str, Any] = field(default_factory=dict)
+    parameters: Dict[str, Any] = field(default_factory=dict) 
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
