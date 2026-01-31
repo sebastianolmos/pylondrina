@@ -39,23 +39,29 @@ class Issue:
     row_count: Optional[int] = None
     details: Optional[Dict[str, Any]] = None
 
-@dataclass(frozen=True)
+@dataclass
 class OperationReport:
     """
-    Reporte base para operaciones de Pylondrina que emiten Issues y un summary.
+    Reporte genérico para operaciones que procesan o transforman datasets (p. ej., fix/clean/filter/write/build).
 
     Attributes
     ----------
-    ok : bool
-        True si la operación no produjo Issues de nivel error.
-    issues : list[Issue]
-        Lista de issues emitidos durante la operación.
-    summary : dict
-        Resumen serializable (JSON) con métricas y banderas relevantes de la operación.
+    ok:
+        True si la operación terminó sin issues de nivel ERROR. False si hubo al menos un ERROR.
+    issues:
+        Lista de Issue emitidos por la operación. Deben ser JSON-serializables en `Issue.details`.
+    summary:
+        Diccionario serializable (JSON) con el resumen mínimo estable de la operación.
+    parameters:
+        Diccionario serializable (JSON) con parámetros efectivos de ejecución.
+        - Puede ser None cuando la operación no define/usa parameters explícitos (p. ej., validación),
+          o cuando los parámetros quedan registrados en otra parte (p. ej., metadata["events"]).
+        - Para operaciones de transformación (clean/fix/filter), se recomienda incluirlo para trazabilidad.
     """
     ok: bool
-    issues: List["Issue"]
-    summary: Dict[str, Any]
+    issues: List["Issue"] = field(default_factory=list)
+    summary: Dict[str, Any] = field(default_factory=dict)
+    parameters: Optional[Dict[str, Any]] = None
 
 
 @dataclass(frozen=True)
