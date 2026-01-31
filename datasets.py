@@ -14,6 +14,7 @@ from .reports import ValidationReport, OperationReport
 from .validation import ValidationOptions, validate_trips
 from .correspondence import FieldCorrections, ValueCorrections
 from .fixing import FixCorrespondenceOptions, fix_trips_correspondence
+from transforms.filtering import filter_trips, FilterOptions
 
 
 @dataclass
@@ -113,6 +114,28 @@ class TripDataset:
             options=options,
             correspondence_context=correspondence_context,
         )
+    def filter(
+        self,
+        *,
+        options: "Optional[FilterOptions]" = None,
+        max_issues: int = 1000,
+    ) -> "Tuple[TripDataset, OperationReport]":
+        """
+        Aplica un filtrado al dataset (atajo orientado a API mixta).
+
+        Parameters
+        ----------
+        options:
+            Opciones del filtro. Si es None, no aplica filtros (pero puede registrar evento/report).
+        max_issues:
+            Límite máximo de issues a registrar.
+
+        Returns
+        -------
+        (TripDataset, OperationReport)
+            Dataset filtrado + reporte de la operación.
+        """
+        return filter_trips(self, options=options, max_issues=max_issues)
 
 
 @dataclass

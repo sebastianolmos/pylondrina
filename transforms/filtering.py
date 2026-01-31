@@ -1,254 +1,290 @@
-# -------------------------
-# file: pylondrina/transforms/filtering.py
-# -------------------------
+# pylondrina/transforms/filtering.py
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Any, Mapping, Sequence, Literal
 
-from pylondrina.datasets import TripDataset
-from pylondrina.types import FieldName, DomainValue
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, Iterable, List, Literal, Mapping, Optional, Sequence, Tuple, Union
+
+from ..datasets import TripDataset
+from ..reports import OperationReport
+
+
+# Tipos (contrato v1.1)
+BBox = Tuple[float, float, float, float]
+"""Bounding box (min_lon, min_lat, max_lon, max_lat)."""
+
+LonLat = Tuple[float, float]
+"""Coordenada (lon, lat)."""
+
+Polygon = Sequence[LonLat]
+"""Polígono como secuencia de vértices (lon, lat)."""
 
 TimePredicate = Literal["starts_within", "ends_within", "contains", "overlaps"]
 """
-Criterio para filtrar viajes respecto a un intervalo temporal [start, end).
+Predicado temporal entre el intervalo del viaje y el intervalo [start, end].
+El intervalo del viaje se define SIEMPRE como: [origin_time_utc, destination_time_utc]
 
-- "starts_within": el viaje inicia dentro del rango (origin_time ∈ [start, end)).
-- "ends_within": el viaje termina dentro del rango (dest_time ∈ [start, end)).
-- "contains": el viaje ocurre completamente dentro del rango
-  ([origin_time, dest_time] ⊆ [start, end)).
-- "overlaps": el viaje se solapa con el rango
-  ([origin_time, dest_time] ∩ [start, end) ≠ ∅).
-
-Ejemplo (rango 07:00-08:00):
-- 06:50→07:10: ends_within/overlaps = True; starts_within/contains = False.
-- 07:50→08:20: starts_within/overlaps = True; ends_within/contains = False.
+- "starts_within": origin_time_utc cae dentro de [start, end].
+- "ends_within": destination_time_utc cae dentro de [start, end].
+- "contains": [origin_time_utc, destination_time_utc] contiene completamente [start, end].
+- "overlaps": los intervalos se intersectan.
 """
+
+SpatialPredicate = Literal["origin", "destination", "both", "either"]
+"""
+Predicado espacial para decidir sobre qué extremo(s) aplicar un filtro espacial.
+
+- "origin": aplica el filtro espacial al punto de origen.
+- "destination": aplica el filtro espacial al punto de destino.
+- "both": requiere que origen Y destino cumplan el filtro (AND).
+- "either": requiere que origen O destino cumpla el filtro (OR).
+"""
+
+WhereOp = Literal["eq", "in", "ne", "not_in", "is_null", "not_null", "gt", "gte", "lt", "lte", "between",]
+"""
+Operadores soportados por `FilterOptions.where` (v1.1).
+
+- eq / in: igualdad y pertenencia (también pueden expresarse implícitamente).
+- ne / not_in: desigualdad y no-pertenencia.
+- is_null / not_null: filtros por nulidad (aplican a cualquier campo).
+- gt / gte / lt / lte / between: comparaciones numéricas (int/float).
+"""
+
+WhereValue = Union[Any, Sequence[Any], Mapping[WhereOp, Any]]
+"""
+Valor permitido para un filtro en `where` (v1.1).
+
+Reglas de interpretación
+-----------------------
+1) Escalar: {"user_id": 123}  -> equivale a {"user_id": {"eq": 123}}
+
+2) Secuencia (list/tuple/set): {"mode": ["bus", "metro"]} -> equivale a {"mode": {"in": ["bus", "metro"]}}
+
+3) Dict operador->valor:
+   {
+     "purpose": {"ne": "unknown"},
+     "mode": {"not_in": ["car"]},
+     "duration_min": {"gte": 5},
+     "distance_km": {"between": (0.5, 20.0)},
+     "stage_id": {"not_null": True},
+   }
+
+Compatibilidad por tipo (v1.1)
+------------------------------
+- eq/in/ne/not_in: aplicables a cualquier campo; para campos categóricos se recomienda usar valores del dominio.
+- is_null/not_null: aplicables a cualquier campo.
+- gt/gte/lt/lte/between: destinados a campos numéricos (int/float).
+"""
+
+WhereClause = Mapping[str, WhereValue]
+"""
+Cláusula declarativa de filtros por campos (AND entre campos).
+
+Ejemplo:
+where: WhereClause = {
+    "user_id": 123,                          # eq implícito: user_id == 123
+    "purpose": "work",                       # eq implícito: purpose == "work"
+    "user_id": [101, 202, 303],              # in implícito
+
+    "purpose": {"ne": "unknown"},            # purpose != "unknown"
+    "mode": {"not_in": ["car", "taxi"]},     # mode NOT IN {"car","taxi"}
+    "stage_id": {"not_null": True},          # stage_id is not null
+
+    "distance_km": {"between": (0.5, 20.0)},   # 0.5 <= distance_km <= 20.0
+    "duration_min": {"gte": 5},                # duration_min >= 5
+    "speed_kmh": {"lt": 120},                  # speed_kmh < 120
+
+    "mode": {"in": ["bus", "metro"]},        # in explícito (redundante pero válido)
+    "purpose": {"ne": "unknown"},            # ne explícito
+    "fare_type": {"is_null": True},          # is_null explícito
+    "distance_km": {"lte": 30.0},            # lte explícito
+}
+"""
+
+
 
 @dataclass(frozen=True)
 class TimeFilter:
     """
-    Especificación de filtrado temporal para viajes.
+    Filtro temporal sobre viajes, comparando el intervalo [origin_time_utc, destination_time_utc]
+    contra el intervalo [start, end] usando un predicado.
 
-    Parameters
+    Attributes
     ----------
-    start
-        Timestamp de inicio del rango [start, end).
-    end
-        Timestamp de término del rango [start, end).
-    predicate
-        Semántica del filtrado temporal.
-    origin_field
-        Campo temporal de origen (si es None, se resuelve desde el esquema).
-    dest_field
-        Campo temporal de destino (si es None, se resuelve desde el esquema).
+    start:
+        Inicio del intervalo temporal (inclusive).
+    end:
+        Fin del intervalo temporal (inclusive).
+    predicate:
+        Relación entre intervalos (ver TimePredicate).
     """
-    start: str
-    end: str
-    predicate: TimePredicate = "starts_within"
-    origin_field: FieldName | None = None
-    dest_field: FieldName | None = None
+
+    start: datetime
+    end: datetime
+    predicate: TimePredicate = "overlaps"
+
+
+@dataclass(frozen=True)
+class FilterOptions:
+    """
+    Opciones para filtrar un TripDataset por criterios de atributos (`where`), tiempo y/o espacio.
+
+    Reglas de combinación (v1.1)
+    ----------------------------
+    - Los criterios presentes se combinan como intersección (AND).
+    - Dentro de `where`, cada key también se combina por AND.
+
+    Parámetros / Atributos
+    ----------------------
+    where : Optional[WhereClause]
+        Filtros declarativos por campos. `where` es un diccionario `{campo -> condición}`.
+        La condición puede escribirse como:
+        - Escalar: equivale a `{"eq": valor}`
+        - Secuencia: equivale a `{"in": [..]}`
+        - Dict operador->valor: permite `eq, in, ne, not_in, is_null, not_null, gt, gte, lt, lte, between`.
+    time : Optional[TimeFilter]
+        Filtro temporal sobre el intervalo del viaje definido por [origin_time_utc, destination_time_utc]
+    bbox : Optional[BBox]
+        Filtro espacial por bounding box (min_lon, min_lat, max_lon, max_lat).
+    polygon : Optional[Polygon]
+        Filtro espacial por polígono lon/lat (secuencia de vértices).
+    h3_cells : Optional[Iterable[str]]
+        Filtro espacial por conjunto de celdas H3 permitidas.
+    spatial_predicate : SpatialPredicate
+        Sobre qué extremo(s) del viaje aplica el filtro espacial: "origin", "destination", "both", "either".
+    origin_h3_field : str
+        Nombre del campo H3 de origen (para filtros por H3).
+    destination_h3_field : str
+        Nombre del campo H3 de destino (para filtros por H3).
+    keep_metadata : bool
+        Si True, agrega un evento de filtrado en `TripDataset.metadata["events"]` del dataset resultante.
+    strict : bool
+        Si True, configuraciones inválidas pueden escalar; si False, se degradan a issues.
+    """
+
+    where: Optional["WhereClause"] = None
+    time: Optional["TimeFilter"] = None
+
+    bbox: Optional["BBox"] = None
+    polygon: Optional["Polygon"] = None
+    h3_cells: Optional[Iterable[str]] = None
+
+    spatial_predicate: "SpatialPredicate" = "origin"
+    origin_h3_field: str = "origin_h3"
+    destination_h3_field: str = "destination_h3"
+
+    keep_metadata: bool = True
+    strict: bool = False
+
+# ---------------------------------------------------------------------
+# API pública (v1.1)
+# ---------------------------------------------------------------------
 
 def filter_trips(
     trips: TripDataset,
     *,
-    where: Mapping[FieldName, Any] | None = None,
-    time: TimeFilter | None = None,
-    spatial: Mapping[str, Any] | None = None,
-    strict: bool = False,
-) -> TripDataset:
+    options: Optional[FilterOptions] = None,
+    max_issues: int = 1000,
+) -> Tuple[TripDataset, OperationReport]:
     """
-    Filtra un conjunto de viajes en formato Golondrina en base a condiciones por campos,
-    restricciones temporales y/o restricciones espaciales.
+    Filtra un TripDataset combinando criterios por atributos (where), tiempo y/o espacio.
 
     Parameters
     ----------
-    trips
-        Conjunto de viajes en formato Golondrina.
-    where
-        Condiciones por campo. La estructura es intencionalmente flexible para soportar
-        igualdad, pertenencia, rangos y predicados simples (a definir en la implementación).
-        Ejemplos típicos:
-        - ``{"mode": "bus"}``
-        - ``{"purpose": {"in": ["work", "education"]}}``
-        - ``{"income": {"gte": 500000}}``
-    time_range
-        Rango temporal (inicio, fin) como strings en formato ISO-8601 o el formato adoptado
-        por el esquema. Define el intervalo de viajes a conservar.
-    spatial
-        Especificación espacial. Se admite una de las siguientes variantes:
-
-        **A) H3**
-            ``{"h3": {"field": "<campo_h3>", "cells": [<h3>, ...]}}``
-            - ``field``: nombre del campo H3 a usar (p.ej. ``"origin_h3"`` o ``"dest_h3"``)
-            - ``cells``: lista/colección de celdas H3 permitidas
-
-        **B) Bounding box**
-            ``{"bbox": {"fields": ("<lon_field>", "<lat_field>"), "bounds": (minx, miny, maxx, maxy)}}``
-            - ``fields``: tupla (lon_field, lat_field) para localizar puntos
-            - ``bounds``: (minx, miny, maxx, maxy)
-
-        **C) Polygon**
-            ``{"polygon": {"fields": ("<lon_field>", "<lat_field>"), "geometry": <geom>, "predicate": "within"}}``
-            - ``geometry``: objeto geométrico (p.ej. shapely), tipo flexible
-            - ``predicate``: relación espacial a usar (por defecto ``"within"``)
-
-        Nota: La implementación puede requerir dependencias opcionales para `polygon`.
-    strict
-        Si es True, inconsistencias (p.ej. campos inexistentes o tipos incompatibles)
-        pueden gatillar excepciones. Si es False, se reportan/omiten según política
-        definida en la implementación.
+    trips:
+        Dataset de entrada.
+    options:
+        Opciones del filtro. Si es None, no aplica filtros y retorna el dataset (con reporte/event si procede).
+    max_issues:
+        Límite máximo de issues a registrar (para evitar explosión).
 
     Returns
     -------
-    TripDataset
-        Nuevo conjunto de viajes filtrado.
+    (TripDataset, OperationReport)
+        Dataset filtrado + reporte de la operación. Si `options.keep_metadata=True`,
+        agrega un evento a `TripDataset.metadata['events']` en el dataset resultante.
+
+    Notes
+    -----
+    - En v1.1, esta operación NO cambia el estado de validación del dataset; lo preserva.
+    - Los filtros inválidos pueden omitirse con issue (strict=False) o escalar (strict=True).
     """
     raise NotImplementedError
 
 
-def filter_by_h3_cells(
-    trips: TripDataset,
+def build_filter_summary(
     *,
-    field: FieldName,
-    cells: Sequence[str],
-    strict: bool = False,
-) -> TripDataset:
+    n_rows_in: int,
+    n_rows_out: int,
+    filters_applied: List[str],
+) -> Dict[str, Any]:
     """
-    Filtra viajes manteniendo aquellos cuyo campo H3 (origen o destino) pertenece a un
-    conjunto de celdas H3 permitido.
+    Construye el summary mínimo (serializable y estable) para una operación de filtrado.
 
     Parameters
     ----------
-    trips
-        Conjunto de viajes en formato Golondrina.
-    field
-        Campo H3 a utilizar (p.ej. ``"origin_h3"``, ``"dest_h3"``).
-    cells
-        Colección de celdas H3 permitidas.
-    strict
-        Política de manejo ante inconsistencias.
+    n_rows_in:
+        Número de filas antes del filtrado.
+    n_rows_out:
+        Número de filas después del filtrado.
+    filters_applied:
+        Lista de etiquetas de filtros efectivamente aplicados (p. ej. ["where", "time", "bbox"]).
 
     Returns
     -------
-    TripDataset
-        Dataset filtrado.
+    dict
+        Summary mínimo del filtrado, pensado para report/event.
     """
     raise NotImplementedError
 
 
-def filter_by_bbox(
+# ---------------------------------------------------------------------
+# Helpers internos (no-API): factorizar implementación
+# ---------------------------------------------------------------------
+
+def _apply_where_filter(
     trips: TripDataset,
     *,
-    bounds: tuple[float, float, float, float],
-    fields: tuple[FieldName, FieldName] = ("origin_lon", "origin_lat"),
-    strict: bool = False,
+    where: WhereClause,
+    report: OperationReport,
+    strict: bool,
+    max_issues: int,
 ) -> TripDataset:
     """
-    Filtra viajes por un bounding box (minx, miny, maxx, maxy) usando campos de
-    longitud/latitud.
-
-    Parameters
-    ----------
-    trips
-        Conjunto de viajes en formato Golondrina.
-    bounds
-        Bounding box (minx, miny, maxx, maxy).
-    fields
-        Tupla (lon_field, lat_field) que indica qué campos usar para ubicar el punto
-        a evaluar (por defecto se asume el origen).
-    strict
-        Política de manejo ante inconsistencias.
-
-    Returns
-    -------
-    TripDataset
-        Dataset filtrado.
+    Aplica el filtrado por `where` (AND entre campos) y registra issues en `report`.
     """
     raise NotImplementedError
 
 
-def filter_by_polygon(
+def _apply_time_filter(
     trips: TripDataset,
     *,
-    geometry: Any,
-    fields: tuple[FieldName, FieldName] = ("origin_lon", "origin_lat"),
-    predicate: str = "within",
-    strict: bool = False,
+    time: TimeFilter,
+    report: OperationReport,
+    strict: bool,
+    max_issues: int,
 ) -> TripDataset:
     """
-    Filtra viajes por una geometría poligonal.
+    Aplica el filtrado temporal sobre el intervalo del viaje [origin_time_utc, destination_time_utc].
 
-    Parameters
-    ----------
-    trips
-        Conjunto de viajes en formato Golondrina.
-    geometry
-        Geometría del polígono (tipo flexible). La implementación puede requerir una
-        dependencia opcional (p.ej. shapely).
-    fields
-        Tupla (lon_field, lat_field) usada para obtener el punto a filtrar.
-    predicate
-        Relación espacial a aplicar. Valores típicos: ``"within"``, ``"intersects"``.
-    strict
-        Política de manejo ante inconsistencias.
-
-    Returns
-    -------
-    TripDataset
-        Dataset filtrado.
     """
     raise NotImplementedError
 
 
-def filter_by_domain_values(
+def _apply_spatial_filter(
     trips: TripDataset,
     *,
-    field: FieldName,
-    values: Sequence[DomainValue],
-    strict: bool = False,
+    bbox: Optional[BBox],
+    polygon: Optional[Polygon],
+    h3_cells: Optional[Iterable[str]],
+    spatial_predicate: SpatialPredicate,
+    origin_h3_field: str,
+    destination_h3_field: str,
+    report: OperationReport,
+    strict: bool,
+    max_issues: int,
 ) -> TripDataset:
     """
-    Filtra viajes por valores categóricos permitidos (dominio de valores) de un campo.
-
-    Parameters
-    ----------
-    trips
-        Conjunto de viajes en formato Golondrina.
-    field
-        Campo categórico a filtrar (p.ej. ``"purpose"``, ``"mode"``).
-    values
-        Valores permitidos del dominio.
-    strict
-        Política de manejo ante inconsistencias.
-
-    Returns
-    -------
-    TripDataset
-        Dataset filtrado.
-    """
-    raise NotImplementedError
-
-def filter_by_time_range(
-    trips: TripDataset,
-    *,
-    time_filter: TimeFilter,
-    keep_metadata: bool = True,
-) -> TripDataset:
-    """
-    Aplica un filtro temporal al conjunto de viajes según la especificación dada.
-
-    Parameters
-    ----------
-    trips
-        Conjunto de viajes a filtrar.
-    time_filter
-        Especificación del filtro temporal (rango + semántica).
-    keep_metadata
-        Si True, conserva y actualiza metadatos en el dataset resultante.
-
-    Returns
-    -------
-    TripDataset
-        Nuevo dataset filtrado (no modifica el objeto original).
+    Aplica filtrado espacial (bbox/polygon/h3_cells) según `spatial_predicate`.
     """
     raise NotImplementedError

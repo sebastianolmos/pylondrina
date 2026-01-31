@@ -35,7 +35,7 @@ class CleanOptions:
     drop_rows_by_categorical_values:
         Mapeo campo categórico -> lista de valores a eliminar. Si una fila tiene en ese campo un
         valor presente en la lista, la fila se elimina. Útil para eliminar 'unknown', NaN ya
-        recodificados a 'unknown', u otras categorías no deseadas.
+        recodificados a 'unknown', u otras categorías no deseadas. Si es vacio o {}, no aplica.
         Ejemplo: {"purpose": ["unknown"], "mode": ["unknown", "other"]}.
     """
 

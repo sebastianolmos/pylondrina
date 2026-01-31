@@ -9,12 +9,11 @@ Incluye:
 """
 
 from .filtering import (
+    FilterOptions,
+    TimeFilter,
+    TimePredicate,
+    SpatialPredicate,
     filter_trips,
-    filter_by_h3_cells,
-    filter_by_bbox,
-    filter_by_polygon,
-    filter_by_domain_values,
-    filter_by_time_range,
 )
 
 from .flows import (
@@ -44,12 +43,11 @@ from .enrich import (
 
 __all__ = [
     # filtering
+    "FilterOptions",
+    "TimeFilter",
+    "TimePredicate",
+    "SpatialPredicate",
     "filter_trips",
-    "filter_by_h3_cells",
-    "filter_by_bbox",
-    "filter_by_polygon",
-    "filter_by_domain_values",
-    "filter_by_time_range",
     # flows
     "FlowBuildOptions",
     "build_flows",
