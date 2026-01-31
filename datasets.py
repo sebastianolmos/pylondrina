@@ -11,6 +11,7 @@ import pandas as pd
 from .schema import TripSchema, TraceSchema
 from .types import FieldCorrespondence, ValueCorrespondence
 from .reports import ValidationReport
+from .validation import ValidationOptions, validate_trips
 
 
 @dataclass
@@ -50,18 +51,24 @@ class TripDataset:
     domains_effective: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def validate(self) -> ValidationReport:
+    def validate(self, *, options: Optional[ValidationOptions] = None) -> ValidationReport:
         """
-        Valida el dataset contra su esquema aplicado.
+        Valida este `TripDataset` usando `pylondrina.validation.validate_trips` (API v1.1).
+
+        Parameters
+        ----------
+        options : ValidationOptions, optional
+            Opciones de validación. Si None, se usan defaults v1.1.
 
         Returns
         -------
         ValidationReport
-            Reporte de validación con errores/advertencias y resumen.
+            Reporte de validación.
 
-        Notes
-        -----
-        - En la implementación, este método delega en `pylondrina.validation.validate_trips`.
+        Raises
+        ------
+        ValidationError
+            Si `options.strict=True` y hay issues nivel "error".
         """
         raise NotImplementedError
 
