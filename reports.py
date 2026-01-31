@@ -39,25 +39,33 @@ class Issue:
     row_count: Optional[int] = None
     details: Optional[Dict[str, Any]] = None
 
-
-@dataclass
-class ValidationReport:
+@dataclass(frozen=True)
+class OperationReport:
     """
-    Reporte de validación de un dataset contra un esquema.
+    Reporte base para operaciones de Pylondrina que emiten Issues y un summary.
 
     Attributes
     ----------
     ok : bool
-        True si no existen errores; False en caso contrario.
+        True si la operación no produjo Issues de nivel error.
     issues : list[Issue]
-        Lista completa de hallazgos (errores, advertencias, info).
+        Lista de issues emitidos durante la operación.
     summary : dict
-        Resumen estructurado (p. ej., conteos por tipo, cobertura de campos, etc.).
+        Resumen serializable (JSON) con métricas y banderas relevantes de la operación.
     """
     ok: bool
-    issues: List[Issue] = field(default_factory=list)
-    summary: Dict[str, Any] = field(default_factory=dict)
-    parameters: Dict[str, Any] = field(default_factory=dict) 
+    issues: List["Issue"]
+    summary: Dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ValidationReport(OperationReport):
+    """
+    Reporte de validación de TripDataset.
+
+    Hereda de OperationReport para unificar la forma de reportar (issues + summary).
+    """
+    pass
 
 
 @dataclass

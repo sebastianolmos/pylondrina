@@ -4,14 +4,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 
 from .schema import TripSchema, TraceSchema
 from .types import FieldCorrespondence, ValueCorrespondence
-from .reports import ValidationReport
+from .reports import ValidationReport, OperationReport
 from .validation import ValidationOptions, validate_trips
+from .correspondence import FieldCorrections, ValueCorrections
+from .fixing import FixCorrespondenceOptions, fix_trips_correspondence
 
 
 @dataclass
@@ -41,6 +43,7 @@ class TripDataset:
     Notes
     -----
     - Este objeto es principalmente un contenedor de estado.
+    - El estado de validación se representa mediante un flag en metadata: `metadata["flags"]["validated"]` (bool).
     """
     data: pd.DataFrame
     schema: TripSchema
@@ -71,6 +74,45 @@ class TripDataset:
             Si `options.strict=True` y hay issues nivel "error".
         """
         raise NotImplementedError
+    
+    @property
+    def is_validated(self) -> bool:
+        """
+        Retorna True si el dataset está marcado como validado en metadata.
+        """
+        flags = self.metadata.get("flags", {})
+        return bool(flags.get("validated", False))
+
+    def _set_validated_flag(self, value: bool) -> None:
+        """
+        Marca el flag de validación en metadata.
+
+        Parameters
+        ----------
+        value : bool
+            True para marcar como validado; False para marcar como no validado.
+        """
+        self.metadata.setdefault("flags", {})
+        self.metadata["flags"]["validated"] = bool(value)
+    
+    def fix_correspondence(
+        self,
+        *,
+        field_corrections: Optional[FieldCorrections] = None,
+        value_corrections: Optional[ValueCorrections] = None,
+        options: Optional[FixCorrespondenceOptions] = None,
+        correspondence_context: Optional[Dict[str, Any]] = None,
+    ) -> Tuple["TripDataset", OperationReport]:
+        """
+        Wrapper de conveniencia para `fix_trips_correspondence(...)`.
+        """
+        return fix_trips_correspondence(
+            self,
+            field_corrections=field_corrections,
+            value_corrections=value_corrections,
+            options=options,
+            correspondence_context=correspondence_context,
+        )
 
 
 @dataclass
