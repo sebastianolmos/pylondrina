@@ -16,7 +16,7 @@ from .schema import FieldSpec, DomainSpec, TripSchema, TraceSchema
 from .datasets import TripDataset, FlowDataset, TraceDataset
 from .reports import Issue, ImportReport, ValidationReport, InferenceReport, FlowBuildReport, ConsistencyReport
 from .errors import PylondrinaError, SchemaError, ValidationError, ImportError, InferenceError
-from .io import TripWriteOptions, write_trips
+from .io import ReadTripsOptions, read_trips, TripWriteOptions, write_trips
 
 from .importing import (
     import_trips_from_dataframe,
@@ -55,6 +55,8 @@ __all__ = [
     # IO
     "TripWriteOptions",
     "write_trips",
+    "ReadTripsOptions",
+    "read_trips",
 ]
 
 
