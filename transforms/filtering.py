@@ -58,7 +58,7 @@ Reglas de interpretación
 -----------------------
 1) Escalar: {"user_id": 123}  -> equivale a {"user_id": {"eq": 123}}
 
-2) Secuencia (list/tuple/set): {"mode": ["bus", "metro"]} -> equivale a {"mode": {"in": ["bus", "metro"]}}
+2) Secuencia (list): {"mode": ["bus", "metro"]} -> equivale a {"mode": {"in": ["bus", "metro"]}}
 
 3) Dict operador->valor:
    {
@@ -80,7 +80,7 @@ WhereClause = Mapping[str, WhereValue]
 """
 Cláusula declarativa de filtros por campos (AND entre campos).
 
-Ejemplo:
+Ejemplos:
 where: WhereClause = {
     "user_id": 123,                          # eq implícito: user_id == 123
     "purpose": "work",                       # eq implícito: purpose == "work"

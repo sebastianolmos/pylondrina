@@ -16,6 +16,7 @@ from .schema import FieldSpec, DomainSpec, TripSchema, TraceSchema
 from .datasets import TripDataset, FlowDataset, TraceDataset
 from .reports import Issue, ImportReport, ValidationReport, InferenceReport, FlowBuildReport, ConsistencyReport
 from .errors import PylondrinaError, SchemaError, ValidationError, ImportError, InferenceError
+from .io import TripWriteOptions, write_trips
 
 from .importing import (
     import_trips_from_dataframe,
@@ -51,6 +52,9 @@ __all__ = [
     "export_to_flowmap_blue",
     "TripEnrichOptions",
     "enrich_trips",
+    # IO
+    "TripWriteOptions",
+    "write_trips",
 ]
 
 
