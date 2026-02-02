@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Mapping
 
 import pandas as pd
 
@@ -141,26 +141,38 @@ class TripDataset:
 @dataclass
 class FlowDataset:
     """
-    Conjunto de flujos OD construido a partir de un TripDataset.
+    Dataset de flujos OD construido a partir de un TripDataset en formato Golondrina.
 
     Attributes
     ----------
-    data : pandas.DataFrame
-        Tabla de flujos (origen, destino, conteo, y dimensiones opcionales).
-    source_trips : TripDataset, optional
-        Referencia al dataset de viajes que dio origen a los flujos (si se conserva).
-    aggregation_spec : dict
-        Parámetros de agregación usados (resolución H3, intervalos temporales, filtros, umbrales).
-    flow_to_trips : dict
-        Trazabilidad: identificador de flujo -> identificadores de viajes miembros (si se conserva).
-    metadata : dict
-        Metadatos adicionales (p. ej. resumen de construcción, exportaciones, etc.).
+    flows:
+        DataFrame con flujos agregados (OD). Debe incluir, al menos, las claves OD efectivas.
+
+    flow_to_trips:
+        Tabla opcional de correspondencia entre flujos y viajes fuente (útil para auditoría,
+        explicación o debugging). Puede omitirse por performance.
+
+    aggregation_spec:
+        Especificación serializable (dict) de la agregación efectivamente aplicada: resolución,
+        segmentación, base temporal, umbrales, etc. Se usa para reproducibilidad.
+
+    source_trips:
+        Referencia opcional al TripDataset de origen (solo en memoria). No se considera parte
+        de la persistencia.
+
+    metadata:
+        Metadatos serializables del FlowDataset (incluye `events` del pipeline y trazabilidad).
+
+    provenance:
+        Provenance opcional del artefacto derivado, en formato serializable (mapping/dict).
     """
-    data: pd.DataFrame
-    source_trips: Optional[TripDataset] = None
-    aggregation_spec: Dict[str, Any] = field(default_factory=dict)
-    flow_to_trips: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    flows: pd.DataFrame
+    flow_to_trips: Optional[pd.DataFrame]
+    aggregation_spec: dict
+    source_trips: Optional["TripDataset"]
+    metadata: dict
+    provenance: Optional[Mapping[str, Any]] = None
 
 
 @dataclass
