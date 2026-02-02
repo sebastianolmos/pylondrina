@@ -110,6 +110,24 @@ class TripSchema:
             Si el campo no existe en el catálogo.
         """
         raise NotImplementedError
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convierte este TripSchema a un diccionario **JSON-safe** para persistencia en `metadata.json`.
+
+        El diccionario retornado representa un *snapshot* estable del esquema (v1.1) y debe poder
+        serializarse con `json.dumps(...)` sin transformaciones adicionales.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Diccionario serializable (JSON-safe) con la especificación del esquema. En v1.1
+            se espera, como mínimo, que incluya:
+            - `fields`: lista de especificaciones de campos.
+            - `domains`: definición de dominios/catálogos (si aplica).
+
+        """
+        raise NotImplementedError
 
 
 @dataclass(frozen=True)

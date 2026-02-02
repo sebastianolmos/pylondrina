@@ -68,12 +68,10 @@ def write_trips(
     OperationReport
         Reporte de la operación. El summary debe incluir rutas escritas y conteos básicos.
 
-    Raises
+    Notes
     ------
-    ValidationError
-        Si `options.require_validated=True` y el dataset no aparece como validado.
-    ExportError
-        Si ocurre un error de I/O o el destino existe y `mode="error_if_exists"`.
+    - metadata.json incluye un snapshot serializable del TripSchema del dataset.
+    - read_trips() puede reconstruir schema desde metadata si no se entrega en opciones.
     """
     raise NotImplementedError
 
