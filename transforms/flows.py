@@ -1,135 +1,112 @@
 # -------------------------
 # file: pylondrina/transforms/flows.py
 # -------------------------
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional, Sequence, Literal, Tuple
+from typing import Optional, Sequence, Tuple, Literal
 
-from ..datasets import TripDataset, FlowDataset
-from ..reports import FlowBuildReport, Issue
+from ..datasets import FlowDataset, TripDataset
+from ..reports import OperationReport
 
 
-TimeAggregation = Literal["hour", "day", "week", "month", "none"]
+TimeAggregation = Literal["none", "hour", "day", "week", "month"]
+"""
+Granularidad temporal para construir flujos.
+
+- "none": no particiona temporalmente (un flujo por OD y segmentación).
+- "hour"/"day"/"week"/"month": agrega además por “bin” temporal según `time_basis`.
+"""
+
 TimeBasis = Literal["origin", "destination"]
-TimePredicate = Literal["starts_within", "ends_within", "overlaps", "contains"]
+"""
+Campo temporal base para ubicar el viaje en el bin cuando `time_aggregation != "none"`.
+
+- "origin": usa `origin_time_utc` para asignar el viaje al bin.
+- "destination": usa `destination_time_utc` para asignar el viaje al bin.
+"""
 
 
 @dataclass(frozen=True)
 class FlowBuildOptions:
     """
-    Configuración para construir flujos (FlowDataset) a partir de viajes OD.
+    Opciones para construir flujos OD a partir de un TripDataset.
 
-    Esta estructura agrupa los parámetros que controlan:
-    (i) la agregación espacial (por celdas H3),
-    (ii) la agregación/partición temporal opcional, y
-    (iii) el umbral mínimo de tamaño de flujo.
+    Parameters / Attributes
+    -----------------------
+    h3_resolution:
+        Resolución H3 objetivo de agregación para los flujos.
 
-    Parameters
-    ----------
-    h3_resolution : int
-        Resolución H3 a la cual se discretizan origen y destino para formar pares OD.
-        A mayor valor, mayor detalle espacial (celdas más pequeñas).
-    group_by : sequence of str, optional
-        Campos estándar del `TripDataset` por los cuales segmentar los flujos además del par OD
-        (y además de la partición temporal si aplica). Cada campo agrega una dimensión de
-        segmentación, creando flujos más específicos.
-        Por ejemplo, segmentar por ``["mode"]`` genera flujos OD separados por modo.
-    time_aggregation : {"hour","day","week","month","none"}, default="none"
-        Granularidad temporal para particionar el conteo de flujos. Si es ``"none"``,
-        no se agrega dimensión temporal al flujo.
-    time_basis : {"origin","destination"}, default="origin"
-        Campo temporal base para la partición temporal: tiempo de inicio (origen) o de término
-        (destino).
-    time_predicate : {"starts_within","ends_within","overlaps","contains"}, default="starts_within"
-        Regla conceptual utilizada cuando la construcción de flujos se combina con filtros
-        temporales en etapas previas (p.ej. `filter_by_time_range`). Se mantiene como metadato
-        para trazabilidad y consistencia del pipeline.
-    min_trips_per_flow : int, default=1
-        Umbral mínimo de viajes para conservar un flujo. Flujos con conteo inferior se descartan.
-    keep_flow_to_trips : bool, default=False
-        Si es True, el `FlowDataset` mantiene una estructura que permite relacionar cada flujo
-        con los viajes que lo componen (puede ser costoso en memoria para datasets grandes).
-    strict : bool, default=False
-        Si es True, inconsistencias críticas en campos requeridos o tipos esperados deben
-        traducirse en errores/excepciones en lugar de solo advertencias (según el diseño del
-        validador).
+    group_by:
+        Campos adicionales por los que se segmenta el flujo (p. ej. `mode`, `purpose`, etc.).
+        Si es None, se agregan flujos solo por OD (y por tiempo si aplica).
 
-    Notes
-    -----
-    - `group_by` debe referirse a nombres estándar de campos (no nombres originales de fuente).
-    - La semántica exacta de cómo se representa la dimensión temporal en el flujo (p.ej. columna
-      `time_bucket`) se define en `build_flows`.
+    time_aggregation:
+        Granularidad temporal de agregación. Si es None, no se agrega dimensión temporal.
+
+    time_basis:
+        Campo temporal base para el binning: `origin` (inicio) o `destination` (término).
+
+    min_trips_per_flow:
+        Umbral mínimo de viajes para conservar un flujo (filtra flujos muy pequeños).
+
+    keep_flow_to_trips:
+        Si True, construye `flow_to_trips` (correspondencia flujo→viajes). Si False, omite
+        esa tabla para acelerar la construcción.
+
+    require_validated:
+        Si True (default), exige que el TripDataset esté validado para construir flujos.
+        Si False, permite construir para debugging/exploración (registrando issue).
     """
-    h3_resolution: int
+
+    h3_resolution: int = 8
     group_by: Optional[Sequence[str]] = None
 
-    time_aggregation: TimeAggregation = "none"
+    time_aggregation: Optional[TimeAggregation] = None
     time_basis: TimeBasis = "origin"
-    time_predicate: TimePredicate = "starts_within"
 
     min_trips_per_flow: int = 1
-
     keep_flow_to_trips: bool = False
-    strict: bool = False
+
+    require_validated: bool = True
 
 
 def build_flows(
     trips: TripDataset,
     *,
-    options: FlowBuildOptions,
-    origin_h3_field: str = "origin_h3",
-    destination_h3_field: str = "destination_h3",
-    origin_time_field: str = "origin_time",
-    destination_time_field: str = "destination_time",
-    extra_metadata: Optional[Mapping[str, Any]] = None,
-) -> Tuple[FlowDataset, FlowBuildReport]:
+    options: Optional[FlowBuildOptions] = None,
+    strict: bool = False,
+    max_issues: int = 1000,
+) -> Tuple[FlowDataset, OperationReport]:
     """
-    Construye un `FlowDataset` agregando viajes OD del `TripDataset`.
+    Construye flujos OD (FlowDataset) a partir de un TripDataset Golondrina.
 
-    El resultado corresponde a una tabla de flujos donde cada fila representa un agregado
-    (p.ej. por par origen-destino discretizado en H3) y su conteo de viajes. Opcionalmente,
-    el agregado puede segmentarse por dimensiones adicionales (`options.group_by`) y/o por
-    una partición temporal (`options.time_aggregation`).
+    En v1.1:
+    - Por defecto requiere trips validados (`options.require_validated=True`).
+    - Agrega por OD en resolución H3 objetivo (`options.h3_resolution`), y opcionalmente segmenta
+      por campos (`group_by`) y/o por tiempo (`time_aggregation` + `time_basis`).
+    - Puede filtrar flujos con pocos viajes (`min_trips_per_flow`).
+    - Puede incluir correspondencia flujo→viajes (`keep_flow_to_trips`) de manera opcional.
 
     Parameters
     ----------
-    trips : TripDataset
-        Conjunto de viajes en formato Golondrina desde el cual se agregan flujos.
-    options : FlowBuildOptions
-        Configuración de agregación y umbrales.
-    origin_h3_field : str, default="origin_h3"
-        Nombre del campo (estándar) que contiene la celda H3 del origen.
-    destination_h3_field : str, default="destination_h3"
-        Nombre del campo (estándar) que contiene la celda H3 del destino.
-    origin_time_field : str, default="origin_time"
-        Nombre del campo (estándar) con el timestamp del origen.
-        Se usa si `options.time_basis="origin"` y/o si `options.time_aggregation != "none"`.
-    destination_time_field : str, default="destination_time"
-        Nombre del campo (estándar) con el timestamp del destino.
-        Se usa si `options.time_basis="destination"` y/o si `options.time_aggregation != "none"`.
-    extra_metadata : mapping, optional
-        Metadatos adicionales a incorporar en `FlowDataset.metadata` para trazabilidad
-        (p.ej. nombre de la fuente, parámetros externos del experimento, etc.).
+    trips:
+        TripDataset de entrada (viajes en formato Golondrina).
+
+    options:
+        Opciones de construcción. Si es None, se usa `FlowBuildOptions()`.
+
+    strict:
+        Si True, fallas de configuración o precondiciones se elevan a error; si False,
+        se registran como issues y se intenta degradar cuando sea posible.
+
+    max_issues:
+        Límite máximo de issues acumulados en el reporte.
 
     Returns
     -------
-    FlowDataset
-        Conjunto de flujos OD agregados, con metadatos que describen la especificación de
-        agregación (resolución H3, segmentación, dimensión temporal si aplica) y el umbral
-        utilizado.
-
-    Raises
-    ------
-    SchemaValidationError
-        Si `options.strict=True` y faltan campos requeridos para la agregación o existen
-        incompatibilidades de tipo/forma que impiden construir flujos.
-    ValueError
-        Si la configuración es incoherente (por ejemplo, `min_trips_per_flow < 1`).
-
-    Notes
-    -----
-    - Este método asume que el `TripDataset` ya fue estandarizado y validado.
-    - Si `options.keep_flow_to_trips=True`, el resultado puede ser costoso para datasets
-      masivos; se recomienda usarlo solo para análisis exploratorio o auditorías puntuales.
+    (flow_dataset, report):
+        flow_dataset: FlowDataset con `flows` y, opcionalmente, `flow_to_trips`.
+        report: OperationReport con issues y summary serializable.
     """
     raise NotImplementedError
-
