@@ -133,46 +133,35 @@ class TripSchema:
 @dataclass(frozen=True)
 class TraceSchema:
     """
-    Esquema de trazas (Trace Schema) para interpretar datos como trayectoria/traza.
+    Esquema de trazas (Trace Schema) para TraceDataset en formato Golondrina.
+
+    En v1.1, TraceDataset utiliza nombres de campos estándar definidos por el Formato Golondrina.
+    Por lo tanto, este esquema NO define mapeos desde columnas externas; su propósito es describir
+    el conjunto de campos estándar y reglas/contexto de interpretación.
 
     Attributes
     ----------
     version : str
         Versión del esquema.
     fields : dict[FieldName, FieldSpec]
-        Catálogo de campos esperados y reglas (si aplica).
+        Catálogo de campos estándar esperados y reglas (si aplica).
     required : list[FieldName]
-        Lista de campos requeridos. Si se deja vacía, el sistema asume como requeridos los roles
-        mínimos (user_id, timestamp, lat, lon) según los nombres configurados.
-    user_id_field : FieldName
-        Nombre del campo que identifica usuario/dispositivo.
-    time_field : FieldName
-        Nombre del campo temporal (timestamp).
-    lon_field : FieldName
-        Nombre del campo de longitud o coordenada X.
-    lat_field : FieldName
-        Nombre del campo de latitud o coordenada Y.
+        Lista explícita de campos requeridos. Si se deja vacía, el sistema asume como requeridos
+        los campos mínimos de trazas definidos por Golondrina (p. ej., user_id, timestamp, lat, lon).
     crs : str, optional
-        CRS asociado a coordenadas. Por defecto EPSG:4326 si se usa lon/lat.
+        CRS asociado a coordenadas. Por defecto EPSG:4326.
     timezone : str, optional
         Zona horaria para interpretar timestamps si no son timezone-aware.
 
     Notes
     -----
-    - En v1 se usa para validaciones básicas y consistencia (espacio-temporal) antes de inferir viajes.
-    - `required` se mantiene por compatibilidad/expresividad, pero el mínimo operativo lo definen
-      los campos de rol. En general, conviene no duplicar: o defines `required` explícitamente
-      o confías en los roles mínimos.
+    - El mapeo desde fuentes externas se realiza en `import_traces` mediante `field_correspondence`
+      y/o `preprocess`.
     """
     version: str = "0.1.0"
 
-    fields: Dict[FieldName, FieldSpec] = field(default_factory=dict)
-    required: List[FieldName] = field(default_factory=list)
-
-    user_id_field: FieldName = "user_id"
-    time_field: FieldName = "timestamp"
-    lon_field: FieldName = "lon"
-    lat_field: FieldName = "lat"
+    fields: Dict["FieldName", "FieldSpec"] = field(default_factory=dict)
+    required: List["FieldName"] = field(default_factory=list)
 
     crs: Optional[str] = "EPSG:4326"
     timezone: Optional[str] = None
