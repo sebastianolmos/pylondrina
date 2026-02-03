@@ -31,7 +31,6 @@ from .sources.helpers import import_trips_from_source
 from .transforms.flows import FlowBuildOptions, build_flows
 from .transforms.concat import TripConcatOptions, concat_trip_datasets
 from .transforms.enrich import TripEnrichOptions, enrich_trips
-from .export.flowmap_blue import export_to_flowmap_blue
 
 __all__ = [
     # schemas / specs
