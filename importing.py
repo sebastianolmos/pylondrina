@@ -93,6 +93,35 @@ def import_trips_from_dataframe(
     ImportError
         Si faltan campos obligatorios y options.strict=True (o política equivalente).
     """
+
+    # 1. Crear copia del dataframe original para no modificar el input
+
+    # 2. Revisar que tripSchema este correctamente construido (que fields sea no vacio, que cada FieldSpec tenga dtype y constrainsts validos, etc.). Si no es así, lanzar error (ImportError) o reportar issue dependiendo de options.strict.
+
+    # 3. Revisar options, que tenga selected_fields validos. Si options es None, crear uno con valores por defecto. Ademas obtener las opliticas de este objeto (p. ej., qué campos conservar, cómo manejar errores, etc.) para usarlas en los siguientes pasos.
+
+    # 4. Aplicar correspondencia de campos (renombrado y selección) para alinear con nombres estándar Golondrina, con field_correspondence. Esto incluye:
+    #    - Validar que los campos obligatorios del esquema estén presentes en el DataFrame (después de aplicar correspondencia).
+    #    - Validar que los campos seleccionados por el usuario estén presentes (si se especificaron).
+    #    - Si options.keep_extra_fields=False, eliminar columnas que no estén en el esquema (después de aplicar correspondencia).
+
+    # 5. Estandarizar valores categóricos a los dominios definidos por el esquema (y registrar dominios efectivos), con value_correspondence. Esto incluye:
+    #    - Para cada campo categórico, mapear valores fuente a valores canónicos según el esquema y value_correspondence.
+    #    - Si aparecen valores fuera del dominio base, aplicar extensión controlada si options.strict_domains=False y el DomainSpec lo permite, o reportar error si options.strict_domains=True o DomainSpec.extendable=False.
+
+    # 6. Crear las columnas de índice espacial (H3) para las columnas de origen/destino que esten presentes en el esquema, usando la resolución h3_resolution. Registrar esta resolución en los metadatos.
+    #    - Se debe verificar que en los campos haya al menos coordenadas para origen o destino (ya sea en formato lat/lon o en formato de dirección que se pueda geocodificar). Si no se pueden derivar índices H3, se debe reportar un issue pero no necesariamente bloquear la importación (dependiendo de options.strict).
+
+    # 7. Construir metadatos de trazabilidad para el TripDataset importado, incluyendo:
+    #    - Versión del esquema aplicado.
+    #    - Fuente declarada (source_name).
+    #    - Correspondencia de campos aplicada (campo estándar -> columna/field de origen).
+    #    - Correspondencia de valores aplicada por campo (campo -> {valor_origen -> valor_canónico}).
+    #    - Dominios efectivos por campo categórico, incluyendo extensiones controladas si aplica.
+    #    - Armar el evento de importación con timestamp, resumen de validación, etc.
+
+    # 8. Construir el TripDataset con el DataFrame estandarizado, el esquema aplicado, los metadatos de procedencia y trazabilidad, y un reporte de importación con los hallazgos (issues) encontrados durante el proceso.
+
     raise NotImplementedError
 
 
