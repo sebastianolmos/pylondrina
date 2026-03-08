@@ -64,7 +64,7 @@ class OperationReport:
     parameters: Optional[Dict[str, Any]] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class ValidationReport(OperationReport):
     """
     Reporte de validación de TripDataset.

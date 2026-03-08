@@ -10,11 +10,6 @@ import pandas as pd
 
 from .schema import TripSchema, TraceSchema
 from .types import FieldCorrespondence, ValueCorrespondence
-from .reports import ValidationReport, OperationReport
-from .validation import ValidationOptions, validate_trips
-from .correspondence import FieldCorrections, ValueCorrections
-from .fixing import FixCorrespondenceOptions, fix_trips_correspondence
-from transforms.filtering import filter_trips, FilterOptions
 
 
 @dataclass
@@ -54,27 +49,6 @@ class TripDataset:
     value_correspondence: Dict[str, Dict[str, str]] = field(default_factory=dict)
     domains_effective: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def validate(self, *, options: Optional[ValidationOptions] = None) -> ValidationReport:
-        """
-        Valida este `TripDataset` usando `pylondrina.validation.validate_trips` (API v1.1).
-
-        Parameters
-        ----------
-        options : ValidationOptions, optional
-            Opciones de validación. Si None, se usan defaults v1.1.
-
-        Returns
-        -------
-        ValidationReport
-            Reporte de validación.
-
-        Raises
-        ------
-        ValidationError
-            Si `options.strict=True` y hay issues nivel "error".
-        """
-        raise NotImplementedError
     
     @property
     def is_validated(self) -> bool:
@@ -95,47 +69,7 @@ class TripDataset:
         """
         self.metadata.setdefault("flags", {})
         self.metadata["flags"]["validated"] = bool(value)
-    
-    def fix_correspondence(
-        self,
-        *,
-        field_corrections: Optional[FieldCorrections] = None,
-        value_corrections: Optional[ValueCorrections] = None,
-        options: Optional[FixCorrespondenceOptions] = None,
-        correspondence_context: Optional[Dict[str, Any]] = None,
-    ) -> Tuple["TripDataset", OperationReport]:
-        """
-        Wrapper de conveniencia para `fix_trips_correspondence(...)`.
-        """
-        return fix_trips_correspondence(
-            self,
-            field_corrections=field_corrections,
-            value_corrections=value_corrections,
-            options=options,
-            correspondence_context=correspondence_context,
-        )
-    def filter(
-        self,
-        *,
-        options: "Optional[FilterOptions]" = None,
-        max_issues: int = 1000,
-    ) -> "Tuple[TripDataset, OperationReport]":
-        """
-        Aplica un filtrado al dataset (atajo orientado a API mixta).
 
-        Parameters
-        ----------
-        options:
-            Opciones del filtro. Si es None, no aplica filtros (pero puede registrar evento/report).
-        max_issues:
-            Límite máximo de issues a registrar.
-
-        Returns
-        -------
-        (TripDataset, OperationReport)
-            Dataset filtrado + reporte de la operación.
-        """
-        return filter_trips(self, options=options, max_issues=max_issues)
 
 
 @dataclass

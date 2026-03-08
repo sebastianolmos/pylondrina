@@ -21,7 +21,6 @@ from .flows import (
     build_flows,
     TimeAggregation,
     TimeBasis,
-    TimePredicate,
 )
 
 from .concat import (
@@ -29,11 +28,6 @@ from .concat import (
     concat_trip_datasets,
 )
 
-from .traces import (
-    TraceConsistencyOptions,
-    validate_trace_consistency,
-    compute_trace_stats,
-)
 
 from .enrich import (
     TripEnrichJoinHow, 
@@ -53,14 +47,9 @@ __all__ = [
     "build_flows",
     "TimeAggregation",
     "TimeBasis",
-    "TimePredicate",
     # concat
     "TripConcatOptions",
     "concat_trip_datasets",
-    # traces
-    "TraceConsistencyOptions",
-    "validate_trace_consistency",
-    "compute_trace_stats",
     # enrich
     "TripEnrichJoinHow",
     "TripEnrichOptions",
