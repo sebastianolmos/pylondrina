@@ -1,14 +1,38 @@
 # -------------------------
 # file: pylondrina/errors.py
 # -------------------------
+from __future__ import annotations
+
+from typing import Any, Optional, Sequence, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .reports import Issue  # solo para type hints
 
 class PylondrinaError(Exception):
     """
     Excepción base para errores del módulo Pylondrina.
 
-    Se recomienda capturar esta excepción cuando se desea manejar cualquier error
-    proveniente del módulo de manera genérica.
+    Atributos extra para trazabilidad:
+    - code: código estable (idealmente igual a Issue.code)
+    - details: dict JSON-safe con contexto
+    - issue: Issue gatillante (si aplica)
+    - issues: snapshot de Issues acumuladas hasta el fallo (si aplica)
     """
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: Optional[str] = None,
+        details: Optional[dict[str, Any]] = None,
+        issue: Optional["Issue"] = None,
+        issues: Optional[Sequence["Issue"]] = None,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.details = details
+        self.issue = issue
+        # snapshot inmutable (evita que se modifique la evidencia por accidente)
+        self.issues = tuple(issues) if issues is not None else None
 
 
 class SchemaError(PylondrinaError):
