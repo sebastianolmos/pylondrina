@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pylondrina"
+version = "0.1.0"
+description = "Pylondrina: librería Python para el formato Golondrina (viajes OD, validación y transformaciones)."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Sebastián Olmos" }
+]
+dependencies = [
+  "pandas>=2.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
