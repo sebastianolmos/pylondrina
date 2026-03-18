@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Tuple, Mapping
 
 import pandas as pd
 
-from pylondrina.schema import TripSchema, TraceSchema
+from pylondrina.schema import TripSchema, TraceSchema, TripSchemaEffective
 from pylondrina.types import FieldCorrespondence, ValueCorrespondence
 
 
@@ -47,8 +47,8 @@ class TripDataset:
     provenance: Dict[str, Any] = field(default_factory=dict)
     field_correspondence: Dict[str, str] = field(default_factory=dict)
     value_correspondence: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    domains_effective: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    schema_effective: TripSchemaEffective = field(default_factory=TripSchemaEffective)
     
     @property
     def is_validated(self) -> bool:

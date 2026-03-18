@@ -31,11 +31,22 @@ class ImportOptions:
     strict_domains : bool, default=False
         Si True, valores categóricos fuera del dominio base se consideran error.
         Si False, se permite extensión controlada del dominio a nivel de dataset (si el DomainSpec lo permite).
+    single_stage : bool, default=False
+        Si True, cada fila representa un viaje individual (no se repite trip_id y movement_seq=0).
+        Útil para fuentes ya "tripificadas" donde no hay etapas múltiples por viaje.
+    source_timezone : str, optional
+        Zona horaria de origen para datetimes naive (solo aplicable cuando se alcanza Tier 1).
+        Formatos aceptados por contrato de diseño:
+        - IANA: "Area/City" (ej: "America/Santiago")
+        - Offset fijo: "±HH:MM" (ej: "-03:00")
+        - "UTC" o "Z"
     """
     keep_extra_fields: bool = True
     selected_fields: Optional[Sequence[str]] = None
     strict: bool = False
     strict_domains: bool = False
+    single_stage: bool = False
+    source_timezone: Optional[str] = None
 
 
 def import_trips_from_dataframe(

@@ -8,6 +8,23 @@ from typing import Any, Dict, List, Optional, Sequence
 
 from pylondrina.types import FieldName, DomainValue
 
+import re
+
+VALID_DTYPES = {"string", "int", "float", "datetime", "categorical", "bool"}
+
+VALID_CONSTRAINT_KEYS = {
+    "nullable", "range", "datetime", "h3", "pattern", "length", "unique"
+}
+
+# Conjunto de constraints permitidos por dtype (heurística del formato)
+CONSTRAINTS_BY_DTYPE = {
+    "string": {"nullable", "pattern", "length", "unique", "h3"},
+    "int": {"nullable", "range", "unique"},
+    "float": {"nullable", "range", "unique"},
+    "bool": {"nullable", "unique"},
+    "datetime": {"nullable", "datetime", "unique"},
+    "categorical": {"nullable", "unique"},  # domain va aparte
+}
 
 @dataclass(frozen=True)
 class DomainSpec:
@@ -128,7 +145,143 @@ class TripSchema:
 
         """
         raise NotImplementedError
+    
+@dataclass
+class TripSchemaEffective:
+    # dtype realmente usado por campo durante import
+    dtype_effective: Dict[str, str] = field(default_factory=dict)
 
+    # razones/acciones aplicadas por campo (trazabilidad)
+    overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+    # dominios efectivos observados (incluye extensiones)
+    domains_effective: Dict[str, Any] = field(default_factory=dict)
+
+    # espacio para capacidades/tiers (futuro)
+    temporal: Dict[str, Any] = field(default_factory=dict)
+
+    # campos efectivos observados (no incluye extensiones)
+    fields_effective: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "dtype_effective": self.dtype_effective,
+            "overrides": self.overrides,
+            "domains_effective": self.domains_effective,
+            "temporal": self.temporal,
+            "fields_effective": self.fields_effective,
+        }
+
+def verify_trip_schema_fields(schema):
+    findings = []
+
+    for field_name, fs in schema.fields.items():
+        dtype = fs.dtype
+
+        # (1) dtype válido
+        if dtype not in VALID_DTYPES:
+            findings.append({
+                "field": field_name,
+                "level": "warning",
+                "kind": "dtype_invalid",
+                "detail": f"dtype='{dtype}' no está en {sorted(VALID_DTYPES)}"
+            })
+
+        # (2) categorical/domain
+        if dtype == "categorical":
+            if fs.domain is None:
+                findings.append({
+                    "field": field_name,
+                    "level": "warning",
+                    "kind": "categorical_no_domain",
+                    "detail": "dtype='categorical' pero domain=None"
+                })
+            else:
+                # domain declarado pero vacío -> candidato a bootstrapping en S6
+                if len(fs.domain.values) == 0:
+                    findings.append({
+                        "field": field_name,
+                        "level": "info",  # yo lo dejaría info (no es fallo; es señal)
+                        "kind": "categorical_empty_domain",
+                        "detail": "dtype='categorical' y DomainSpec.values vacío (bootstrapping mas adelante)"
+                    })
+
+                bad_vals = [v for v in fs.domain.values if not isinstance(v, str)]
+                if bad_vals:
+                    findings.append({
+                        "field": field_name,
+                        "level": "warning",
+                        "kind": "domain_values_not_string",
+                        "detail": f"DomainSpec.values contiene no-string: {bad_vals}"
+                    })
+
+        # (3) constraints keys + (4) pattern válido + (5) compatibilidad dtype-constraints
+        if fs.constraints is not None:
+            keys = list(fs.constraints.keys())
+
+            # keys desconocidas
+            unknown = [k for k in keys if k not in VALID_CONSTRAINT_KEYS]
+            if unknown:
+                findings.append({
+                    "field": field_name,
+                    "level": "warning",
+                    "kind": "unknown_constraints",
+                    "detail": f"constraints contiene llaves desconocidas: {unknown}"
+                })
+
+            # pattern compila
+            if "pattern" in fs.constraints:
+                pat = fs.constraints["pattern"]
+                if not isinstance(pat, str):
+                    findings.append({
+                        "field": field_name,
+                        "level": "error",
+                        "kind": "pattern_not_string",
+                        "detail": "constraints['pattern'] debe ser str"
+                    })
+                else:
+                    try:
+                        re.compile(pat)
+                    except re.error as e:
+                        findings.append({
+                            "field": field_name,
+                            "level": "error",
+                            "kind": "pattern_invalid",
+                            "detail": f"regex no compila: {e}"
+                        })
+
+            # compatibilidad dtype <-> constraints (solo si dtype es válido conocido)
+            if dtype in CONSTRAINTS_BY_DTYPE:
+                allowed = CONSTRAINTS_BY_DTYPE[dtype]
+                incompatible = [k for k in keys if (k in VALID_CONSTRAINT_KEYS and k not in allowed)]
+                if incompatible:
+                    findings.append({
+                        "field": field_name,
+                        "level": "warning",
+                        "kind": "constraint_incompatible_with_dtype",
+                        "detail": f"constraints {incompatible} no aplican a dtype='{dtype}'"
+                    })
+
+    return findings
+
+def build_schema_effective_from_findings(schema, findings):
+    eff = TripSchemaEffective()
+
+    # defaults: si no hay override, dtype_effective es el dtype del schema base
+    for fname, fs in schema.fields.items():
+        eff.dtype_effective[fname] = fs.dtype
+
+    for f in findings:
+        kind = f["kind"]
+        field = f["field"]
+
+        if kind in {"dtype_invalid", "categorical_no_domain"}:
+            eff.dtype_effective[field] = "string"
+            eff.overrides.setdefault(field, {})
+            eff.overrides[field]["dtype_effective"] = "string"
+            eff.overrides[field].setdefault("reasons", []).append(kind)
+
+    return eff
 
 @dataclass(frozen=True)
 class TraceSchema:
@@ -165,3 +318,4 @@ class TraceSchema:
 
     crs: Optional[str] = "EPSG:4326"
     timezone: Optional[str] = None
+
