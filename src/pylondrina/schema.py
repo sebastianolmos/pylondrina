@@ -3,7 +3,7 @@
 # -------------------------
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List, Optional, Sequence
 
 from pylondrina.types import FieldName, DomainValue
@@ -126,7 +126,9 @@ class TripSchema:
         KeyError
             Si el campo no existe en el catálogo.
         """
-        raise NotImplementedError
+        if name not in self.fields:
+            raise KeyError(name)
+        return self.fields[name]
     
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -144,7 +146,7 @@ class TripSchema:
             - `domains`: definición de dominios/catálogos (si aplica).
 
         """
-        raise NotImplementedError
+        return asdict(self)
     
 @dataclass
 class TripSchemaEffective:

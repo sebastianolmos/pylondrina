@@ -67,10 +67,10 @@ class TripDataset:
         value : bool
             True para marcar como validado; False para marcar como no validado.
         """
-        self.metadata.setdefault("flags", {})
-        self.metadata["flags"]["validated"] = bool(value)
-
-
+        if "is_validated" in self.metadata:
+            return bool(self.metadata.get("is_validated", False))
+        flags = self.metadata.get("flags", {})
+        return bool(flags.get("validated", False))
 
 @dataclass
 class FlowDataset:
