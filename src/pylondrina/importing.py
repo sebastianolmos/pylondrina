@@ -47,7 +47,16 @@ DM_PATTERN = re.compile(
     re.VERBOSE | re.IGNORECASE,
 )
 DMS_PATTERN = re.compile(
-    r"""^\s*(?P<deg>\d{1,3})[°\s]+(?P<minutes>\d{1,2})'\s*(?P<seconds>\d{1,2}(?:\.\d+)?)"\s*(?P<hem>[NSEW])\s*$""",
+    r"""^\s*
+    (?P<deg>\d{1,3})
+    (?:[°\s]+)
+    (?P<minutes>\d{1,2})
+    (?:['\s]+)
+    (?P<seconds>\d{1,2}(?:\.\d+)?)
+    (?:(?:["\s]+))
+    (?P<hem>[NSEW])
+    \s*$
+    """,
     re.VERBOSE | re.IGNORECASE,
 )
 
@@ -881,9 +890,10 @@ def _first_required_check_and_temporal_tier(
     ]
     if {"origin_time_utc", "destination_time_utc"}.issubset(cols):
         temporal_tier, temporal_fields_present = "tier_1", fields_present
-    if {"origin_time_local_hhmm", "destination_time_local_hhmm"}.issubset(cols):
+    elif {"origin_time_local_hhmm", "destination_time_local_hhmm"}.issubset(cols):
         temporal_tier, temporal_fields_present = "tier_2", fields_present
-    temporal_tier, temporal_fields_present = "tier_3", fields_present
+    else:
+        temporal_tier, temporal_fields_present = "tier_3", fields_present
 
     if temporal_tier in {"tier_2", "tier_3"}:
         emit_issue(
@@ -2024,3 +2034,10 @@ def _build_issues_summary(issues: Sequence[Issue]) -> Dict[str, Any]:
         "counts": dict(level_counts),
         "by_code": dict(code_counts),
     }
+
+def _json_is_serializable(obj: Any) -> bool:
+    try:
+        json.dumps(obj)
+        return True
+    except Exception:
+        return False
