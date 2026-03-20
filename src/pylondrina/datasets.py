@@ -6,6 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple, Mapping
 
+from pprint import pformat
 import pandas as pd
 
 from pylondrina.schema import TripSchema, TraceSchema, TripSchemaEffective
@@ -55,6 +56,8 @@ class TripDataset:
         """
         Retorna True si el dataset está marcado como validado en metadata.
         """
+        if "is_validated" in self.metadata:
+            return bool(self.metadata.get("is_validated", False))
         flags = self.metadata.get("flags", {})
         return bool(flags.get("validated", False))
 
@@ -67,10 +70,98 @@ class TripDataset:
         value : bool
             True para marcar como validado; False para marcar como no validado.
         """
-        if "is_validated" in self.metadata:
-            return bool(self.metadata.get("is_validated", False))
-        flags = self.metadata.get("flags", {})
-        return bool(flags.get("validated", False))
+        self.metadata["is_validated"] = bool(value)
+
+    def to_display_dict(self) -> Dict[str, Any]:
+        """
+        Devuelve una versión resumida/estructurada del dataset para impresión.
+        """
+        return {
+            "type": self.__class__.__name__,
+            "shape": self.data.shape,
+            "columns": list(self.data.columns),
+            "schema_version": self.schema_version,
+            "is_validated": self.is_validated,
+            "field_correspondence": self.field_correspondence,
+            "value_correspondence": self.value_correspondence,
+            "provenance": self.provenance,
+            "metadata": self.metadata,
+            "schema": self.schema,
+            "schema_effective": self.schema_effective,
+        }
+
+    def __str__(self) -> str:
+        """
+        Salida legible para print(dataset).
+        """
+        parts = [
+            f"{self.__class__.__name__}",
+            "-" * len(self.__class__.__name__),
+            f"shape: {self.data.shape}",
+            f"schema_version: {self.schema_version}",
+            f"is_validated: {self.is_validated}",
+            f"columns: {list(self.data.columns)}",
+        ]
+
+        parts.append("\ndata:")
+        data_str = str(self.data)
+        parts.append(data_str)
+
+        parts.append("\nschema:")
+        parts.append(pformat(self.schema, width=100, sort_dicts=False))
+
+        parts.append("\nschema_effective:")
+        parts.append(pformat(self.schema_effective, width=100, sort_dicts=False))
+
+        if self.provenance:
+            parts.append("\nprovenance:")
+            parts.append(pformat(self.provenance, width=100, sort_dicts=False))
+
+        if self.field_correspondence:
+            parts.append("\nfield_correspondence:")
+            parts.append(pformat(self.field_correspondence, width=100, sort_dicts=False))
+
+        if self.value_correspondence:
+            parts.append("\nvalue_correspondence:")
+            parts.append(pformat(self.value_correspondence, width=100, sort_dicts=False))
+
+        if self.metadata:
+            parts.append("\nmetadata:")
+            parts.append(pformat(self.metadata, width=100, sort_dicts=False))
+
+        return "\n".join(parts)
+
+    def __repr__(self) -> str:
+        """
+        Representación útil para consola e inspección.
+        Más compacta que __str__, pero todavía legible.
+        """
+        data_preview = self.data.head().to_string(index=True)
+
+        payload = {
+            "type": self.__class__.__name__,
+            "shape": self.data.shape,
+            "columns": list(self.data.columns),
+            "schema_version": self.schema_version,
+            "is_validated": self.is_validated,
+            "data_head": data_preview,
+            "provenance": self.provenance,
+            "field_correspondence": self.field_correspondence,
+            "value_correspondence": self.value_correspondence,
+            "metadata": self.metadata,
+            "schema": self.schema,
+            "schema_effective": self.schema_effective,
+        }
+        return pformat(payload, width=100, sort_dicts=False)
+
+    def _repr_pretty_(self, p, cycle) -> None:
+        """
+        Soporte para visualización bonita en IPython/Jupyter.
+        """
+        if cycle:
+            p.text(f"{self.__class__.__name__}(...)")
+        else:
+            p.text(str(self))
 
 @dataclass
 class FlowDataset:

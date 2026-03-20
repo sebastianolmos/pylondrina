@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+from pprint import pformat
 
 from pylondrina.types import FieldName, IssueLevel
 
@@ -104,6 +105,101 @@ class ImportReport:
     value_correspondence: Dict[str, Dict[str, str]] = field(default_factory=dict)
     schema_version: str = "0.0.0"
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_display_dict(self) -> Dict[str, Any]:
+        """
+        Devuelve una versión estructurada del reporte pensada para impresión legible.
+        """
+        return {
+            "type": self.__class__.__name__,
+            "ok": self.ok,
+            "schema_version": self.schema_version,
+            "issues_count": len(self.issues),
+            "issues": [
+                {
+                    "level": issue.level,
+                    "code": issue.code,
+                    "message": issue.message,
+                    "field": issue.field,
+                    "source_field": issue.source_field,
+                    "row_count": issue.row_count,
+                    "details": issue.details,
+                }
+                for issue in self.issues
+            ],
+            "summary": self.summary,
+            "parameters": self.parameters,
+            "field_correspondence": self.field_correspondence,
+            "value_correspondence": self.value_correspondence,
+            "metadata": self.metadata,
+        }
+
+    def __str__(self) -> str:
+        """
+        Salida legible para print(report).
+        """
+        parts = [
+            f"{self.__class__.__name__}",
+            "-" * len(self.__class__.__name__),
+            f"ok: {self.ok}",
+            f"schema_version: {self.schema_version}",
+            f"issues_count: {len(self.issues)}",
+        ]
+
+        if self.issues:
+            parts.append("\nissues:")
+            for i, issue in enumerate(self.issues, start=1):
+                parts.append(f"  [{i}] {issue.level.upper()} - {issue.code}")
+                parts.append(f"      message: {issue.message}")
+                if issue.field is not None:
+                    parts.append(f"      field: {issue.field}")
+                if issue.source_field is not None:
+                    parts.append(f"      source_field: {issue.source_field}")
+                if issue.row_count is not None:
+                    parts.append(f"      row_count: {issue.row_count}")
+                if issue.details is not None:
+                    formatted_details = pformat(issue.details, width=88, sort_dicts=False)
+                    indented = "\n".join(f"      {line}" for line in formatted_details.splitlines())
+                    parts.append("      details:")
+                    parts.append(indented)
+
+        if self.summary:
+            parts.append("\nsummary:")
+            parts.append(pformat(self.summary, width=100, sort_dicts=False))
+
+        if self.parameters:
+            parts.append("\nparameters:")
+            parts.append(pformat(self.parameters, width=100, sort_dicts=False))
+
+        if self.field_correspondence:
+            parts.append("\nfield_correspondence:")
+            parts.append(pformat(self.field_correspondence, width=100, sort_dicts=False))
+
+        if self.value_correspondence:
+            parts.append("\nvalue_correspondence:")
+            parts.append(pformat(self.value_correspondence, width=100, sort_dicts=False))
+
+        if self.metadata:
+            parts.append("\nmetadata:")
+            parts.append(pformat(self.metadata, width=100, sort_dicts=False))
+
+        return "\n".join(parts)
+
+    def __repr__(self) -> str:
+        """
+        Representación compacta pero legible para inspección.
+        """
+        data = self.to_display_dict()
+        return pformat(data, width=100, sort_dicts=False)
+
+    def _repr_pretty_(self, p, cycle) -> None:
+        """
+        Soporte para display bonito en IPython/Jupyter.
+        """
+        if cycle:
+            p.text(f"{self.__class__.__name__}(...)")
+        else:
+            p.text(str(self))
 
 
 @dataclass

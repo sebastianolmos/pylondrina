@@ -184,9 +184,10 @@ def import_trips_from_dataframe(
     required_fields = set(schema.required)
     if options_eff.selected_fields is None:
         target_schema_fields = set(schema_fields)
-    if len(options_eff.selected_fields) == 0:
+    elif len(options_eff.selected_fields) == 0:
         target_schema_fields = set(required_fields)
-    target_schema_fields = required_fields | (set(options_eff.selected_fields) & schema_fields )
+    else:
+        target_schema_fields = required_fields | (set(options_eff.selected_fields) & schema_fields )
 
     # Se hace el chequeo mínimo de requeridos y se detecta el tier temporal disponible.
     req_issues, temporal_tier_detected, temporal_fields_present = _first_required_check_and_temporal_tier(
@@ -230,13 +231,13 @@ def import_trips_from_dataframe(
     issues.extend(datetime_issues)
 
     # Se normalizan columnas HH:MM solo si el dataset está en tier 2
-    work, hhmm_normalization_stats, issues = _normalize_tier2_hhmm_columns(
+    work, hhmm_normalization_stats, tier_2_issues = _normalize_tier2_hhmm_columns(
         work,
         temporal_tier=temporal_tier_detected,
         schema=schema,
         issues=issues,
     )
-    issues.extend(hhmm_normalization_stats)
+    issues.extend(tier_2_issues)
 
     # Se parsean las coordenadas OD en grados decimales sin incorporar lógica CRS-aware en import.
     work, _, coord_issues = _parse_od_coordinate_columns(
@@ -348,6 +349,7 @@ def import_trips_from_dataframe(
         temporal_tier_detected=temporal_tier_detected,
         temporal_fields_present=temporal_fields_present,
         datetime_normalization_status_by_field=datetime_normalization_status_by_field,
+        datetime_normalization_stats_t2 = hhmm_normalization_stats,
         source_timezone_used=options_eff.source_timezone,
         event_import=event_import,
         issues=issues,
@@ -1117,12 +1119,23 @@ def _coerce_columns_by_dtype(
     Emite: IMP.TYPE.COERCE_FAILED_REQUIRED,
             IMP.TYPE.COERCE_PARTIAL
     """
+    COORD_FIELDS = {
+        "origin_latitude",
+        "origin_longitude",
+        "destination_latitude",
+        "destination_longitude",
+    }
     issues: List[Issue] = []
     work = df
     coercion_stats: Dict[str, Any] = {}
 
     for field_name, fs in schema.fields.items():
         if field_name not in work.columns or field_name not in target_schema_fields:
+            continue
+
+        # Las coordenadas OD no se coercionan aquí.
+        # Se procesan exclusivamente en _parse_od_coordinate_columns(...)
+        if field_name in COORD_FIELDS:
             continue
 
         expected = schema_effective.dtype_effective.get(field_name, fs.dtype)
@@ -1261,6 +1274,8 @@ def _normalize_tier2_hhmm_columns(
         if stats["n_invalid"] > 0:
             issues.append(
                 emit_issue(
+                    issues,
+                    IMPORT_ISSUES,
                     "IMP.TYPE.COERCE_PARTIAL",
                     field=field,
                     dtype_expected="string_hhmm",
@@ -1362,6 +1377,7 @@ def _derive_h3_indices(
     """
     issues: List[Issue] = []
     work = df
+    df_columns = df.columns
     columns_added: List[str] = []
     h3_meta: Dict[str, Any] = {
         "resolution": h3_resolution,
@@ -1422,7 +1438,7 @@ def _derive_h3_indices(
                 out_values.append(pd.NA)
                 null_count += 1
         work[out_col] = pd.Series(out_values, index=work.index, dtype="string")
-        if out_col not in columns_added and out_col not in df.columns:
+        if out_col not in columns_added and out_col not in df_columns:
             columns_added.append(out_col)
         h3_meta["source_fields"].append([lat_col, lon_col])
         h3_meta["derived_fields"].append(out_col)
@@ -1653,6 +1669,7 @@ def _build_import_metadata(
     temporal_tier_detected: str,
     temporal_fields_present: List[str],
     datetime_normalization_status_by_field: Dict[str, Any],
+    datetime_normalization_stats_t2: Optional[Dict],
     source_timezone_used: Optional[str],
     event_import: Dict[str, Any],
     issues: List[Issue],
@@ -1712,6 +1729,8 @@ def _build_import_metadata(
         metadata["h3"] = h3_meta
     if temporal_tier_detected == "tier_1":
         metadata["temporal"]["normalization"] = datetime_normalization_status_by_field
+    if temporal_tier_detected == "tier_2":
+        metadata["temporal"]["normalization"] = datetime_normalization_stats_t2
     if source_timezone_used is not None:
         metadata["temporal"]["source_timezone_used"] = source_timezone_used
     return metadata
