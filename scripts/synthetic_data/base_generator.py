@@ -10,11 +10,7 @@ import re
 import numpy as np
 import pandas as pd
 
-try:
-    import h3  # type: ignore
-except Exception:  # pragma: no cover
-    h3 = None
-
+import h3 
 
 # -----------------------------------------------------------------------------
 # Pools globales - requeridos, base/opcionales, dominios y extras
