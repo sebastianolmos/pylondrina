@@ -1230,17 +1230,20 @@ def _normalize_datetime_columns(
                 field=field_name,
             )
 
-        if info.get("n_nat", 0) > 0 and info["status"].startswith("string"):
+        status = info.get("status")
+        n_nat = int(info.get("n_nat", 0))
+
+        if 0 < n_nat <= len(work) and info["status"].startswith("string"):
             emit_issue(
                 issues,
                 IMPORT_ISSUES,
                 "IMP.TYPE.COERCE_PARTIAL",
                 field=field_name,
                 dtype_expected="datetime",
-                parse_fail_count=info["n_nat"],
+                parse_fail_count=n_nat,
                 total_count=len(work),
-                fail_rate=(info["n_nat"] / len(work)) if len(work) else 0.0,
-                row_count=info["n_nat"],
+                fail_rate=(n_nat / len(work)) if len(work) else 0.0,
+                row_count=n_nat,
             )
 
     return work, status_by_field, issues
@@ -1888,42 +1891,59 @@ def _is_already_correct_dtype(s: pd.Series, expected: str) -> bool:
 def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) -> tuple[pd.Series, Dict[str, Any]]:
     tz_norm, tz_kind = _normalize_source_timezone(source_timezone)
 
-    # Si los valores son numericos, no pueden ser datetimes
+    # Si los valores son numéricos, no pueden ser datetimes
     if ptypes.is_numeric_dtype(s.dtype):
         out = pd.Series([pd.NaT] * len(s), index=s.index, dtype="datetime64[ns]")
         return out, {"status": "not_parsed_numeric", "tz_kind": tz_kind, "n_nat": int(out.isna().sum())}
 
-    # Se revisa el tipo más apropiado de los datetimes
+    # Si ya viene como dtype datetime
     if ptypes.is_datetime64_any_dtype(s.dtype):
         if isinstance(s.dtype, pd.DatetimeTZDtype):
             tzname = str(getattr(s.dtype, "tz", ""))
             if tzname.upper() == "UTC":
                 return s, {"status": "utc", "tz_kind": tz_kind, "n_nat": int(s.isna().sum())}
-            return s.dt.tz_convert("UTC"), {"status": "tzaware_to_utc", "tz_kind": tz_kind, "n_nat": int(s.isna().sum())}
+            return s.dt.tz_convert("UTC"), {
+                "status": "tzaware_to_utc",
+                "tz_kind": tz_kind,
+                "n_nat": int(s.isna().sum()),
+            }
+
         if tz_norm is None:
             return s, {"status": "naive_unconverted", "tz_kind": tz_kind, "n_nat": int(s.isna().sum())}
-        localized = s.dt.tz_localize(tz_norm).dt.tz_convert("UTC")
-        return localized, {"status": "naive_localized_to_utc", "tz_kind": tz_kind, "n_nat": int(localized.isna().sum())}
 
-    # datetime viene como string, por lo que se trata como tal
+        localized = s.dt.tz_localize(tz_norm).dt.tz_convert("UTC")
+        return localized, {
+            "status": "naive_localized_to_utc",
+            "tz_kind": tz_kind,
+            "n_nat": int(localized.isna().sum()),
+        }
+
+    # Tratamiento como string
     tmp = s.astype("string").str.strip().replace("", pd.NA)
+
     try:
         parsed = pd.to_datetime(tmp, format="mixed", errors="coerce")
     except TypeError:  # compatibilidad con pandas más antiguo
         parsed = pd.to_datetime(tmp, errors="coerce")
 
-
+    # Caso 1: parseo directo a datetime tz-aware
     if isinstance(parsed.dtype, pd.DatetimeTZDtype):
-        return parsed.dt.tz_convert("UTC"), {
+        out = parsed.dt.tz_convert("UTC")
+        return out, {
             "status": "string_tzaware_to_utc",
             "tz_kind": tz_kind,
-            "n_nat": int(parsed.isna().sum()),
+            "n_nat": int(out.isna().sum()),
         }
 
-    # Se revisa los casos que no se entrego region horaria o hay que hacer la coversion a UTC
+    # Caso 2: parseo directo a datetime naive
     if ptypes.is_datetime64_any_dtype(parsed.dtype):
         if tz_norm is None:
-            return parsed, {"status": "string_naive_unconverted", "tz_kind": tz_kind, "n_nat": int(parsed.isna().sum())}
+            return parsed, {
+                "status": "string_naive_unconverted",
+                "tz_kind": tz_kind,
+                "n_nat": int(parsed.isna().sum()),
+            }
+
         localized = parsed.dt.tz_localize(tz_norm).dt.tz_convert("UTC")
         return localized, {
             "status": "string_naive_localized_to_utc",
@@ -1931,9 +1951,63 @@ def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) 
             "n_nat": int(localized.isna().sum()),
         }
 
-    # No se pudo parsear/convertir datetimes, por lo que quedan nulos
+    # Caso 3: pandas devolvió object por mezcla de timestamps aware/naive parseables
+    if parsed.dtype == "object":
+        out_values = []
+        parsed_ok = 0
+
+        for val in parsed.tolist():
+            if pd.isna(val):
+                out_values.append(pd.NaT)
+                continue
+
+            if isinstance(val, (pd.Timestamp, datetime)):
+                ts = pd.Timestamp(val)
+                parsed_ok += 1
+
+                if ts.tzinfo is not None:
+                    out_values.append(ts.tz_convert("UTC"))
+                else:
+                    if tz_norm is None:
+                        # Se conserva naive si no se declaró source_timezone
+                        out_values.append(ts)
+                    else:
+                        out_values.append(ts.tz_localize(tz_norm).tz_convert("UTC"))
+                continue
+
+            # Cualquier otro caso raro se marca como NaT
+            out_values.append(pd.NaT)
+
+        # Intentamos usar un dtype consistente
+        if tz_norm is not None or any(
+            isinstance(v, pd.Timestamp) and v.tzinfo is not None
+            for v in out_values if not pd.isna(v)
+        ):
+            try:
+                out = pd.Series(out_values, index=s.index, dtype="datetime64[ns, UTC]")
+            except Exception:
+                out = pd.Series(out_values, index=s.index, dtype="object")
+        else:
+            try:
+                out = pd.Series(out_values, index=s.index, dtype="datetime64[ns]")
+            except Exception:
+                out = pd.Series(out_values, index=s.index, dtype="object")
+
+        status = "string_mixed_parsed"
+        if tz_norm is not None:
+            status = "string_mixed_localized_to_utc"
+
+        return out, {
+            "status": status,
+            "tz_kind": tz_kind,
+            "n_nat": int(pd.isna(out).sum()),
+            "n_parsed": parsed_ok,
+        }
+
+    # No se pudo parsear nada útil
     out = pd.Series([pd.NaT] * len(s), index=s.index, dtype="datetime64[ns]")
     return out, {"status": "parse_failed", "tz_kind": tz_kind, "n_nat": int(out.isna().sum())}
+
 
 def _normalize_hhmm_series(s: pd.Series) -> tuple[pd.Series, dict[str, int]]:
     """
