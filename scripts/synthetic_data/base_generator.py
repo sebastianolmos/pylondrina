@@ -883,11 +883,15 @@ def _format_tier1_datetimes(
         if fmt == "mixed_with_invalids" and len(origin_values) > 0:
             idx = _sample_indices(len(origin_values), 0.2, rng)
             for i in idx:
-                origin_values[i] = rng.choice(invalid_pool)
+                origin_values[i] = _to_python_scalar(rng.choice(invalid_pool))
             idx2 = _sample_indices(len(dest_values), 0.2, rng)
             for i in idx2:
-                dest_values[i] = rng.choice(invalid_pool)
-        return pd.Series(origin_values), pd.Series(dest_values)
+                dest_values[i] = _to_python_scalar(rng.choice(invalid_pool))
+
+        origin_values = [_to_python_scalar(v) for v in origin_values]
+        dest_values = [_to_python_scalar(v) for v in dest_values]
+
+        return pd.Series(origin_values, dtype="object"), pd.Series(dest_values, dtype="object")
     raise ValueError(f"tier1_datetime_format no soportado: {fmt!r}")
 
 
@@ -1191,6 +1195,51 @@ def _build_base_field(
         return _build_mode_sequence(n, rng=rng)
     raise ValueError(f"Campo base no soportado: {field!r}")
 
+def _to_python_scalar(value: Any) -> Any:
+    """
+    Convierte escalares NumPy (np.str_, np.int64, etc.) a escalares Python nativos.
+    """
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _safe_parse_datetime_scalar(value: Any) -> pd.Timestamp | pd.NaT:
+    """
+    Parsea un valor temporal de forma robusta para casos mixtos.
+
+    - Convierte primero escalares NumPy a tipos Python.
+    - Si el valor es tz-aware, lo normaliza a UTC naive para poder restar
+      sin chocar con mezclas naive/tz-aware.
+    - Si no es parseable, retorna NaT.
+    """
+    value = _to_python_scalar(value)
+
+    try:
+        ts = pd.to_datetime(value, errors="coerce")
+    except Exception:
+        return pd.NaT
+
+    if pd.isna(ts):
+        return pd.NaT
+
+    if isinstance(ts, pd.Timestamp) and ts.tzinfo is not None:
+        try:
+            return ts.tz_convert("UTC").tz_localize(None)
+        except Exception:
+            try:
+                return ts.tz_localize(None)
+            except Exception:
+                return pd.NaT
+
+    return ts
+
+
+def _safe_parse_datetime_series(series: pd.Series) -> pd.Series:
+    """
+    Parseo robusto fila a fila para series temporales heterogéneas.
+    """
+    return series.map(_safe_parse_datetime_scalar)
 
 def _build_extra_field(
     field: str,
@@ -1234,13 +1283,21 @@ def _build_extra_field(
         pool = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
         return _as_string_series(_random_choice(rng, pool, n))
     if spec.generator_kind == "travel_time_min":
+        fallback = pd.Series(
+            np.round(rng.uniform(5, 90, size=n), 1),
+            index=base_df.index,
+            dtype="float64",
+        )
         if {"origin_time_utc", "destination_time_utc"}.issubset(base_df.columns):
-            o = pd.to_datetime(base_df["origin_time_utc"], errors="coerce")
-            d = pd.to_datetime(base_df["destination_time_utc"], errors="coerce")
+            o = _safe_parse_datetime_series(base_df["origin_time_utc"])
+            d = _safe_parse_datetime_series(base_df["destination_time_utc"])
             delta = (d - o).dt.total_seconds() / 60.0
-            out = delta.fillna(pd.Series(np.round(rng.uniform(5, 90, size=n), 1)))
-            return _as_float_series(out)
-        return _as_float_series(np.round(rng.uniform(5, 90, size=n), 1))
+            # Si no se pudo calcular, usar fallback.
+            out = delta.where(delta.notna(), fallback)
+            # Endurecimiento opcional: si por mezcla rara queda <= 0, usar fallback.
+            out = out.where(out > 0, fallback)
+            return _as_float_series(out, index=base_df.index)
+        return _as_float_series(fallback, index=base_df.index)
     if spec.generator_kind == "fare_amount":
         pool = [0, 760, 800, 900, 1200, 1520.0]
         return _as_float_series(_random_choice(rng, pool, n))
