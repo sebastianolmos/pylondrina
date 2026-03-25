@@ -208,3 +208,6 @@ __marimo__/
 
 # vscode stuff:
 .vscode/
+
+# data stuff:
+*.viajes
