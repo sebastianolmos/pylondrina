@@ -210,4 +210,7 @@ __marimo__/
 .vscode/
 
 # data stuff:
+**/cache
 *.viajes
+*_Checkins.csv
+*_POIs.csv
