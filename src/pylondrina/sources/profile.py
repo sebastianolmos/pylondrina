@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Optional
 
 import pandas as pd
 
+from pylondrina.importing import ImportOptions
 from pylondrina.types import FieldCorrespondence, ValueCorrespondence
 from pylondrina.schema import TripSchema
 
@@ -27,6 +28,9 @@ class SourceProfile:
         Mapeo recomendado de campos estándar -> columnas típicas de la fuente.
     default_value_correspondence : mapping, optional
         Mapeo recomendado de valores categóricos de la fuente -> valores canónicos.
+    default_options : ImportOptions, optional
+        Opciones de importación recomendadas para este perfil. Se usan solo si el usuario
+        no entrega `options` explícitamente al import
     preprocess : callable, optional
         Función que recibe el DataFrame fuente y retorna DataFrame ajustado para importación genérica.
         Útil para: unir tablas, decodificar IDs, normalizar etapas, etc.
@@ -36,10 +40,13 @@ class SourceProfile:
     Notes
     -----
     - La regla general es mantener el schema base y resolver diferencias con correspondencias y preprocesamiento.
+    - Si el usuario entrega `options` en el helper de importación, esas opciones reemplazan
+      completamente a `default_options`.
     """
     name: str
     description: str
     default_field_correspondence: Optional[FieldCorrespondence] = None
     default_value_correspondence: Optional[ValueCorrespondence] = None
+    default_options: Optional[ImportOptions] = None
     preprocess: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None
     schema_override: Optional[TripSchema] = None
