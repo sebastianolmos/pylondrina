@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional, Sequence
 from pylondrina.types import FieldName, DomainValue
 
 import re
+from pprint import pformat
+import html
 
 VALID_DTYPES = {"string", "int", "float", "datetime", "categorical", "bool"}
 
@@ -49,6 +51,29 @@ class DomainSpec:
     extendable: bool = True
     aliases: Optional[Dict[DomainValue, DomainValue]] = None
 
+    def to_pretty_dict(self) -> Dict[str, Any]:
+        return {
+            "values": list(self.values),
+            "extendable": self.extendable,
+            "aliases": dict(self.aliases) if self.aliases is not None else None,
+        }
+
+    def __str__(self) -> str:
+        return pformat(self.to_pretty_dict(), sort_dicts=False, width=100)
+
+    def __repr__(self) -> str:
+        return f"DomainSpec(\n{pformat(self.to_pretty_dict(), sort_dicts=False, width=100)}\n)"
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text("DomainSpec(...)")
+        else:
+            p.text(str(self))
+
+    def _repr_html_(self) -> str:
+        data = html.escape(pformat(self.to_pretty_dict(), sort_dicts=False, width=100))
+        return f"<pre>{data}</pre>"
+
 
 @dataclass(frozen=True)
 class FieldSpec:
@@ -78,6 +103,31 @@ class FieldSpec:
     required: bool = False
     constraints: Optional[Dict[str, Any]] = None
     domain: Optional[DomainSpec] = None
+
+    def to_pretty_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "dtype": self.dtype,
+            "required": self.required,
+            "constraints": self.constraints,
+            "domain": self.domain.to_pretty_dict() if self.domain is not None else None,
+        }
+
+    def __str__(self) -> str:
+        return pformat(self.to_pretty_dict(), sort_dicts=False, width=100)
+
+    def __repr__(self) -> str:
+        return f"FieldSpec(\n{pformat(self.to_pretty_dict(), sort_dicts=False, width=100)}\n)"
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text("FieldSpec(...)")
+        else:
+            p.text(str(self))
+
+    def _repr_html_(self) -> str:
+        data = html.escape(pformat(self.to_pretty_dict(), sort_dicts=False, width=100))
+        return f"<pre>{data}</pre>"
 
 
 @dataclass
@@ -148,6 +198,41 @@ class TripSchema:
         """
         return asdict(self)
     
+    def get_field(self, name: FieldName) -> FieldSpec:
+        if name not in self.fields:
+            raise KeyError(name)
+        return self.fields[name]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    def to_pretty_dict(self) -> Dict[str, Any]:
+        return {
+            "version": self.version,
+            "required": list(self.required),
+            "semantic_rules": self.semantic_rules,
+            "fields": {
+                name: spec.to_pretty_dict()
+                for name, spec in self.fields.items()
+            },
+        }
+
+    def __str__(self) -> str:
+        return pformat(self.to_pretty_dict(), sort_dicts=False, width=120)
+
+    def __repr__(self) -> str:
+        return f"TripSchema(\n{pformat(self.to_pretty_dict(), sort_dicts=False, width=120)}\n)"
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text("TripSchema(...)")
+        else:
+            p.text(str(self))
+
+    def _repr_html_(self) -> str:
+        data = html.escape(pformat(self.to_pretty_dict(), sort_dicts=False, width=120))
+        return f"<pre>{data}</pre>"
+    
 @dataclass
 class TripSchemaEffective:
     # dtype realmente usado por campo durante import
@@ -173,6 +258,25 @@ class TripSchemaEffective:
             "temporal": self.temporal,
             "fields_effective": self.fields_effective,
         }
+    
+    def to_pretty_dict(self) -> Dict[str, Any]:
+        return self.to_dict()
+
+    def __str__(self) -> str:
+        return pformat(self.to_pretty_dict(), sort_dicts=False, width=120)
+
+    def __repr__(self) -> str:
+        return f"TripSchemaEffective(\n{pformat(self.to_pretty_dict(), sort_dicts=False, width=120)}\n)"
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text("TripSchemaEffective(...)")
+        else:
+            p.text(str(self))
+
+    def _repr_html_(self) -> str:
+        data = html.escape(pformat(self.to_pretty_dict(), sort_dicts=False, width=120))
+        return f"<pre>{data}</pre>"
 
 def verify_trip_schema_fields(schema):
     findings = []
