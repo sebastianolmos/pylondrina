@@ -1579,13 +1579,26 @@ def _select_final_columns(
     issues: List[Issue] = []
     cols_before = list(df.columns)
     res = _build_keep_schema_fields(schema, options.selected_fields)
-    keep_schema_fields = res["keep_schema_fields"]
+    keep_schema_fields = set(res["keep_schema_fields"])
     schema_fields = set(schema.fields.keys())
 
+    # Campos mínimos derivados que no deben perderse si fueron creados/asegurados.
+    mandatory_runtime_fields = {"movement_id"}
+    if options.single_stage:
+        mandatory_runtime_fields |= {"trip_id", "movement_seq"}
+
     if options.keep_extra_fields:
-        final_cols = [c for c in df.columns if (c in keep_schema_fields) or (c not in schema_fields)]
+        final_cols = [
+            c for c in df.columns
+            if (c in keep_schema_fields)
+            or (c in mandatory_runtime_fields)
+            or (c not in schema_fields)
+        ]
     else:
-        final_cols = [c for c in df.columns if c in keep_schema_fields]
+        final_cols = [
+            c for c in df.columns
+            if (c in keep_schema_fields) or (c in mandatory_runtime_fields)
+        ]
 
     columns_deleted = [c for c in df.columns if c not in final_cols]
     if columns_deleted:
@@ -1614,7 +1627,10 @@ def _final_required_check(
     single_stage: bool,
     strict: bool,
 ) -> None:
+    # required del schema
     missing_required_final = sorted(set(schema.required) - set(df.columns))
+
+    # campos minimos de construibilidad del import
     extra_missing: List[str] = []
     if "movement_id" not in df.columns:
         extra_missing.append("movement_id")
