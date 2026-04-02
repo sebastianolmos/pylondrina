@@ -361,8 +361,8 @@ FIX_TRIPS_CORRESPONDENCE_ISSUES: dict[str, IssueSpec] = {
     # SIN CAMBIOS EFECTIVOS
     # Mantengo el namespace NOOP por consistencia con el contrato vigente.
     # ------------------------------------------------------------------
-    "FIX.NOOP.NO_CORRECTIONS": _info(
-        "FIX.NOOP.NO_CORRECTIONS",
+    "FIX.NO_EFFECTIVE_CHANGES.NO_CORRECTIONS": _info(
+        "FIX.NO_EFFECTIVE_CHANGES.NO_CORRECTIONS",
         "No se proporcionaron correcciones; la operación terminó sin cambios efectivos.",
         details_keys=(
             "kind",
@@ -372,8 +372,8 @@ FIX_TRIPS_CORRESPONDENCE_ISSUES: dict[str, IssueSpec] = {
         ),
         defaults={"kind": "noop"},
     ),
-    "FIX.NOOP.NO_EFFECTIVE_CHANGES": _warn(
-        "FIX.NOOP.NO_EFFECTIVE_CHANGES",
+    "FIX.NO_EFFECTIVE_CHANGES.NO_EFFECTIVE_CHANGES": _warn(
+        "FIX.NO_EFFECTIVE_CHANGES.NO_EFFECTIVE_CHANGES",
         "Se proporcionaron correcciones, pero la operación terminó sin cambios efectivos en el dataset.",
         details_keys=(
             "kind",

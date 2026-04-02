@@ -136,6 +136,25 @@ class ValidationError(PylondrinaError):
     ) -> None:
         super().__init__(message, code=code, details=details, issue=issue, issues=issues)
 
+class FixError(PylondrinaError):
+    """
+    Error durante la corrección post-import de correspondencias en un TripDataset.
+
+    Ejemplos típicos:
+    - El request de corrección es intrínsecamente ambiguo o ilegible.
+    - strict=True obliga a abortar tras emitir evidencia de issues ERROR.
+    - La operación no puede materializar un resultado trazable y seguro.
+    """
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: Optional[str] = None,
+        details: Optional[dict[str, Any]] = None,
+        issue: Optional["Issue"] = None,
+        issues: Optional[Sequence["Issue"]] = None,
+    ) -> None:
+        super().__init__(message, code=code, details=details, issue=issue, issues=issues)
 
 class InferenceError(PylondrinaError):
     """
