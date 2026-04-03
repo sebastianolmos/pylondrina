@@ -21,13 +21,6 @@ from pylondrina.issues.core import emit_and_maybe_raise, emit_issue
 from pylondrina.reports import Issue, OperationReport
 from pylondrina.schema import TripSchemaEffective
 
-EXCEPTION_MAP_FILTER = {
-    "type": _FilterTypeError,
-    "value": _FilterValueError,
-    "filter": FilterError,
-}
-
-
 # Tipos del contrato público.
 BBox = Tuple[float, float, float, float]
 """Bounding box (min_lon, min_lat, max_lon, max_lat)."""
@@ -145,6 +138,11 @@ class _FilterValueError(ValueError, PylondrinaError):
             issues=issues,
         )
 
+EXCEPTION_MAP_FILTER = {
+    "type": _FilterTypeError,
+    "value": _FilterValueError,
+    "filter": FilterError,
+}
 
 @dataclass(frozen=True)
 class TimeFilter:
