@@ -164,3 +164,64 @@ CLEAN_TRIPS_ISSUES: dict[str, IssueSpec] = {
     ),
 }
 
+def _fatal_type(code: str, message: str, *, details_keys=(), defaults=None) -> IssueSpec:
+    return IssueSpec(
+        code=code,
+        level="error",
+        message_template=message,
+        details_keys=tuple(details_keys),
+        defaults=defaults or {},
+        fatal=True,
+        exception="type",
+    )
+
+
+def _fatal_value(code: str, message: str, *, details_keys=(), defaults=None) -> IssueSpec:
+    return IssueSpec(
+        code=code,
+        level="error",
+        message_template=message,
+        details_keys=tuple(details_keys),
+        defaults=defaults or {},
+        fatal=True,
+        exception="value",
+    )
+
+
+CLEAN_TRIPS_ISSUES.update({
+    "CLN.CONFIG.INVALID_TRIPS_OBJECT": _fatal_type(
+        "CLN.CONFIG.INVALID_TRIPS_OBJECT",
+        "clean_trips esperaba un TripDataset, pero recibió {received_type!r}.",
+        details_keys=("received_type",),
+    ),
+    "CLN.CONFIG.MISSING_DATAFRAME": _fatal_type(
+        "CLN.CONFIG.MISSING_DATAFRAME",
+        "clean_trips requiere `trips.data` como pandas.DataFrame interpretable.",
+        details_keys=("received_type", "reason"),
+    ),
+    "CLN.CONFIG.INVALID_OPTIONS_OBJECT": _fatal_type(
+        "CLN.CONFIG.INVALID_OPTIONS_OBJECT",
+        "clean_trips esperaba `options` de tipo CleanOptions o None, pero recibió {received_type!r}.",
+        details_keys=("received_type",),
+    ),
+    "CLN.CONFIG.INVALID_NULL_FIELDS": _fatal_value(
+        "CLN.CONFIG.INVALID_NULL_FIELDS",
+        "La configuración `drop_rows_with_nulls_in_fields` no es interpretable como secuencia de strings.",
+        details_keys=("received_type", "invalid_fields_sample", "reason"),
+    ),
+    "CLN.CONFIG.INVALID_DUPLICATES_SUBSET": _fatal_value(
+        "CLN.CONFIG.INVALID_DUPLICATES_SUBSET",
+        "La configuración de `duplicates_subset` no es interpretable o referencia columnas inexistentes.",
+        details_keys=("received_type", "duplicates_subset", "invalid_fields_sample", "missing_fields", "reason"),
+    ),
+    "CLN.CONFIG.INVALID_CATEGORICAL_MAPPING": _fatal_value(
+        "CLN.CONFIG.INVALID_CATEGORICAL_MAPPING",
+        "La configuración `drop_rows_by_categorical_values` no es interpretable como mapping campo -> secuencia.",
+        details_keys=("field", "received_type", "reason"),
+    ),
+    "CLN.CONFIG.NON_SERIALIZABLE_PARAMETER": _fatal_value(
+        "CLN.CONFIG.NON_SERIALIZABLE_PARAMETER",
+        "La configuración de Clean contiene un valor no saneable/serializable en {option_name!r}.",
+        details_keys=("field", "option_name", "value_repr"),
+    ),
+})
