@@ -156,6 +156,26 @@ class FixError(PylondrinaError):
     ) -> None:
         super().__init__(message, code=code, details=details, issue=issue, issues=issues)
 
+class FilterError(PylondrinaError):
+    """
+    Error durante el filtrado declarativo de un TripDataset.
+
+    Ejemplos típicos:
+    - strict=True con filtros recuperables no aplicables que dejan issues error.
+    - Inconsistencias de filtrado que deben abortar después de construir evidencia.
+    """
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: Optional[str] = None,
+        details: Optional[dict[str, Any]] = None,
+        issue: Optional["Issue"] = None,
+        issues: Optional[Sequence["Issue"]] = None,
+    ) -> None:
+        super().__init__(message, code=code, details=details, issue=issue, issues=issues)
+
+
 class InferenceError(PylondrinaError):
     """
     Error al inferir viajes desde datos de trazas/trayectorias.
