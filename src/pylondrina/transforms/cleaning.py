@@ -1015,12 +1015,12 @@ def _json_safe_scalar(value: Any) -> Any:
     """Normaliza un escalar a una forma JSON-friendly estable."""
     if value is None:
         return None
-    if isinstance(value, (str, int, float, bool)):
-        return value
-    if pd.isna(value):
-        return None
     if isinstance(value, (pd.Timestamp, datetime)):
         return value.isoformat()
+    if pd.isna(value):
+        return None
+    if isinstance(value, (str, int, float, bool)):
+        return value
     return str(value)
 
 
@@ -1028,12 +1028,22 @@ def _to_json_serializable_or_none(obj: Any) -> Any:
     """Convierte dict/list anidados a una forma JSON-safe sin hacer fallback silencioso."""
     if obj is None:
         return None
+
     if isinstance(obj, dict):
         return {str(key): _to_json_serializable_or_none(value) for key, value in obj.items()}
+
     if isinstance(obj, (list, tuple)):
         return [_to_json_serializable_or_none(value) for value in obj]
+
+    if isinstance(obj, (pd.Timestamp, datetime)):
+        return obj.isoformat()
+
+    if pd.isna(obj):
+        return None
+
     if _json_is_serializable(obj):
         return obj
+
     return _json_safe_scalar(obj)
 
 
