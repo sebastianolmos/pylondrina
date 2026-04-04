@@ -1,0 +1,1795 @@
+{
+  "dataset_type": "trips",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
+  "artifact_id": "art_69ba140f-a053-4ac0-92d7-4d1e340cbbde",
+  "files": {
+    "data": "trips.parquet",
+    "metadata": "trips.metadata.json"
+  },
+  "schema": {
+    "version": "1.1",
+    "fields": {
+      "movement_id": {
+        "name": "movement_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "user_id": {
+        "name": "user_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_longitude": {
+        "name": "origin_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_latitude": {
+        "name": "origin_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_longitude": {
+        "name": "destination_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_latitude": {
+        "name": "destination_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_h3_index": {
+        "name": "origin_h3_index",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_h3_index": {
+        "name": "destination_h3_index",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_time_utc": {
+        "name": "origin_time_utc",
+        "dtype": "datetime",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_time_utc": {
+        "name": "destination_time_utc",
+        "dtype": "datetime",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "trip_id": {
+        "name": "trip_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "movement_seq": {
+        "name": "movement_seq",
+        "dtype": "int",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_municipality": {
+        "name": "origin_municipality",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_municipality": {
+        "name": "destination_municipality",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "timezone_offset_min": {
+        "name": "timezone_offset_min",
+        "dtype": "int",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_time_local_hhmm": {
+        "name": "origin_time_local_hhmm",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_time_local_hhmm": {
+        "name": "destination_time_local_hhmm",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "trip_weight": {
+        "name": "trip_weight",
+        "dtype": "float",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "mode_sequence": {
+        "name": "mode_sequence",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "mode": {
+        "name": "mode",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "walk",
+            "bicycle",
+            "scooter",
+            "motorcycle",
+            "car",
+            "taxi",
+            "ride_hailing",
+            "bus",
+            "metro",
+            "train",
+            "other"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "purpose": {
+        "name": "purpose",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "home",
+            "work",
+            "education",
+            "shopping",
+            "errand",
+            "health",
+            "leisure",
+            "transfer",
+            "other"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "day_type": {
+        "name": "day_type",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "weekday",
+            "weekend",
+            "holiday"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "time_period": {
+        "name": "time_period",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "night",
+            "morning",
+            "midday",
+            "afternoon",
+            "evening"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "user_gender": {
+        "name": "user_gender",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "female",
+            "male",
+            "other",
+            "unknown"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "user_age_group": {
+        "name": "user_age_group",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "0-14",
+            "15-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65-plus",
+            "unknown"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "income_quintile": {
+        "name": "income_quintile",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "unknown"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      }
+    },
+    "required": [
+      "movement_id",
+      "user_id",
+      "origin_longitude",
+      "origin_latitude",
+      "destination_longitude",
+      "destination_latitude",
+      "origin_h3_index",
+      "destination_h3_index",
+      "origin_time_utc",
+      "destination_time_utc",
+      "trip_id",
+      "movement_seq"
+    ],
+    "semantic_rules": null
+  },
+  "schema_effective": {
+    "dtype_effective": {
+      "movement_id": "string",
+      "user_id": "string",
+      "origin_longitude": "float",
+      "origin_latitude": "float",
+      "destination_longitude": "float",
+      "destination_latitude": "float",
+      "origin_h3_index": "string",
+      "destination_h3_index": "string",
+      "origin_time_utc": "datetime",
+      "destination_time_utc": "datetime",
+      "trip_id": "string",
+      "movement_seq": "int",
+      "origin_municipality": "string",
+      "destination_municipality": "string",
+      "timezone_offset_min": "int",
+      "origin_time_local_hhmm": "string",
+      "destination_time_local_hhmm": "string",
+      "trip_weight": "float",
+      "mode_sequence": "string",
+      "mode": "categorical",
+      "purpose": "categorical",
+      "day_type": "categorical",
+      "time_period": "categorical",
+      "user_gender": "categorical",
+      "user_age_group": "categorical",
+      "income_quintile": "categorical"
+    },
+    "overrides": {},
+    "domains_effective": {
+      "mode": {
+        "base_values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "observed_values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "other",
+        "n_unique_observed": 11,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "purpose": {
+        "base_values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "observed_values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "other",
+        "n_unique_observed": 9,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "day_type": {
+        "base_values": [
+          "holiday",
+          "weekday",
+          "weekend"
+        ],
+        "observed_values": [
+          "holiday",
+          "weekday",
+          "weekend"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 3,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "holiday",
+          "unknown",
+          "weekday",
+          "weekend"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "time_period": {
+        "base_values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night"
+        ],
+        "observed_values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 5,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "user_gender": {
+        "base_values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "observed_values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 4,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "user_age_group": {
+        "base_values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "observed_values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 8,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "income_quintile": {
+        "base_values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "observed_values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 6,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      }
+    },
+    "temporal": {},
+    "fields_effective": [
+      "movement_id",
+      "user_id",
+      "trip_id",
+      "movement_seq",
+      "origin_longitude",
+      "origin_latitude",
+      "destination_longitude",
+      "destination_latitude",
+      "origin_time_utc",
+      "destination_time_utc",
+      "origin_h3_index",
+      "destination_h3_index",
+      "origin_municipality",
+      "destination_municipality",
+      "timezone_offset_min",
+      "origin_time_local_hhmm",
+      "destination_time_local_hhmm",
+      "trip_weight",
+      "mode_sequence",
+      "mode",
+      "purpose",
+      "day_type",
+      "time_period",
+      "user_gender",
+      "user_age_group",
+      "income_quintile"
+    ]
+  },
+  "provenance": {
+    "source": {
+      "name": "synthetic_generator",
+      "entity": "trips"
+    },
+    "ingestion": {
+      "created_at_utc": "2026-04-04T00:00:00Z"
+    },
+    "notes": [
+      "fixture de integración OP-06/OP-07"
+    ]
+  },
+  "metadata": {
+    "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
+    "is_validated": true,
+    "schema": {
+      "version": "1.1",
+      "fields": {
+        "movement_id": {
+          "name": "movement_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "user_id": {
+          "name": "user_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_longitude": {
+          "name": "origin_longitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_latitude": {
+          "name": "origin_latitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_longitude": {
+          "name": "destination_longitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_latitude": {
+          "name": "destination_latitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_h3_index": {
+          "name": "origin_h3_index",
+          "dtype": "string",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_h3_index": {
+          "name": "destination_h3_index",
+          "dtype": "string",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_time_utc": {
+          "name": "origin_time_utc",
+          "dtype": "datetime",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_time_utc": {
+          "name": "destination_time_utc",
+          "dtype": "datetime",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "trip_id": {
+          "name": "trip_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "movement_seq": {
+          "name": "movement_seq",
+          "dtype": "int",
+          "required": true,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_municipality": {
+          "name": "origin_municipality",
+          "dtype": "string",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_municipality": {
+          "name": "destination_municipality",
+          "dtype": "string",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "timezone_offset_min": {
+          "name": "timezone_offset_min",
+          "dtype": "int",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "origin_time_local_hhmm": {
+          "name": "origin_time_local_hhmm",
+          "dtype": "string",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "destination_time_local_hhmm": {
+          "name": "destination_time_local_hhmm",
+          "dtype": "string",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "trip_weight": {
+          "name": "trip_weight",
+          "dtype": "float",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "mode_sequence": {
+          "name": "mode_sequence",
+          "dtype": "string",
+          "required": false,
+          "constraints": null,
+          "domain": null
+        },
+        "mode": {
+          "name": "mode",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "walk",
+              "bicycle",
+              "scooter",
+              "motorcycle",
+              "car",
+              "taxi",
+              "ride_hailing",
+              "bus",
+              "metro",
+              "train",
+              "other"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "purpose": {
+          "name": "purpose",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "home",
+              "work",
+              "education",
+              "shopping",
+              "errand",
+              "health",
+              "leisure",
+              "transfer",
+              "other"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "day_type": {
+          "name": "day_type",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "weekday",
+              "weekend",
+              "holiday"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "time_period": {
+          "name": "time_period",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "night",
+              "morning",
+              "midday",
+              "afternoon",
+              "evening"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "user_gender": {
+          "name": "user_gender",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "female",
+              "male",
+              "other",
+              "unknown"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "user_age_group": {
+          "name": "user_age_group",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "0-14",
+              "15-24",
+              "25-34",
+              "35-44",
+              "45-54",
+              "55-64",
+              "65-plus",
+              "unknown"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "income_quintile": {
+          "name": "income_quintile",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": null,
+          "domain": {
+            "values": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "unknown"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        }
+      },
+      "required": [
+        "movement_id",
+        "user_id",
+        "origin_longitude",
+        "origin_latitude",
+        "destination_longitude",
+        "destination_latitude",
+        "origin_h3_index",
+        "destination_h3_index",
+        "origin_time_utc",
+        "destination_time_utc",
+        "trip_id",
+        "movement_seq"
+      ],
+      "semantic_rules": null
+    },
+    "schema_effective": {
+      "dtype_effective": {
+        "movement_id": "string",
+        "user_id": "string",
+        "origin_longitude": "float",
+        "origin_latitude": "float",
+        "destination_longitude": "float",
+        "destination_latitude": "float",
+        "origin_h3_index": "string",
+        "destination_h3_index": "string",
+        "origin_time_utc": "datetime",
+        "destination_time_utc": "datetime",
+        "trip_id": "string",
+        "movement_seq": "int",
+        "origin_municipality": "string",
+        "destination_municipality": "string",
+        "timezone_offset_min": "int",
+        "origin_time_local_hhmm": "string",
+        "destination_time_local_hhmm": "string",
+        "trip_weight": "float",
+        "mode_sequence": "string",
+        "mode": "categorical",
+        "purpose": "categorical",
+        "day_type": "categorical",
+        "time_period": "categorical",
+        "user_gender": "categorical",
+        "user_age_group": "categorical",
+        "income_quintile": "categorical"
+      },
+      "overrides": {},
+      "domains_effective": {
+        "mode": {
+          "base_values": [
+            "bicycle",
+            "bus",
+            "car",
+            "metro",
+            "motorcycle",
+            "other",
+            "ride_hailing",
+            "scooter",
+            "taxi",
+            "train",
+            "walk"
+          ],
+          "observed_values": [
+            "bicycle",
+            "bus",
+            "car",
+            "metro",
+            "motorcycle",
+            "other",
+            "ride_hailing",
+            "scooter",
+            "taxi",
+            "train",
+            "walk"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "other",
+          "n_unique_observed": 11,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "bicycle",
+            "bus",
+            "car",
+            "metro",
+            "motorcycle",
+            "other",
+            "ride_hailing",
+            "scooter",
+            "taxi",
+            "train",
+            "walk"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "purpose": {
+          "base_values": [
+            "education",
+            "errand",
+            "health",
+            "home",
+            "leisure",
+            "other",
+            "shopping",
+            "transfer",
+            "work"
+          ],
+          "observed_values": [
+            "education",
+            "errand",
+            "health",
+            "home",
+            "leisure",
+            "other",
+            "shopping",
+            "transfer",
+            "work"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "other",
+          "n_unique_observed": 9,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "education",
+            "errand",
+            "health",
+            "home",
+            "leisure",
+            "other",
+            "shopping",
+            "transfer",
+            "work"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "day_type": {
+          "base_values": [
+            "holiday",
+            "weekday",
+            "weekend"
+          ],
+          "observed_values": [
+            "holiday",
+            "weekday",
+            "weekend"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 3,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "holiday",
+            "unknown",
+            "weekday",
+            "weekend"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "time_period": {
+          "base_values": [
+            "afternoon",
+            "evening",
+            "midday",
+            "morning",
+            "night"
+          ],
+          "observed_values": [
+            "afternoon",
+            "evening",
+            "midday",
+            "morning",
+            "night"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 5,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "afternoon",
+            "evening",
+            "midday",
+            "morning",
+            "night",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "user_gender": {
+          "base_values": [
+            "female",
+            "male",
+            "other",
+            "unknown"
+          ],
+          "observed_values": [
+            "female",
+            "male",
+            "other",
+            "unknown"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 4,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "female",
+            "male",
+            "other",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "user_age_group": {
+          "base_values": [
+            "0-14",
+            "15-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65-plus",
+            "unknown"
+          ],
+          "observed_values": [
+            "0-14",
+            "15-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65-plus",
+            "unknown"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 8,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "0-14",
+            "15-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65-plus",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "income_quintile": {
+          "base_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "unknown"
+          ],
+          "observed_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "unknown"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 6,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        }
+      },
+      "temporal": {},
+      "fields_effective": [
+        "movement_id",
+        "user_id",
+        "trip_id",
+        "movement_seq",
+        "origin_longitude",
+        "origin_latitude",
+        "destination_longitude",
+        "destination_latitude",
+        "origin_time_utc",
+        "destination_time_utc",
+        "origin_h3_index",
+        "destination_h3_index",
+        "origin_municipality",
+        "destination_municipality",
+        "timezone_offset_min",
+        "origin_time_local_hhmm",
+        "destination_time_local_hhmm",
+        "trip_weight",
+        "mode_sequence",
+        "mode",
+        "purpose",
+        "day_type",
+        "time_period",
+        "user_gender",
+        "user_age_group",
+        "income_quintile"
+      ]
+    },
+    "mappings": {
+      "field_correspondence": {},
+      "value_correspondence": {}
+    },
+    "domains_effective": {
+      "mode": {
+        "base_values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "observed_values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "other",
+        "n_unique_observed": 11,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "bicycle",
+          "bus",
+          "car",
+          "metro",
+          "motorcycle",
+          "other",
+          "ride_hailing",
+          "scooter",
+          "taxi",
+          "train",
+          "walk"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "purpose": {
+        "base_values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "observed_values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "other",
+        "n_unique_observed": 9,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "education",
+          "errand",
+          "health",
+          "home",
+          "leisure",
+          "other",
+          "shopping",
+          "transfer",
+          "work"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "day_type": {
+        "base_values": [
+          "holiday",
+          "weekday",
+          "weekend"
+        ],
+        "observed_values": [
+          "holiday",
+          "weekday",
+          "weekend"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 3,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "holiday",
+          "unknown",
+          "weekday",
+          "weekend"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "time_period": {
+        "base_values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night"
+        ],
+        "observed_values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 5,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "afternoon",
+          "evening",
+          "midday",
+          "morning",
+          "night",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "user_gender": {
+        "base_values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "observed_values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 4,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "user_age_group": {
+        "base_values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "observed_values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 8,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "0-14",
+          "15-24",
+          "25-34",
+          "35-44",
+          "45-54",
+          "55-64",
+          "65-plus",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "income_quintile": {
+        "base_values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "observed_values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 6,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      }
+    },
+    "domains_extended": [],
+    "extra_fields_kept": [
+      "activity_status",
+      "education_level",
+      "travel_time_bucket",
+      "season",
+      "fare_payment_type",
+      "bike_lane_usage",
+      "home_tenure"
+    ],
+    "events": [
+      {
+        "op": "import_trips",
+        "ts_utc": "2026-04-04T17:45:37.275640+00:00",
+        "parameters": {
+          "keep_extra_fields": true,
+          "selected_fields": null,
+          "strict": false,
+          "strict_domains": false,
+          "single_stage": false,
+          "h3_resolution": 8,
+          "source_name": "synthetic_rich_trips",
+          "source_timezone": null
+        },
+        "summary": {
+          "input_rows": 180,
+          "output_rows": 180,
+          "rows_dropped": 0,
+          "n_fields_mapped": 0,
+          "n_domain_mappings_applied": 0,
+          "columns_added": [],
+          "columns_deleted": [],
+          "domains_extended_count": 0,
+          "temporal_tier": "tier_1",
+          "temporal_notes": null
+        },
+        "issues_summary": {
+          "counts": {
+            "warning": 2
+          },
+          "by_code": {
+            "IMP.TYPE.COERCE_PARTIAL": 2
+          }
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-04T17:45:37Z",
+        "parameters": {
+          "strict": false,
+          "max_issues": 500,
+          "sample_rows_per_issue": 5,
+          "validate_required_fields": true,
+          "validate_types_and_formats": true,
+          "validate_constraints": true,
+          "validate_domains": "full",
+          "domains_sample_frac": 0.01,
+          "domains_min_in_domain_ratio": 1.0,
+          "validate_temporal_consistency": false,
+          "validate_duplicates": false,
+          "duplicates_subset": null,
+          "allow_partial_od_spatial": true
+        },
+        "summary": {
+          "ok": true,
+          "n_rows": 180,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "day_type",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_municipality",
+            "destination_time_local_hhmm",
+            "destination_time_utc",
+            "income_quintile",
+            "mode",
+            "mode_sequence",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_municipality",
+            "origin_time_local_hhmm",
+            "origin_time_utc",
+            "purpose",
+            "time_period",
+            "timezone_offset_min",
+            "trip_id",
+            "trip_weight",
+            "user_age_group",
+            "user_gender",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": false,
+            "duplicates": false
+          },
+          "schema_version": "1.1",
+          "domains": {
+            "mode": "full",
+            "min_required_ratio": 1.0,
+            "fields": {
+              "mode": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "purpose": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "day_type": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "time_period": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "user_gender": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "user_age_group": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              },
+              "income_quintile": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 180,
+                "n_in_domain": 180
+              }
+            }
+          },
+          "limits": {
+            "max_issues": 500,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_trips",
+        "ts_utc": "2026-04-04T17:54:35Z",
+        "parameters": {
+          "path": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\io_trips\\tmp_integration\\test_02_write_dictionary_encoding\\categorical_bundle.golondrina",
+          "mode": "error_if_exists",
+          "require_validated": true,
+          "storage_format": "parquet",
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": true
+        },
+        "summary": {
+          "n_rows": 180,
+          "files_written": [
+            "trips.parquet",
+            "trips.metadata.json"
+          ],
+          "path": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\io_trips\\tmp_integration\\test_02_write_dictionary_encoding\\categorical_bundle.golondrina",
+          "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
+          "artifact_id": "art_69ba140f-a053-4ac0-92d7-4d1e340cbbde",
+          "dataset_id_status": "preserved",
+          "storage_format": "parquet"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "provenance": {
+      "source": {
+        "name": "synthetic_generator",
+        "entity": "trips"
+      },
+      "ingestion": {
+        "created_at_utc": "2026-04-04T00:00:00Z"
+      },
+      "notes": [
+        "fixture de integración OP-06/OP-07"
+      ]
+    },
+    "temporal": {
+      "tier": "tier_1",
+      "fields_present": [
+        "origin_time_utc",
+        "destination_time_utc",
+        "origin_time_local_hhmm",
+        "destination_time_local_hhmm"
+      ],
+      "normalization": {
+        "origin_time_utc": {
+          "status": "string_tzaware_to_utc",
+          "tz_kind": "none",
+          "n_nat": 0
+        },
+        "destination_time_utc": {
+          "status": "string_tzaware_to_utc",
+          "tz_kind": "none",
+          "n_nat": 0
+        }
+      }
+    },
+    "h3": {
+      "resolution": 8,
+      "source_fields": [
+        [
+          "origin_latitude",
+          "origin_longitude"
+        ],
+        [
+          "destination_latitude",
+          "destination_longitude"
+        ]
+      ],
+      "derived_fields": [
+        "origin_h3_index",
+        "destination_h3_index"
+      ]
+    },
+    "artifact_id": "art_69ba140f-a053-4ac0-92d7-4d1e340cbbde"
+  }
+}
