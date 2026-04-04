@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "dset_test_001",
-  "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047",
+  "artifact_id": "art_9d6b743c-d017-4aa6-94f8-75d959279599",
   "files": {
     "data": "trips.parquet",
     "metadata": "trips.metadata.json"
@@ -187,13 +187,14 @@
     "events": [
       {
         "op": "write_trips",
-        "ts_utc": "2026-04-04T15:27:09Z",
+        "ts_utc": "2026-04-04T16:54:15Z",
         "parameters": {
           "path": "tmp_smoke\\case_03_read_from_snapshot\\artifact",
           "mode": "error_if_exists",
           "require_validated": true,
           "storage_format": "parquet",
-          "parquet_compression": "snappy"
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": false
         },
         "summary": {
           "n_rows": 3,
@@ -203,7 +204,7 @@
           ],
           "path": "tmp_smoke\\case_03_read_from_snapshot\\artifact",
           "dataset_id": "dset_test_001",
-          "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047",
+          "artifact_id": "art_9d6b743c-d017-4aa6-94f8-75d959279599",
           "dataset_id_status": "preserved",
           "storage_format": "parquet"
         },
@@ -250,6 +251,6 @@
       "tier": "tier_3"
     },
     "dataset_id": "dset_test_001",
-    "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047"
+    "artifact_id": "art_9d6b743c-d017-4aa6-94f8-75d959279599"
   }
 }

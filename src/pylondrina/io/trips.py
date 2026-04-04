@@ -44,6 +44,8 @@ _REQUIRED_SIDECAR_TOP_LEVEL = {
     "provenance",
     "metadata",
 }
+
+_GOLONDRINA_ARTIFACT_SUFFIX = ".golondrina"
 _SUPPORTED_STORAGE_FORMATS = {"parquet"}
 _SUPPORTED_PARQUET_COMPRESSIONS = {"snappy", "gzip", "zstd", "brotli", "none", None}
 
@@ -63,12 +65,16 @@ class WriteTripsOptions:
         Backend de persistencia tabular. En v1.1 solo se soporta Parquet.
     parquet_compression : {"snappy", "gzip", "zstd", "brotli", "none", None}, default="snappy"
         Compresión efectiva usada al escribir `trips.parquet`.
+    normalize_artifact_dir : bool, default=True
+        Si True, normaliza el directorio root del artefacto para que termine en
+        `.golondrina`. Si False, usa el path entregado tal cual.
     """
 
     mode: WriteMode = "error_if_exists"
     require_validated: bool = True
     storage_format: StorageFormat = "parquet"
     parquet_compression: ParquetCompression = "snappy"
+    normalize_artifact_dir: bool = True
 
 
 @dataclass(frozen=True)
@@ -156,7 +162,9 @@ def write_trips(
     trips : TripDataset
         Dataset de trips a persistir.
     path : PathLike
-        Directorio destino del artefacto formal.
+        Directorio destino del artefacto formal. Si
+        `options.normalize_artifact_dir=True` y el nombre no termina en
+        `.golondrina`, se normaliza automáticamente al sufijo canónico.
     options : WriteTripsOptions, optional
         Opciones efectivas de escritura. Si None, se usan defaults.
 
@@ -168,18 +176,25 @@ def write_trips(
     # Se inicializa el acumulador de evidencia y se fijan las options efectivas.
     issues: List[Issue] = []
     options_eff = options or WriteTripsOptions()
-    parameters = _options_to_write_parameters(path=path, options=options_eff)
+    
+    # Se normaliza primero el root efectivo del artefacto para que todo el pipeline
+    # trabaje sobre el mismo directorio canónico.
+    write_root = _normalize_trips_artifact_root_for_write(
+        path,
+        normalize_artifact_dir=options_eff.normalize_artifact_dir,
+    )
+    parameters = _options_to_write_parameters(path=write_root, options=options_eff)
 
     # Se valida el contrato de write antes de tocar disco.
     _validate_write_contract(
         trips,
-        path,
+        write_root,
         options_eff,
         issues=issues,
     )
 
     # Se resuelve el layout formal y el estado persistible del sidecar.
-    paths = _resolve_trips_artifact_paths(path)
+    paths = _resolve_trips_artifact_paths(write_root)
     resolved = _resolve_write_identity_and_sidecar(
         trips,
         paths,
@@ -265,7 +280,9 @@ def read_trips(
     Parameters
     ----------
     path : PathLike
-        Directorio del artefacto formal persistido.
+        Directorio del artefacto formal persistido. Si el path exacto no existe
+        y no termina en `.golondrina`, la operación intenta automáticamente con
+        el sufijo canónico antes de fallar.
     options : ReadTripsOptions, optional
         Opciones efectivas de lectura. Si None, se usan defaults.
 
@@ -277,7 +294,11 @@ def read_trips(
     # Se inicializa evidencia y se fijan las options efectivas de lectura.
     issues: List[Issue] = []
     options_eff = options or ReadTripsOptions()
-    paths = _resolve_trips_artifact_paths(path)
+    
+    # Se resuelve primero el root efectivo. Si el path exacto no existe,
+    # se intenta con el sufijo canónico `.golondrina`.
+    read_root = _resolve_trips_artifact_root_for_read(path)
+    paths = _resolve_trips_artifact_paths(read_root)
     parameters = _options_to_read_parameters(path=paths.root_dir, options=options_eff)
 
     # Se valida que exista el layout formal mínimo antes de cargar sidecar o tabla.
@@ -1482,6 +1503,65 @@ def _build_read_trips_summary(
 # Helpers internos de uso general
 # -----------------------------------------------------------------------------
 
+def _has_golondrina_artifact_suffix(path: Path) -> bool:
+    """Indica si el nombre del directorio ya usa el sufijo canónico `.golondrina`."""
+    return path.name.endswith(_GOLONDRINA_ARTIFACT_SUFFIX)
+
+
+def _append_golondrina_artifact_suffix(path: Path) -> Path:
+    """Agrega el sufijo canónico `.golondrina` al nombre del directorio del artefacto."""
+    if _has_golondrina_artifact_suffix(path):
+        return path
+    if path.name:
+        return path.parent / f"{path.name}{_GOLONDRINA_ARTIFACT_SUFFIX}"
+    return Path(f"{str(path)}{_GOLONDRINA_ARTIFACT_SUFFIX}")
+
+
+def _normalize_trips_artifact_root_for_write(
+    root_path: PathLike,
+    *,
+    normalize_artifact_dir: bool,
+) -> Path:
+    """
+    Normaliza el root del artefacto en write_trips.
+
+    Si `normalize_artifact_dir=True` y el nombre no termina en `.golondrina`,
+    se agrega el sufijo canónico al directorio destino.
+    """
+    # Se expande primero el path del usuario para trabajar siempre con un root consistente.
+    root_dir = Path(root_path).expanduser()
+    if normalize_artifact_dir:
+        # Se fuerza la convención canónica del bundle persistido cuando la opción lo pide.
+        return _append_golondrina_artifact_suffix(root_dir)
+    return root_dir
+
+def _resolve_trips_artifact_root_for_read(root_path: PathLike) -> Path:
+    """
+    Resuelve el root del artefacto en read_trips con fallback amigable a `.golondrina`.
+
+    Regla:
+    1) intentar el path exacto;
+    2) si no existe y no termina en `.golondrina`, intentar `path + ".golondrina"`;
+    3) si no existe ninguno, devolver el path exacto para que el error lo emita read
+       sobre la ruta realmente solicitada.
+    """
+    # Se intenta primero exactamente la ruta que el usuario pidió.
+    root_dir = Path(root_path).expanduser()
+    if root_dir.exists():
+        return root_dir
+
+    # Si ya venía con el sufijo canónico, no hay segundo intento alternativo.
+    if _has_golondrina_artifact_suffix(root_dir):
+        return root_dir
+
+    # Solo si el path exacto no existe, se intenta el nombre canónico del bundle.
+    candidate = _append_golondrina_artifact_suffix(root_dir)
+    if candidate.exists():
+        return candidate
+
+    # Si no existe ninguno, se devuelve el original para que la operación falle sobre esa ruta.
+    return root_dir
+
 def _resolve_trips_artifact_paths(root_path: PathLike) -> TripsArtifactPaths:
     """Resuelve el layout formal de trips a partir del root del artefacto."""
     root_dir = Path(root_path).expanduser()
@@ -1668,6 +1748,7 @@ def _options_to_write_parameters(*, path: PathLike, options: WriteTripsOptions) 
         "require_validated": bool(options.require_validated),
         "storage_format": options.storage_format,
         "parquet_compression": options.parquet_compression,
+        "normalize_artifact_dir": bool(options.normalize_artifact_dir),
     }
 
 

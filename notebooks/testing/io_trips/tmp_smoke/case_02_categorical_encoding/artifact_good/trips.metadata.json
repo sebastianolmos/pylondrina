@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "dset_test_001",
-  "artifact_id": "art_9ea44412-6d61-4d5d-ac98-f4dbbb20fd0d",
+  "artifact_id": "art_eec25265-b83f-4aa8-8b52-947e807193ed",
   "files": {
     "data": "trips.parquet",
     "metadata": "trips.metadata.json"
@@ -187,13 +187,14 @@
     "events": [
       {
         "op": "write_trips",
-        "ts_utc": "2026-04-04T15:24:11Z",
+        "ts_utc": "2026-04-04T16:53:00Z",
         "parameters": {
           "path": "tmp_smoke\\case_02_categorical_encoding\\artifact_good",
           "mode": "overwrite",
           "require_validated": true,
           "storage_format": "parquet",
-          "parquet_compression": "snappy"
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": false
         },
         "summary": {
           "n_rows": 9000,
@@ -203,7 +204,7 @@
           ],
           "path": "tmp_smoke\\case_02_categorical_encoding\\artifact_good",
           "dataset_id": "dset_test_001",
-          "artifact_id": "art_9ea44412-6d61-4d5d-ac98-f4dbbb20fd0d",
+          "artifact_id": "art_eec25265-b83f-4aa8-8b52-947e807193ed",
           "dataset_id_status": "preserved",
           "storage_format": "parquet"
         },
@@ -250,6 +251,6 @@
       "tier": "tier_3"
     },
     "dataset_id": "dset_test_001",
-    "artifact_id": "art_9ea44412-6d61-4d5d-ac98-f4dbbb20fd0d"
+    "artifact_id": "art_eec25265-b83f-4aa8-8b52-947e807193ed"
   }
 }
