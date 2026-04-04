@@ -9,6 +9,8 @@ import re
 
 import numpy as np
 import pandas as pd
+#from pandas.api.types import NaTType
+from pandas.api.typing import NaTType 
 
 import h3 
 
@@ -1204,7 +1206,7 @@ def _to_python_scalar(value: Any) -> Any:
     return value
 
 
-def _safe_parse_datetime_scalar(value: Any) -> pd.Timestamp | pd.NaT:
+def _safe_parse_datetime_scalar(value: Any) -> pd.Timestamp | NaTType:
     """
     Parsea un valor temporal de forma robusta para casos mixtos.
 
