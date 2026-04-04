@@ -1,0 +1,255 @@
+{
+  "dataset_type": "trips",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "dset_test_001",
+  "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047",
+  "files": {
+    "data": "trips.parquet",
+    "metadata": "trips.metadata.json"
+  },
+  "schema": {
+    "version": "1.1",
+    "fields": {
+      "movement_id": {
+        "name": "movement_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "trip_id": {
+        "name": "trip_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "movement_seq": {
+        "name": "movement_seq",
+        "dtype": "int",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "user_id": {
+        "name": "user_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_latitude": {
+        "name": "origin_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "origin_longitude": {
+        "name": "origin_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_latitude": {
+        "name": "destination_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "destination_longitude": {
+        "name": "destination_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": null,
+        "domain": null
+      },
+      "mode": {
+        "name": "mode",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "bus",
+            "metro",
+            "walk",
+            "car"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "purpose": {
+        "name": "purpose",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": null,
+        "domain": {
+          "values": [
+            "work",
+            "study",
+            "health"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "comment": {
+        "name": "comment",
+        "dtype": "string",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      },
+      "trip_weight": {
+        "name": "trip_weight",
+        "dtype": "float",
+        "required": false,
+        "constraints": null,
+        "domain": null
+      }
+    },
+    "required": [
+      "movement_id",
+      "trip_id",
+      "movement_seq",
+      "user_id",
+      "origin_latitude",
+      "origin_longitude",
+      "destination_latitude",
+      "destination_longitude"
+    ],
+    "semantic_rules": null
+  },
+  "schema_effective": {
+    "dtype_effective": {
+      "mode": "categorical",
+      "purpose": "categorical",
+      "trip_weight": "float"
+    },
+    "overrides": {},
+    "domains_effective": {
+      "mode": {
+        "values": [
+          "bus",
+          "metro",
+          "walk",
+          "car"
+        ]
+      },
+      "purpose": {
+        "values": [
+          "work",
+          "study",
+          "health"
+        ]
+      }
+    },
+    "temporal": {
+      "tier": "tier_3"
+    },
+    "fields_effective": [
+      "movement_id",
+      "trip_id",
+      "movement_seq",
+      "user_id",
+      "origin_latitude",
+      "origin_longitude",
+      "destination_latitude",
+      "destination_longitude",
+      "mode",
+      "purpose",
+      "comment",
+      "trip_weight"
+    ]
+  },
+  "provenance": {
+    "source": {
+      "name": "synthetic",
+      "entity": "trips"
+    },
+    "ingestion": {
+      "created_at_utc": "2026-04-04T00:00:00Z"
+    }
+  },
+  "metadata": {
+    "is_validated": true,
+    "events": [
+      {
+        "op": "write_trips",
+        "ts_utc": "2026-04-04T15:27:09Z",
+        "parameters": {
+          "path": "tmp_smoke\\case_03_read_from_snapshot\\artifact",
+          "mode": "error_if_exists",
+          "require_validated": true,
+          "storage_format": "parquet",
+          "parquet_compression": "snappy"
+        },
+        "summary": {
+          "n_rows": 3,
+          "files_written": [
+            "trips.parquet",
+            "trips.metadata.json"
+          ],
+          "path": "tmp_smoke\\case_03_read_from_snapshot\\artifact",
+          "dataset_id": "dset_test_001",
+          "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047",
+          "dataset_id_status": "preserved",
+          "storage_format": "parquet"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "mappings": {
+      "field_correspondence": {
+        "movement_id": "movement_id_src",
+        "mode": "mode_src"
+      },
+      "value_correspondence": {
+        "mode": {
+          "micro": "bus",
+          "subte": "metro"
+        }
+      }
+    },
+    "domains_effective": {
+      "mode": {
+        "values": [
+          "bus",
+          "metro",
+          "walk",
+          "car"
+        ]
+      },
+      "purpose": {
+        "values": [
+          "work",
+          "study",
+          "health"
+        ]
+      }
+    },
+    "temporal": {
+      "tier": "tier_3"
+    },
+    "dataset_id": "dset_test_001",
+    "artifact_id": "art_f8de3e35-88c1-440d-88f5-e57235d83047"
+  }
+}
