@@ -1,0 +1,189 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_193e38ec1032",
+  "created_at_utc": "2026-04-06T05:55:01.671940Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_1e62ae35bcf4",
+    "aggregation_spec": {
+      "h3_resolution": 5,
+      "group_by": [
+        "user_gender"
+      ],
+      "time_aggregation": "day",
+      "time_basis": "origin",
+      "min_trips_per_flow": 2,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+        "user_gender"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "tripds_ab867872950a44b6bec08150a17ea411",
+          "schema_version": "1.1",
+          "n_rows": 260
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "import_trips",
+          "ts_utc": "2026-04-06T05:53:39.473156+00:00",
+          "summary": {
+            "input_rows": 260,
+            "output_rows": 260,
+            "rows_dropped": 0,
+            "n_fields_mapped": 0,
+            "n_domain_mappings_applied": 0,
+            "columns_added": [],
+            "columns_deleted": [],
+            "domains_extended_count": 0,
+            "temporal_tier": "tier_1",
+            "temporal_notes": null
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-06T05:53:39Z",
+          "summary": {
+            "ok": true,
+            "n_rows": 260,
+            "n_issues": 0,
+            "n_errors": 0,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 0,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {},
+            "checked_fields": [
+              "day_type",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_municipality",
+              "destination_time_local_hhmm",
+              "destination_time_utc",
+              "income_quintile",
+              "mode",
+              "mode_sequence",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_municipality",
+              "origin_time_local_hhmm",
+              "origin_time_utc",
+              "purpose",
+              "time_period",
+              "timezone_offset_min",
+              "trip_id",
+              "trip_weight",
+              "user_age_group",
+              "user_gender",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": false,
+              "temporal_consistency": false,
+              "duplicates": false
+            },
+            "schema_version": "1.1",
+            "limits": {
+              "max_issues": 500,
+              "issues_truncated": false,
+              "n_issues_emitted": 0,
+              "n_issues_detected_total": 0
+            }
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_1e62ae35bcf4",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-06T05:55:01.657461Z",
+          "parameters": {
+            "h3_resolution": 5,
+            "group_by": [
+              "user_gender"
+            ],
+            "time_aggregation": "day",
+            "time_basis": "origin",
+            "min_trips_per_flow": 2,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 260,
+            "n_trips_eligible": 260,
+            "n_trips_dropped": 0,
+            "n_flows_out": 48,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 5
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\build_flows\\tmp_integration\\test_02_export_happy_from_build",
+      "export_dir": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\build_flows\\tmp_integration\\test_02_export_happy_from_build\\segmented_export_case",
+      "format": "flowmap_blue",
+      "mode": "error_if_exists",
+      "folder_name": "segmented_export_case",
+      "extra_flow_fields": [
+        "user_gender",
+        "window_start_utc"
+      ]
+    },
+    "summary": {
+      "n_flows": 48,
+      "n_locations": 7,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}
