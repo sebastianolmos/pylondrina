@@ -1,0 +1,103 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "flow-dset-smoke-001",
+  "artifact_id": "art_ab2bff62-3be1-4057-85eb-f5b12fd54f69",
+  "files": {
+    "data": "flows.parquet",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": "flow_to_trips.parquet"
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [
+      "mode"
+    ],
+    "time_aggregation": "hour",
+    "time_basis": "origin",
+    "min_trips_per_flow": 1
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "trip-dset-origin-001"
+      }
+    ],
+    "prior_events_summary": {
+      "n_events": 2
+    }
+  },
+  "metadata": {
+    "dataset_id": "flow-dset-smoke-001",
+    "is_validated": true,
+    "events": [
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-06T18:37:23Z",
+        "parameters": {
+          "path": "tmp_smoke_flows\\case_05_read_degraded_missing_aux\\artifact",
+          "mode": "error_if_exists",
+          "storage_format": "parquet",
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": false,
+          "write_flow_to_trips": true
+        },
+        "summary": {
+          "n_flows": 3,
+          "n_flow_to_trips": 6,
+          "files_written": [
+            "flows.parquet",
+            "flows.metadata.json",
+            "flow_to_trips.parquet"
+          ],
+          "dataset_id": "flow-dset-smoke-001",
+          "artifact_id": "art_ab2bff62-3be1-4057-85eb-f5b12fd54f69"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "notes": {
+      "smoke_case": true
+    },
+    "artifact_id": "art_ab2bff62-3be1-4057-85eb-f5b12fd54f69"
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 3,
+      "n_cols": 8,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value",
+        "mode",
+        "window_start_utc",
+        "window_end_utc"
+      ]
+    },
+    "flow_to_trips": {
+      "n_rows": 6,
+      "n_cols": 2,
+      "columns": [
+        "flow_id",
+        "movement_id"
+      ]
+    }
+  }
+}
