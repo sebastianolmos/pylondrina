@@ -1,0 +1,144 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "flow-dset-links-001",
+  "artifact_id": "art_1867f007-cbcb-4f8e-8b83-742802447c51",
+  "files": {
+    "data": "flows.parquet",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": "flow_to_trips.parquet"
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [
+      "mode",
+      "day_type",
+      "user_gender"
+    ],
+    "time_aggregation": "hour",
+    "time_basis": "origin",
+    "min_trips_per_flow": 1
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "trip-dset-origin-001",
+        "schema_version": "1.1"
+      }
+    ],
+    "prior_events_summary": {
+      "n_events": 3
+    }
+  },
+  "metadata": {
+    "dataset_id": "flow-dset-links-001",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-01T12:00:00Z",
+        "parameters": {
+          "h3_resolution": 8,
+          "group_by": [
+            "mode",
+            "day_type",
+            "user_gender"
+          ],
+          "time_aggregation": "hour",
+          "time_basis": "origin",
+          "min_trips_per_flow": 1
+        },
+        "summary": {
+          "n_flows": 240,
+          "n_trips_in": 960,
+          "n_trips_aggregated": 960,
+          "n_trips_dropped": 0,
+          "n_flow_to_trips_rows": 720
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-06T21:58:54Z",
+        "parameters": {
+          "path": "tmp_integration_flows\\artifacts\\case_06_read_missing_aux\\flows_missing_aux",
+          "mode": "error_if_exists",
+          "storage_format": "parquet",
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": false,
+          "write_flow_to_trips": true
+        },
+        "summary": {
+          "n_flows": 240,
+          "n_flow_to_trips": 720,
+          "path": "tmp_integration_flows\\artifacts\\case_06_read_missing_aux\\flows_missing_aux",
+          "files_written": [
+            "flows.parquet",
+            "flows.metadata.json",
+            "flow_to_trips.parquet"
+          ],
+          "dataset_id": "flow-dset-links-001",
+          "artifact_id": "art_1867f007-cbcb-4f8e-8b83-742802447c51"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "notes": {
+      "fixture": "integration_rich_flowdataset"
+    },
+    "artifact_id": "art_1867f007-cbcb-4f8e-8b83-742802447c51"
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 240,
+      "n_cols": 15,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value",
+        "mode",
+        "purpose",
+        "day_type",
+        "user_gender",
+        "income_quintile",
+        "time_period",
+        "window_start_utc",
+        "window_end_utc",
+        "avg_trip_weight",
+        "segment_label"
+      ]
+    },
+    "flow_to_trips": {
+      "n_rows": 720,
+      "n_cols": 2,
+      "columns": [
+        "flow_id",
+        "movement_id"
+      ]
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "flow-dset-dict-001",
+  "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8",
+  "files": {
+    "data": "flows.parquet",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": "flow_to_trips.parquet"
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [
+      "mode",
+      "day_type",
+      "user_gender"
+    ],
+    "time_aggregation": "hour",
+    "time_basis": "origin",
+    "min_trips_per_flow": 1
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "trip-dset-origin-001",
+        "schema_version": "1.1"
+      }
+    ],
+    "prior_events_summary": {
+      "n_events": 3
+    }
+  },
+  "metadata": {
+    "dataset_id": "flow-dset-dict-001",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-01T12:00:00Z",
+        "parameters": {
+          "h3_resolution": 8,
+          "group_by": [
+            "mode",
+            "day_type",
+            "user_gender"
+          ],
+          "time_aggregation": "hour",
+          "time_basis": "origin",
+          "min_trips_per_flow": 1
+        },
+        "summary": {
+          "n_flows": 4800,
+          "n_trips_in": 19200,
+          "n_trips_aggregated": 19200,
+          "n_trips_dropped": 0,
+          "n_flow_to_trips_rows": 14400
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-06T21:48:20Z",
+        "parameters": {
+          "path": "tmp_integration_flows\\artifacts\\case_02_write_with_aux_and_dictionary\\flows_with_aux",
+          "mode": "error_if_exists",
+          "storage_format": "parquet",
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": false,
+          "write_flow_to_trips": true
+        },
+        "summary": {
+          "n_flows": 4800,
+          "n_flow_to_trips": 14400,
+          "path": "tmp_integration_flows\\artifacts\\case_02_write_with_aux_and_dictionary\\flows_with_aux",
+          "files_written": [
+            "flows.parquet",
+            "flows.metadata.json",
+            "flow_to_trips.parquet"
+          ],
+          "dataset_id": "flow-dset-dict-001",
+          "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "notes": {
+      "fixture": "integration_rich_flowdataset"
+    },
+    "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8"
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 4800,
+      "n_cols": 15,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value",
+        "mode",
+        "purpose",
+        "day_type",
+        "user_gender",
+        "income_quintile",
+        "time_period",
+        "window_start_utc",
+        "window_end_utc",
+        "avg_trip_weight",
+        "segment_label"
+      ]
+    },
+    "flow_to_trips": {
+      "n_rows": 14400,
+      "n_cols": 2,
+      "columns": [
+        "flow_id",
+        "movement_id"
+      ]
+    }
+  }
+}

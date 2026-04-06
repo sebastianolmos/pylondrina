@@ -581,6 +581,7 @@ def _freeze_flow_write_snapshot(
     summary = {
         "n_flows": int(len(flows.flows)),
         "n_flow_to_trips": n_flow_to_trips,
+        "path": str(paths.root_dir),
         "files_written": list(files_written),
         "dataset_id": dataset_id,
         "artifact_id": artifact_id,
