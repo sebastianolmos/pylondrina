@@ -413,6 +413,47 @@ H3_MODES = {"provided_valid", "omitted_derivable", "partial_missing", "invalid_s
 TRIP_STRUCTURES = {"independent", "single_stage_like", "multistage"}
 DUPLICATE_MODES = {"none", "movement_id_only", "full_rows"}
 
+OD_SPATIAL_PATTERNS = {"diffuse", "clustered_for_flows"}
+
+SANTIAGO_SIM_BOUNDS = {
+    "min_lat": -33.70,
+    "max_lat": -33.30,
+    "min_lon": -70.90,
+    "max_lon": -70.45,
+}
+
+# Centros aproximados de sectores reales de Santiago.
+# Formato: nombre -> (lat, lon)
+SANTIAGO_OD_CLUSTER_CENTERS: dict[str, tuple[float, float]] = {
+    "santiago_centro": (-33.4489, -70.6693),
+    "providencia": (-33.4310, -70.6180),
+    "las_condes": (-33.4080, -70.5670),
+    "nunoa": (-33.4565, -70.5979),
+    "la_florida": (-33.5230, -70.6040),
+    "puente_alto": (-33.6110, -70.5750),
+    "maipu": (-33.5110, -70.7600),
+    "estacion_central": (-33.4570, -70.7020),
+    "pudahuel": (-33.4380, -70.7910),
+    "quilicura": (-33.3550, -70.7290),
+}
+
+# Corredores OD favorecidos para generar flows más útiles.
+# Formato: (cluster_origen, cluster_destino, peso_relativo)
+SANTIAGO_OD_CORRIDORS: list[tuple[str, str, float]] = [
+    ("maipu", "santiago_centro", 0.14),
+    ("puente_alto", "santiago_centro", 0.12),
+    ("la_florida", "providencia", 0.10),
+    ("quilicura", "santiago_centro", 0.09),
+    ("pudahuel", "santiago_centro", 0.08),
+    ("estacion_central", "las_condes", 0.08),
+    ("nunoa", "providencia", 0.08),
+    ("santiago_centro", "las_condes", 0.09),
+    ("las_condes", "las_condes", 0.07),
+    ("maipu", "estacion_central", 0.06),
+    ("puente_alto", "la_florida", 0.05),
+    ("santiago_centro", "providencia", 0.04),
+]
+
 # -----------------------------------------------------------------------------
 # Función pública principal
 # -----------------------------------------------------------------------------
@@ -440,6 +481,7 @@ def generate_synthetic_trip_dataframe(
     ] = "utc_string_z",
     tier2_hhmm_format: Literal["valid_hhmm", "mixed_hhmm", "mostly_invalid_hhmm"] = "valid_hhmm",
     coord_format: Literal["numeric", "dd_string", "dd_comma", "dm", "dms", "mixed"] = "numeric",
+    od_spatial_pattern: Literal["diffuse", "clustered_for_flows"] = "diffuse",
     h3_mode: Literal["provided_valid", "omitted_derivable", "partial_missing", "invalid_strings"] = "provided_valid",
     trip_structure: Literal["independent", "single_stage_like", "multistage"] = "independent",
     max_movements_per_trip: int = 1,
@@ -484,6 +526,12 @@ def generate_synthetic_trip_dataframe(
         Formato para campos HH:MM cuando el dataset es tier 2.
     coord_format : {"numeric", "dd_string", "dd_comma", "dm", "dms", "mixed"}, default="numeric"
         Formato de coordenadas de entrada.
+    od_spatial_pattern : {"diffuse", "clustered_for_flows"}, default="diffuse"
+        Patrón espacial OD usado para generar coordenadas de referencia.
+        - "diffuse": comportamiento actual, con orígenes y destinos más dispersos.
+        - "clustered_for_flows": genera OD agrupados alrededor de sectores de Santiago
+          y corredores OD repetidos, pensado para demos y tests donde luego se agregan
+          flows y se necesita obtener celdas OD con mayor masa y repetición.
     h3_mode : {"provided_valid", "omitted_derivable", "partial_missing", "invalid_strings"}, default="provided_valid"
         Política de generación de campos H3.
     trip_structure : {"independent", "single_stage_like", "multistage"}, default="independent"
@@ -542,12 +590,13 @@ def generate_synthetic_trip_dataframe(
     -----
     Orden general aplicado por la función:
     1. generar estructura base válida;
-    2. aplicar tier temporal y formato espacial;
-    3. agregar campos base;
-    4. agregar extras;
-    5. aplicar degradaciones controladas sobre nombres canónicos;
-    6. omitir required finales;
-    7. renombrar columnas según `field_correspondence`.
+    2. generar coordenadas de referencia según `od_spatial_pattern`;
+    3. aplicar tier temporal y formato espacial;
+    4. agregar campos base;
+    5. agregar extras;
+    6. aplicar degradaciones controladas sobre nombres canónicos;
+    7. omitir required finales;
+    8. renombrar columnas según `field_correspondence`.
 
     Elegí dejar `field_correspondence` para el final para que el resto de argumentos pueda referirse
     siempre a nombres canónicos y no a nombres fuente, lo que simplifica mucho el uso del generador.
@@ -560,6 +609,7 @@ def generate_synthetic_trip_dataframe(
     _validate_choice("duplicate_mode", duplicate_mode, DUPLICATE_MODES)
     _validate_choice("tier_temporal", tier_temporal, {"tier_1", "tier_2", "tier_3"})
     _validate_choice("coord_format", coord_format, COORD_FORMATS)
+    _validate_choice("od_spatial_pattern", od_spatial_pattern, OD_SPATIAL_PATTERNS)
     _validate_choice("h3_mode", h3_mode, H3_MODES)
     _validate_choice("trip_structure", trip_structure, TRIP_STRUCTURES)
 
@@ -598,7 +648,11 @@ def generate_synthetic_trip_dataframe(
         rng=rng,
     )
     user_id = _build_user_ids(filas, rng=rng, trip_ids=trip_id)
-    coords_ref = _build_reference_coordinates(filas, rng=rng)
+    coords_ref = _build_reference_coordinates(
+        filas,
+        rng=rng,
+        od_spatial_pattern=od_spatial_pattern,
+    )
     origin_dt, destination_dt = _build_base_datetimes(filas, rng=rng)
 
     df = pd.DataFrame(index=pd.RangeIndex(filas))
@@ -970,21 +1024,111 @@ def _build_user_ids(filas: int, *, rng: np.random.Generator, trip_ids: pd.Series
     return _as_string_series([trip_to_user[str(t)] for t in trip_ids.tolist()])
 
 
-def _build_reference_coordinates(filas: int, *, rng: np.random.Generator) -> dict[str, np.ndarray]:
-    # Centro aproximado de Santiago; suficiente para pruebas sintéticas.
-    base_lat = -33.45
-    base_lon = -70.66
-    origin_lat = base_lat + rng.normal(0, 0.08, size=filas)
-    origin_lon = base_lon + rng.normal(0, 0.10, size=filas)
-    dest_lat = origin_lat + rng.normal(0, 0.03, size=filas)
-    dest_lon = origin_lon + rng.normal(0, 0.04, size=filas)
+def _build_reference_coordinates(
+    filas: int,
+    *,
+    rng: np.random.Generator,
+    od_spatial_pattern: str = "diffuse",
+) -> dict[str, np.ndarray]:
+    """
+    Genera coordenadas OD de referencia para el dataset sintético.
+
+    - "diffuse": comportamiento amplio y disperso, útil como caso general.
+    - "clustered_for_flows": agrupa OD alrededor de sectores/corredores para
+      producir agregaciones de flows más ricas y realistas en demos/tests.
+    """
+    if od_spatial_pattern == "diffuse":
+        # Comportamiento original.
+        base_lat = -33.45
+        base_lon = -70.66
+        origin_lat = base_lat + rng.normal(0, 0.08, size=filas)
+        origin_lon = base_lon + rng.normal(0, 0.10, size=filas)
+        dest_lat = origin_lat + rng.normal(0, 0.03, size=filas)
+        dest_lon = origin_lon + rng.normal(0, 0.04, size=filas)
+
+        origin_lat = _clip_to_santiago_bounds(origin_lat, is_lat=True)
+        origin_lon = _clip_to_santiago_bounds(origin_lon, is_lat=False)
+        dest_lat = _clip_to_santiago_bounds(dest_lat, is_lat=True)
+        dest_lon = _clip_to_santiago_bounds(dest_lon, is_lat=False)
+
+        return {
+            "origin_latitude": origin_lat,
+            "origin_longitude": origin_lon,
+            "destination_latitude": dest_lat,
+            "destination_longitude": dest_lon,
+        }
+
+    if od_spatial_pattern == "clustered_for_flows":
+        return _build_clustered_reference_coordinates(filas, rng=rng)
+
+    raise ValueError(f"od_spatial_pattern no soportado: {od_spatial_pattern!r}")
+
+def _clip_to_santiago_bounds(values: np.ndarray, *, is_lat: bool) -> np.ndarray:
+    """
+    Recorta coordenadas al bounding box de simulación de Santiago para evitar outliers extremos.
+    """
+    if is_lat:
+        return np.clip(values, SANTIAGO_SIM_BOUNDS["min_lat"], SANTIAGO_SIM_BOUNDS["max_lat"])
+    return np.clip(values, SANTIAGO_SIM_BOUNDS["min_lon"], SANTIAGO_SIM_BOUNDS["max_lon"])
+
+def _build_clustered_reference_coordinates(
+    filas: int,
+    *,
+    rng: np.random.Generator,
+) -> dict[str, np.ndarray]:
+    """
+    Genera coordenadas OD agrupadas alrededor de sectores y corredores favorecidos de Santiago.
+
+    La idea es producir muchos movements que caigan en zonas H3 repetidas o cercanas,
+    de manera que la construcción de flows entregue agregaciones más útiles para demos/tests.
+    """
+    if filas <= 0:
+        empty = np.array([], dtype=float)
+        return {
+            "origin_latitude": empty,
+            "origin_longitude": empty,
+            "destination_latitude": empty,
+            "destination_longitude": empty,
+        }
+
+    corridor_weights = np.array([weight for _, _, weight in SANTIAGO_OD_CORRIDORS], dtype=float)
+    corridor_weights = corridor_weights / corridor_weights.sum()
+
+    chosen_corridors = rng.choice(
+        np.arange(len(SANTIAGO_OD_CORRIDORS)),
+        size=filas,
+        replace=True,
+        p=corridor_weights,
+    )
+
+    origin_lat = np.empty(filas, dtype=float)
+    origin_lon = np.empty(filas, dtype=float)
+    dest_lat = np.empty(filas, dtype=float)
+    dest_lon = np.empty(filas, dtype=float)
+
+    for i, corridor_idx in enumerate(chosen_corridors):
+        origin_name, destination_name, _ = SANTIAGO_OD_CORRIDORS[int(corridor_idx)]
+
+        o_lat_center, o_lon_center = SANTIAGO_OD_CLUSTER_CENTERS[origin_name]
+        d_lat_center, d_lon_center = SANTIAGO_OD_CLUSTER_CENTERS[destination_name]
+
+        # Jitter pequeño para mantener agrupación sin hacer todos los puntos idénticos.
+        origin_lat[i] = o_lat_center + rng.normal(0.0, 0.007)
+        origin_lon[i] = o_lon_center + rng.normal(0.0, 0.009)
+        dest_lat[i] = d_lat_center + rng.normal(0.0, 0.007)
+        dest_lon[i] = d_lon_center + rng.normal(0.0, 0.009)
+
+    origin_lat = _clip_to_santiago_bounds(origin_lat, is_lat=True)
+    origin_lon = _clip_to_santiago_bounds(origin_lon, is_lat=False)
+    dest_lat = _clip_to_santiago_bounds(dest_lat, is_lat=True)
+    dest_lon = _clip_to_santiago_bounds(dest_lon, is_lat=False)
+
     return {
         "origin_latitude": origin_lat,
         "origin_longitude": origin_lon,
         "destination_latitude": dest_lat,
         "destination_longitude": dest_lon,
     }
-
 
 def _fake_h3_from_coords(lat: float, lon: float, resolution: int = 8) -> str:
     text = f"{resolution}_{lat:.6f}_{lon:.6f}"
