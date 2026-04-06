@@ -1,0 +1,72 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_ab3d9b9de748",
+  "created_at_utc": "2026-04-06T00:07:19.409847Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_case_001",
+    "aggregation_spec": {
+      "h3_resolution": 8,
+      "group_by": [
+        "mode"
+      ],
+      "time_aggregation": "hour",
+      "time_basis": "origin",
+      "min_trips_per_flow": 1,
+      "keep_flow_to_trips": true,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+        "mode"
+      ]
+    },
+    "provenance": {
+      "source_name": "demo_source",
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "trips_case_001"
+        }
+      ]
+    },
+    "metadata": {
+      "events": [],
+      "is_validated": false,
+      "dataset_id": "flows_case_001"
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "tmp_helper_tests\\case_04_06_materialize_flowmap_export_happy",
+      "export_dir": "tmp_helper_tests\\case_04_06_materialize_flowmap_export_happy\\artifact_export",
+      "format": "flowmap_blue",
+      "mode": "error_if_exists",
+      "folder_name": "artifact_export",
+      "extra_flow_fields": [
+        "mode",
+        "purpose"
+      ]
+    },
+    "summary": {
+      "n_flows": 2,
+      "n_locations": 4,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}

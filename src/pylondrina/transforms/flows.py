@@ -820,6 +820,9 @@ def _coerce_datetime_series(series: pd.Series) -> pd.Series:
 
 def _make_window_start(series_utc: pd.Series, time_aggregation: str) -> pd.Series:
     """Calcula el inicio de la ventana temporal del flujo."""
+    if isinstance(series_utc, pd.DatetimeIndex):
+        series_utc = pd.Series(series_utc)
+
     if time_aggregation == "hour":
         return series_utc.dt.floor("h")
     if time_aggregation == "day":
@@ -832,6 +835,9 @@ def _make_window_start(series_utc: pd.Series, time_aggregation: str) -> pd.Serie
 
 def _make_window_end(window_start: pd.Series, time_aggregation: str) -> pd.Series:
     """Calcula el fin de la ventana temporal del flujo."""
+    if isinstance(window_start, pd.DatetimeIndex):
+        window_start = pd.Series(window_start)
+
     if time_aggregation == "hour":
         return window_start + pd.Timedelta(hours=1)
     if time_aggregation == "day":

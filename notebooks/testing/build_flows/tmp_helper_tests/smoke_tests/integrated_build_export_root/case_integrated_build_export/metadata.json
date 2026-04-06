@@ -1,0 +1,126 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_fa2b234b4d84",
+  "created_at_utc": "2026-04-06T04:07:08.596753Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_21389d26318c",
+    "aggregation_spec": {
+      "h3_resolution": 8,
+      "group_by": [
+        "mode"
+      ],
+      "time_aggregation": "hour",
+      "time_basis": "origin",
+      "min_trips_per_flow": 1,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+        "mode"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "trips_case_001",
+          "schema_version": "1.1",
+          "n_rows": 4
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "import_trips",
+          "ts_utc": "2026-04-01T00:00:00Z",
+          "summary": {
+            "rows_out": 4
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-01T00:10:00Z",
+          "summary": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_21389d26318c",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-06T04:07:08.542352Z",
+          "parameters": {
+            "h3_resolution": 8,
+            "group_by": [
+              "mode"
+            ],
+            "time_aggregation": "hour",
+            "time_basis": "origin",
+            "min_trips_per_flow": 1,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 4,
+            "n_trips_eligible": 4,
+            "n_trips_dropped": 0,
+            "n_flows_out": 3,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 8
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "tmp_helper_tests\\smoke_tests\\integrated_build_export_root",
+      "export_dir": "tmp_helper_tests\\smoke_tests\\integrated_build_export_root\\case_integrated_build_export",
+      "format": "flowmap_blue",
+      "mode": "error_if_exists",
+      "folder_name": "case_integrated_build_export",
+      "extra_flow_fields": [
+        "mode",
+        "window_start_utc"
+      ]
+    },
+    "summary": {
+      "n_flows": 3,
+      "n_locations": 4,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}
