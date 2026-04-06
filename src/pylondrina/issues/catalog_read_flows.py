@@ -137,19 +137,19 @@ READ_FLOWS_ISSUES: dict[str, IssueSpec] = {
     ),
     "READ_FLOWS.SIDECAR.AGGREGATION_SPEC_DEFAULTED": _warn(
         "READ_FLOWS.SIDECAR.AGGREGATION_SPEC_DEFAULTED",
-        "aggregation_spec faltaba o era inválido en el sidecar; se usó {} bajo strict=False.",
+        "aggregation_spec faltaba o era inválido en el sidecar; se usó {{}} bajo strict=False.",
         details_keys=("path", "strict", "reason", "recovered", "recovery_action"),
         defaults={"recovered": True, "recovery_action": "default_empty_aggregation_spec"},
     ),
     "READ_FLOWS.SIDECAR.PROVENANCE_DEFAULTED": _info(
         "READ_FLOWS.SIDECAR.PROVENANCE_DEFAULTED",
-        "provenance faltaba o era inválido en el sidecar; se usó {} para reconstruir el FlowDataset.",
+        "provenance faltaba o era inválido en el sidecar; se usó {{}} para reconstruir el FlowDataset.",
         details_keys=("path", "strict", "reason", "recovered", "recovery_action"),
         defaults={"recovered": True, "recovery_action": "default_empty_provenance"},
     ),
     "READ_FLOWS.SIDECAR.METADATA_DEFAULTED": _warn(
         "READ_FLOWS.SIDECAR.METADATA_DEFAULTED",
-        "metadata faltaba o no era interpretable en el sidecar; se usó {} bajo strict=False.",
+        "metadata faltaba o no era interpretable en el sidecar; se usó {{}} bajo strict=False.",
         details_keys=("path", "strict", "reason", "recovered", "recovery_action"),
         defaults={"recovered": True, "recovery_action": "default_empty_metadata"},
     ),

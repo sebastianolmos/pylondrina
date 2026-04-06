@@ -184,6 +184,7 @@ def write_flows(
             staging_paths.data_path,
             storage_format=options_eff.storage_format,
             parquet_compression=options_eff.parquet_compression,
+            aggregation_spec=flows.aggregation_spec,
             issues=issues,
             destination_path=paths.root_dir,
         )
@@ -686,6 +687,7 @@ def _write_flows_table_to_staging(
     *,
     storage_format: str,
     parquet_compression: ParquetCompression,
+    aggregation_spec: Optional[Mapping[str, Any]] = None,
     issues: List[Issue],
     destination_path: Path,
 ) -> None:
@@ -700,9 +702,23 @@ def _write_flows_table_to_staging(
         parquet_path.parent.mkdir(parents=True, exist_ok=True)
         if storage_format != "parquet":
             raise ValueError(f"unsupported storage_format: {storage_format!r}")
-        df_out = _prepare_dataframe_for_parquet(df_flows)
+
+        # Se fuerzan como categóricos solo los campos segmentadores reales del FlowDataset.
+        categorical_fields = _collect_flow_parquet_categorical_fields(
+            df_flows,
+            aggregation_spec=aggregation_spec,
+        )
+        df_out = _prepare_dataframe_for_parquet(
+            df_flows,
+            categorical_fields=categorical_fields,
+        )
         compression = None if parquet_compression == "none" else parquet_compression
-        df_out.to_parquet(parquet_path, index=False, compression=compression)
+        df_out.to_parquet(
+            parquet_path,
+            index=False,
+            compression=compression,
+            engine="pyarrow",
+        )
     except Exception as exc:
         # Se aborta porque la tabla principal del bundle no quedó materializada.
         emit_and_maybe_raise(
@@ -747,7 +763,12 @@ def _write_optional_flow_to_trips_to_staging(
             raise ValueError(f"unsupported storage_format: {storage_format!r}")
         df_out = _prepare_dataframe_for_parquet(flow_to_trips)
         compression = None if parquet_compression == "none" else parquet_compression
-        df_out.to_parquet(parquet_path, index=False, compression=compression)
+        df_out.to_parquet(
+            parquet_path,
+            index=False,
+            compression=compression,
+            engine="pyarrow",
+        )
     except Exception as exc:
         # Se aborta porque el auxiliar fue solicitado explícitamente y su escritura falló.
         emit_and_maybe_raise(
@@ -1496,9 +1517,73 @@ def _append_event(metadata: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, 
     return metadata_out
 
 
-def _prepare_dataframe_for_parquet(df: pd.DataFrame) -> pd.DataFrame:
-    """Hace una copia defensiva y deja listas/escalares simples listos para Parquet."""
-    return df.copy(deep=True)
+def _collect_flow_parquet_categorical_fields(
+    df: pd.DataFrame,
+    *,
+    aggregation_spec: Optional[Mapping[str, Any]] = None,
+) -> List[str]:
+    """Retorna las columnas de segmentación que conviene persistir como categóricas."""
+    if not isinstance(aggregation_spec, Mapping):
+        return []
+
+    group_by = aggregation_spec.get("group_by")
+    if group_by is None:
+        return []
+    if isinstance(group_by, str):
+        candidate_fields = [group_by]
+    else:
+        try:
+            candidate_fields = [str(field_name) for field_name in group_by]
+        except TypeError:
+            return []
+
+    excluded_fields = {
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+    }
+
+    categorical_fields: List[str] = []
+    for field_name in df.columns:
+        if field_name not in candidate_fields or field_name in excluded_fields:
+            continue
+        series = df[field_name]
+        if (
+            isinstance(series.dtype, pd.CategoricalDtype)
+            or pd.api.types.is_object_dtype(series.dtype)
+            or pd.api.types.is_string_dtype(series.dtype)
+        ):
+            categorical_fields.append(str(field_name))
+    return categorical_fields
+
+
+
+def _prepare_dataframe_for_parquet(
+    df: pd.DataFrame,
+    *,
+    categorical_fields: Optional[Sequence[str]] = None,
+) -> pd.DataFrame:
+    """Hace una copia defensiva y fuerza categóricos explícitos antes de escribir Parquet."""
+    df_prepared = df.copy(deep=True)
+    categorical_targets = {str(field_name) for field_name in (categorical_fields or [])}
+
+    # Se convierten primero los campos explícitamente categóricos para favorecer dictionary encoding.
+    for field_name in categorical_targets:
+        if field_name not in df_prepared.columns:
+            continue
+        series = df_prepared[field_name]
+        if not isinstance(series.dtype, pd.CategoricalDtype):
+            df_prepared[field_name] = series.astype("category")
+
+    # Se remueven categorías no usadas en cualquier columna categórica ya presente.
+    for field_name in df_prepared.columns:
+        series = df_prepared[field_name]
+        if isinstance(series.dtype, pd.CategoricalDtype):
+            df_prepared[field_name] = series.cat.remove_unused_categories()
+
+    return df_prepared
 
 
 def _ensure_dataset_id(metadata: Dict[str, Any]) -> Tuple[str, str]:
