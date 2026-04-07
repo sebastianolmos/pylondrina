@@ -1483,12 +1483,12 @@ def _json_safe_scalar(value: Any) -> Any:
     """Normaliza un escalar a una forma JSON-friendly y estable."""
     if value is None:
         return None
-    if isinstance(value, (str, int, float, bool)):
-        return value
     if isinstance(value, (pd.Timestamp, datetime)):
         return value.isoformat()
     if pd.isna(value):
         return None
+    if isinstance(value, (str, int, float, bool)):
+        return value
     return str(value)
 
 
