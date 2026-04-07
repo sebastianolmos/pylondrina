@@ -1,0 +1,318 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "flows_27dedf8e1df4",
+  "artifact_id": "art_f2350103-946d-49f9-9328-f1760ad597d2",
+  "files": {
+    "data": "flows.parquet",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": "flow_to_trips.parquet"
+  },
+  "aggregation_spec": {
+    "h3_resolution": 7,
+    "group_by": [
+      "mode"
+    ],
+    "time_aggregation": "day",
+    "time_basis": "origin",
+    "min_trips_per_flow": 4,
+    "keep_flow_to_trips": true,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index",
+      "window_start_utc",
+      "window_end_utc",
+      "mode"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "tripds_893956e947fa445292e5003696b061d2",
+        "schema_version": "1.1",
+        "n_rows": 15000
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "import_trips",
+        "ts_utc": "2026-04-07T04:58:10.543069+00:00",
+        "summary": {
+          "input_rows": 15000,
+          "output_rows": 15000,
+          "rows_dropped": 0,
+          "n_fields_mapped": 30,
+          "n_domain_mappings_applied": 0,
+          "columns_added": [
+            "origin_h3_index",
+            "destination_h3_index"
+          ],
+          "columns_deleted": [],
+          "domains_extended_count": 0,
+          "temporal_tier": "tier_1",
+          "temporal_notes": null
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-07T04:58:15Z",
+        "summary": {
+          "ok": true,
+          "n_rows": 15000,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "activity_status",
+            "day_type",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_municipality",
+            "destination_time_utc",
+            "distance_route_m",
+            "fare_amount",
+            "household_income_clp",
+            "income_quintile",
+            "mode",
+            "mode_sequence",
+            "movement_id",
+            "movement_seq",
+            "occupation_type",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_municipality",
+            "origin_time_utc",
+            "personal_income_clp",
+            "public_transport_route_code",
+            "purpose",
+            "time_period",
+            "timezone_offset_min",
+            "travel_time_min",
+            "trip_id",
+            "trip_weight",
+            "user_age_group",
+            "user_gender",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "1.1",
+          "domains": {
+            "mode": "full",
+            "min_required_ratio": 1.0,
+            "fields": {
+              "mode": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "purpose": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "day_type": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "time_period": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "user_gender": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "user_age_group": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "income_quintile": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "activity_status": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              },
+              "occupation_type": {
+                "mode": "full",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 1.0,
+                "n_checked_non_null": 15000,
+                "n_in_domain": 15000
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 15000,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 500,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_27dedf8e1df4",
+    "artifact_id": "art_f2350103-946d-49f9-9328-f1760ad597d2",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-07T11:33:20.599197Z",
+        "parameters": {
+          "h3_resolution": 7,
+          "group_by": [
+            "mode"
+          ],
+          "time_aggregation": "day",
+          "time_basis": "origin",
+          "min_trips_per_flow": 4,
+          "keep_flow_to_trips": true,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 15000,
+          "n_trips_eligible": 15000,
+          "n_trips_dropped": 0,
+          "n_flows_out": 840,
+          "n_flow_to_trips_rows": 4271
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-07T11:38:09Z",
+        "parameters": {
+          "path": "D:\\Memoria\\repos\\pylondrina\\data\\synthetic\\demo_outputs\\demo_flows_happy_path.golondrina",
+          "mode": "overwrite",
+          "storage_format": "parquet",
+          "parquet_compression": "snappy",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": true
+        },
+        "summary": {
+          "n_flows": 840,
+          "n_flow_to_trips": 4271,
+          "path": "D:\\Memoria\\repos\\pylondrina\\data\\synthetic\\demo_outputs\\demo_flows_happy_path.golondrina",
+          "files_written": [
+            "flows.parquet",
+            "flows.metadata.json",
+            "flow_to_trips.parquet"
+          ],
+          "dataset_id": "flows_27dedf8e1df4",
+          "artifact_id": "art_f2350103-946d-49f9-9328-f1760ad597d2"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 7
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 840,
+      "n_cols": 8,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+        "mode",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": {
+      "n_rows": 4271,
+      "n_cols": 2,
+      "columns": [
+        "flow_id",
+        "movement_id"
+      ]
+    }
+  }
+}
