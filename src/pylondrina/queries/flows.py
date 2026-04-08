@@ -272,17 +272,22 @@ def _resolve_correspondence_source(
         if isinstance(trips, TripDataset) and isinstance(getattr(trips, "data", None), pd.DataFrame):
             if preferred_source_unusable is not None:
                 # Se deja warning porque hubo que degradar desde la fuente prioritaria.
+                warn_ctx = dict(request_ctx)
+                warn_ctx.update(
+                    {
+                        "preferred_source": preferred_source_unusable,
+                        "used_source": "trips_argument",
+                        "checked_sources": list(checked_sources),
+                        "source_failures": _to_json_serializable_or_none(source_failures),
+                        "required_columns": required_columns,
+                        "missing_columns": source_failures.get(preferred_source_unusable, {}).get("missing_columns"),
+                    }
+                )
                 emit_issue(
                     issues,
                     GET_TRIPS_FROM_FLOWS_ISSUES,
                     "GET_TRIPS_FROM_FLOWS.SOURCE.PREFERRED_SOURCE_UNUSABLE",
-                    **request_ctx,
-                    preferred_source=preferred_source_unusable,
-                    used_source="trips_argument",
-                    checked_sources=list(checked_sources),
-                    source_failures=_to_json_serializable_or_none(source_failures),
-                    required_columns=required_columns,
-                    missing_columns=source_failures.get(preferred_source_unusable, {}).get("missing_columns"),
+                    **warn_ctx,
                 )
             return "trips_argument", trips, True, int(len(trips.data))
         preferred_source_unusable = "trips_argument"
@@ -304,17 +309,22 @@ def _resolve_correspondence_source(
     if isinstance(source_trips, TripDataset) and isinstance(getattr(source_trips, "data", None), pd.DataFrame):
         if preferred_source_unusable is not None:
             # Se deja warning porque hubo que caer a un fallback posterior.
+            warn_ctx = dict(request_ctx)
+            warn_ctx.update(
+                {
+                    "preferred_source": preferred_source_unusable,
+                    "used_source": "flows.source_trips",
+                    "checked_sources": list(checked_sources),
+                    "source_failures": _to_json_serializable_or_none(source_failures),
+                    "required_columns": required_columns,
+                    "missing_columns": source_failures.get(preferred_source_unusable, {}).get("missing_columns"),
+                }
+            )
             emit_issue(
                 issues,
                 GET_TRIPS_FROM_FLOWS_ISSUES,
                 "GET_TRIPS_FROM_FLOWS.SOURCE.PREFERRED_SOURCE_UNUSABLE",
-                **request_ctx,
-                preferred_source=preferred_source_unusable,
-                used_source="flows.source_trips",
-                checked_sources=list(checked_sources),
-                source_failures=_to_json_serializable_or_none(source_failures),
-                required_columns=required_columns,
-                missing_columns=source_failures.get(preferred_source_unusable, {}).get("missing_columns"),
+                **warn_ctx,
             )
         return "flows.source_trips", source_trips, True, int(len(source_trips.data))
 
