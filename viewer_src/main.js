@@ -98,6 +98,9 @@ let flowmapData;
 let currentMapStyleKey = null;
 let clusteringLevelController;
 
+let selectedLocation = null;
+let focusModeBannerEl = null;
+
 async function fetchData() {
   return await Promise.all([
     csv(`${DATA_PATH}/locations.csv`, (row, i) => ({
@@ -162,8 +165,103 @@ function handleHover(info) {
   showTooltip(info.x, info.y, html);
 }
 
+function ensureFocusModeBanner() {
+  if (focusModeBannerEl) return focusModeBannerEl;
+
+  focusModeBannerEl = document.createElement("div");
+  focusModeBannerEl.id = "focus-mode-banner";
+  focusModeBannerEl.style.position = "fixed";
+  focusModeBannerEl.style.top = "12px";
+  focusModeBannerEl.style.left = "50%";
+  focusModeBannerEl.style.transform = "translateX(-50%)";
+  focusModeBannerEl.style.zIndex = "45";
+  focusModeBannerEl.style.display = "none";
+  focusModeBannerEl.style.padding = "10px 14px";
+  focusModeBannerEl.style.borderRadius = "8px";
+  focusModeBannerEl.style.background = "rgba(20, 20, 20, 0.92)";
+  focusModeBannerEl.style.color = "#fff";
+  focusModeBannerEl.style.boxShadow = "0 6px 18px rgba(0, 0, 0, 0.35)";
+  focusModeBannerEl.style.fontSize = "13px";
+  focusModeBannerEl.style.lineHeight = "1.35";
+  focusModeBannerEl.style.pointerEvents = "none";
+  focusModeBannerEl.style.textAlign = "center";
+  focusModeBannerEl.style.maxWidth = "420px";
+
+  document.body.appendChild(focusModeBannerEl);
+  return focusModeBannerEl;
+}
+
+function updateFocusModeBanner() {
+  const el = ensureFocusModeBanner();
+
+  if (!selectedLocation) {
+    el.style.display = "none";
+    el.innerHTML = "";
+    return;
+  }
+
+  el.innerHTML = `
+    Mostrando solo flujos y locations relacionados a
+    <strong>${selectedLocation.id}</strong>
+  `;
+  el.style.display = "block";
+}
+
+function getFilteredFlowmapData() {
+  if (!flowmapData || !selectedLocation) {
+    return flowmapData;
+  }
+
+  const selectedId = selectedLocation.id;
+  const filteredFlows = flowmapData.flows.filter(
+    (flow) => flow.origin === selectedId || flow.dest === selectedId
+  );
+
+  const relatedLocationIds = new Set([selectedId]);
+  filteredFlows.forEach((flow) => {
+    relatedLocationIds.add(flow.origin);
+    relatedLocationIds.add(flow.dest);
+  });
+
+  const filteredLocations = flowmapData.locations.filter((loc) =>
+    relatedLocationIds.has(loc.id)
+  );
+
+  return {
+    locations: filteredLocations,
+    flows: filteredFlows,
+  };
+}
+
+function handleLocationClick(info) {
+  if (!info?.object || info.object.type !== PickingType.LOCATION) return;
+
+  if (config.clusteringEnabled) {
+    console.warn(
+      "El modo foco por location está implementado solo para clustering desactivado."
+    );
+    return;
+  }
+
+  const clickedId = info.object.id;
+  const clickedName = info.object.name ?? clickedId;
+
+  if (selectedLocation?.id === clickedId) {
+    selectedLocation = null;
+  } else {
+    selectedLocation = {
+      id: clickedId,
+      name: clickedName,
+    };
+  }
+
+  hideTooltip();
+  updateLayers();
+}
+
 function buildLayer() {
-  const {locations, flows} = flowmapData;
+  const effectiveData = getFilteredFlowmapData();
+  const {locations, flows} = effectiveData;
 
   return new FlowmapLayer({
     id: "my-flowmap-layer",
@@ -185,6 +283,8 @@ function buildLayer() {
       if (info?.object) {
         console.log("clicked", info.object.type, info.object, info);
       }
+
+      handleLocationClick(info);
     },
   });
 }
@@ -194,6 +294,7 @@ function updateLayers() {
 
   updateBaseMap();
   syncClusteringControls();
+  updateFocusModeBanner();
 
   deck.setProps({
     layers: [buildLayer()],
