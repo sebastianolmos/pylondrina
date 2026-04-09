@@ -202,7 +202,8 @@ function updateFocusModeBanner() {
 
   el.innerHTML = `
     Mostrando solo flujos y locations relacionados a
-    <strong>${selectedLocation.id}</strong>
+    <strong>${selectedLocation.name}</strong>
+    <span style="opacity:0.8">(${selectedLocation.id})</span>
   `;
   el.style.display = "block";
 }
