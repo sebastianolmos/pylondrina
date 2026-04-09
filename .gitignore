@@ -214,3 +214,21 @@ __marimo__/
 *.viajes
 *_Checkins.csv
 *_POIs.csv
+
+# viewer source deps/cache
+viewer_src/node_modules/
+viewer_src/.pnp.*
+viewer_src/.yarn/*
+!viewer_src/.yarn/patches
+!viewer_src/.yarn/plugins
+!viewer_src/.yarn/releases
+!viewer_src/.yarn/sdks
+!viewer_src/.yarn/versions
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vite cache
+viewer_src/.vite/
