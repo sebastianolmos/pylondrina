@@ -1,3 +1,24 @@
+/**
+ * Viewer web de Pylondrina para visualizar flujos OD en Flowmap layout.
+ *
+ * Responsabilidades principales:
+ * - Cargar locations.csv y flows.csv.
+ * - Inicializar mapa base y FlowmapLayer.
+ * - Renderizar overlays/paneles de apoyo.
+ * - Exponer controles visuales mediante lil-gui.
+ * - Detectar datasets segmentados y advertir al usuario.
+ *
+ * Alcance actual:
+ * - Visualización de flujos no segmentados en layout Flowmap.
+ * - Modo foco por nodo.
+ * - Paneles informativos y tooltips.
+ *
+ * Fuera de alcance actual:
+ * - Lectura nativa de flows.golondrina (parquet + metadata).
+ * - Selector general de datasets.
+ * - Soporte completo de segmentaciones analíticas.
+ */
+
 import {Deck} from "@deck.gl/core";
 import {FlowmapLayer, PickingType} from "@flowmap.gl/layers";
 import {getViewStateForLocations} from "@flowmap.gl/data";
@@ -5,14 +26,29 @@ import {csv} from "d3-fetch";
 import maplibregl from "maplibre-gl";
 import GUI from "lil-gui";
 
+// Estilos base disponibles para el mapa de fondo.
 const MAP_STYLES = {
   dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
   light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 };
 
-const DATA_PATH =
-  "https://gist.githubusercontent.com/ilyabo/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a";
+// Ruta base de datasets exportados a layout Flowmap.
+// Se inyecta desde Vite para diferenciar dev y build.
+const FLOW_EXPORTS_BASE_PATH = __FLOW_EXPORTS_BASE_PATH__;
 
+// Nombre del dataset que se cargará por defecto.
+const DATASET_DIR_NAME = "demo_trip_to_flow_happy_path_v1";
+
+/** Construye la ruta final de un archivo del dataset activo. */
+function datasetFile(fileName) {
+  const datasetBase = FLOW_EXPORTS_BASE_PATH
+    ? `${FLOW_EXPORTS_BASE_PATH}/${DATASET_DIR_NAME}`
+    : `/${DATASET_DIR_NAME}`;
+
+  return `${datasetBase}/${fileName}`;
+}
+
+// Paletas de color disponibles para FlowmapLayer.
 const COLOR_SCHEMES = [
   "Blues",
   "BluGrn",
@@ -33,6 +69,7 @@ const COLOR_SCHEMES = [
   "Magenta",
 ];
 
+// Texto de ayuda asociado a cada control del panel lil-gui.
 const PARAM_HELP = {
   darkMode:
     "Cambia la estética interna del flowmap y además, en este viewer, cambia entre mapa base oscuro y claro.",
@@ -64,11 +101,14 @@ const PARAM_HELP = {
     "Tope de flujos principales que se renderizan. Sirve para legibilidad y rendimiento.",
 };
 
+// Referencias a elementos fijos del DOM ya presentes en index.html.
 const tooltipEl = document.getElementById("tooltip");
 const mapEl = document.getElementById("map");
 const deckCanvasEl = document.getElementById("deck-canvas");
+
 let controlHelpTooltipEl = null;
 
+// Estado de configuración visual editable desde el panel de controles.
 const config = {
   darkMode: true,
   baseMapOpacity: 0.75,
@@ -92,36 +132,82 @@ const config = {
   maxTopFlowsDisplayNum: 5000,
 };
 
+// Estado global mínimo del viewer en tiempo de ejecución.
 let map;
 let deck;
 let flowmapData;
 let currentMapStyleKey = null;
 let clusteringLevelController;
 
+// Estado del modo foco por nodo.
 let selectedLocation = null;
 let focusModeBannerEl = null;
 
+// Estado del bootstrap del viewer y del warning por segmentación.
+let viewerInitialized = false;
+let segmentedWarningAccepted = false;
+
+// Referencias a overlays creados dinámicamente.
+let datasetInfoPanelEl = null;
+let datasetInfoPanelBodyEl = null;
+let segmentedWarningOverlayEl = null;
+
+// Columnas mínimas esperadas para considerar flows.csv como layout Flowmap puro.
+const FLOW_REQUIRED_COLUMNS = ["origin", "dest", "count"];
+
+// Textos del panel informativo superior izquierdo.
+const INFO_PANEL_TITLE = "Visualizador de Pylondrina";
+const INFO_PANEL_DESCRIPTION =
+  "Visualizador de flujos no segmentados para Pylondrina. Actualmente consume datos en formato Flowmap layout y queda preparado para evolucionar hacia soporte directo del formato Golondrina.";
+
+/** Carga locations.csv y flows.csv, preservando columnas extra para detectar segmentación. */
 async function fetchData() {
-  return await Promise.all([
-    csv(`${DATA_PATH}/locations.csv`, (row, i) => ({
-      id: row.id,
-      name: row.name,
-      lat: Number(row.lat),
-      lon: Number(row.lon),
-    })),
-    csv(`${DATA_PATH}/flows.csv`, (row) => ({
-      origin: row.origin,
-      dest: row.dest,
-      count: Number(row.count),
-    })),
-  ]).then(([locations, flows]) => ({locations, flows}));
+  const [locationRows, flowRows] = await Promise.all([
+    csv(datasetFile("locations.csv")),
+    csv(datasetFile("flows.csv")),
+  ]);
+
+  const locationColumns =
+    locationRows.columns ?? Object.keys(locationRows[0] ?? {});
+  const flowColumns =
+    flowRows.columns ?? Object.keys(flowRows[0] ?? {});
+
+  const extraFlowColumns = flowColumns.filter(
+    (col) => !FLOW_REQUIRED_COLUMNS.includes(col)
+  );
+
+  const locations = locationRows.map((row) => ({
+    ...row,
+    id: row.id,
+    name: row.name ?? row.id,
+    lat: Number(row.lat),
+    lon: Number(row.lon),
+  }));
+
+  const flows = flowRows.map((row) => ({
+    ...row,
+    origin: row.origin,
+    dest: row.dest,
+    count: Number(row.count),
+  }));
+
+  return {
+    locations,
+    flows,
+    locationColumns,
+    flowColumns,
+    extraFlowColumns,
+    hasSegmentedFlows: extraFlowColumns.length > 0,
+  };
 }
 
+/** Oculta el tooltip principal del mapa. */
 function hideTooltip() {
   tooltipEl.style.display = 'none';
   tooltipEl.innerHTML = '';
 }
 
+/** Muestra el tooltip principal del mapa en una posición de pantalla. */
 function showTooltip(x, y, html) {
   tooltipEl.style.left = `${x}px`;
   tooltipEl.style.top = `${y}px`;
@@ -129,6 +215,7 @@ function showTooltip(x, y, html) {
   tooltipEl.style.display = 'block';
 }
 
+/** Genera el HTML del tooltip para hover sobre un flujo o una location. */
 function getTooltipHTML(info) {
   if (!info || !info.object) return null;
 
@@ -154,6 +241,7 @@ function getTooltipHTML(info) {
   }
 }
 
+/** Maneja el hover de FlowmapLayer y actualiza el tooltip principal. */
 function handleHover(info) {
   const html = getTooltipHTML(info);
 
@@ -165,6 +253,7 @@ function handleHover(info) {
   showTooltip(info.x, info.y, html);
 }
 
+/** Crea, si no existe, el banner superior del modo foco por nodo. */
 function ensureFocusModeBanner() {
   if (focusModeBannerEl) return focusModeBannerEl;
 
@@ -191,6 +280,7 @@ function ensureFocusModeBanner() {
   return focusModeBannerEl;
 }
 
+/** Actualiza el contenido y visibilidad del banner del modo foco por nodo. */
 function updateFocusModeBanner() {
   const el = ensureFocusModeBanner();
 
@@ -208,6 +298,7 @@ function updateFocusModeBanner() {
   el.style.display = "block";
 }
 
+/** Retorna los datos visibles del mapa, aplicando el filtro por nodo seleccionado cuando existe. */
 function getFilteredFlowmapData() {
   if (!flowmapData || !selectedLocation) {
     return flowmapData;
@@ -234,6 +325,7 @@ function getFilteredFlowmapData() {
   };
 }
 
+/** Activa, cambia o desactiva el modo foco al hacer click en una location. */
 function handleLocationClick(info) {
   if (!info?.object || info.object.type !== PickingType.LOCATION) return;
 
@@ -260,6 +352,315 @@ function handleLocationClick(info) {
   updateLayers();
 }
 
+/** Escapa texto para inyectarlo de forma segura en HTML. */
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+/** Obtiene la métrica de viajes de un flujo, priorizando flow_count y usando count como fallback. */
+function getTripMetric(flow) {
+  const explicitFlowCount = Number(flow.flow_count);
+  if (Number.isFinite(explicitFlowCount)) return explicitFlowCount;
+
+  const count = Number(flow.count);
+  return Number.isFinite(count) ? count : 0;
+}
+
+/** Formatea un valor numérico como entero redondeado y localizado para la UI. */
+function formatRoundedInt(value) {
+  return Math.round(value).toLocaleString("es-CL");
+}
+
+/** Calcula el resumen global del dataset cargado para el panel informativo. */
+function getDatasetSummary() {
+  if (!flowmapData) {
+    return {
+      totalTrips: 0,
+      totalFlows: 0,
+    };
+  }
+
+  const totalTrips = flowmapData.flows.reduce(
+    (acc, flow) => acc + getTripMetric(flow),
+    0
+  );
+
+  return {
+    totalTrips,
+    totalFlows: flowmapData.flows.length,
+  };
+}
+
+/** Calcula el resumen del nodo seleccionado en modo foco. */
+function getSelectedLocationSummary() {
+  if (!flowmapData || !selectedLocation) return null;
+
+  const selectedId = selectedLocation.id;
+  const relatedFlows = flowmapData.flows.filter(
+    (flow) => flow.origin === selectedId || flow.dest === selectedId
+  );
+
+  const outgoingFlows = relatedFlows.filter((flow) => flow.origin === selectedId);
+  const incomingFlows = relatedFlows.filter((flow) => flow.dest === selectedId);
+
+  const totalTrips = relatedFlows.reduce(
+    (acc, flow) => acc + getTripMetric(flow),
+    0
+  );
+
+  const outgoingTrips = outgoingFlows.reduce(
+    (acc, flow) => acc + getTripMetric(flow),
+    0
+  );
+
+  const incomingTrips = incomingFlows.reduce(
+    (acc, flow) => acc + getTripMetric(flow),
+    0
+  );
+
+  return {
+    id: selectedLocation.id,
+    name: selectedLocation.name ?? selectedLocation.id,
+    totalTrips,
+    totalFlows: relatedFlows.length,
+    incomingTrips,
+    outgoingTrips,
+    incomingFlows: incomingFlows.length,
+    outgoingFlows: outgoingFlows.length,
+  };
+}
+
+/** Crea, si no existe, el panel informativo superior izquierdo del viewer. */
+function ensureDatasetInfoPanel() {
+  if (datasetInfoPanelEl) return datasetInfoPanelEl;
+
+  datasetInfoPanelEl = document.createElement("div");
+  datasetInfoPanelEl.id = "dataset-info-panel";
+
+  Object.assign(datasetInfoPanelEl.style, {
+    position: "fixed",
+    top: "12px",
+    left: "12px",
+    zIndex: "36",
+    width: "330px",
+    borderRadius: "8px",
+    overflow: "hidden",
+    background: "rgba(31, 31, 31, 0.92)",
+    color: "#fff",
+    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.35)",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "13px",
+    lineHeight: "1.35",
+  });
+
+  const headerEl = document.createElement("div");
+  Object.assign(headerEl.style, {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "8px 10px",
+    background: "rgba(20, 20, 20, 0.92)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
+  });
+
+  const titleEl = document.createElement("div");
+  titleEl.textContent = INFO_PANEL_TITLE;
+  Object.assign(titleEl.style, {
+    fontWeight: "700",
+    fontSize: "13px",
+  });
+
+  const toggleButtonEl = document.createElement("button");
+  toggleButtonEl.textContent = "-";
+  Object.assign(toggleButtonEl.style, {
+    border: "none",
+    background: "transparent",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "16px",
+    lineHeight: "1",
+    padding: "0 4px",
+  });
+
+  datasetInfoPanelBodyEl = document.createElement("div");
+  Object.assign(datasetInfoPanelBodyEl.style, {
+    padding: "10px 12px",
+  });
+
+  toggleButtonEl.addEventListener("click", () => {
+    const collapsed = datasetInfoPanelBodyEl.style.display === "none";
+    datasetInfoPanelBodyEl.style.display = collapsed ? "block" : "none";
+    toggleButtonEl.textContent = collapsed ? "-" : "+";
+  });
+
+  headerEl.appendChild(titleEl);
+  headerEl.appendChild(toggleButtonEl);
+
+  datasetInfoPanelEl.appendChild(headerEl);
+  datasetInfoPanelEl.appendChild(datasetInfoPanelBodyEl);
+
+  document.body.appendChild(datasetInfoPanelEl);
+  return datasetInfoPanelEl;
+}
+
+/** Actualiza el panel informativo principal según dataset, nodo seleccionado y warnings activos. */
+function updateDatasetInfoPanel() {
+  if (!flowmapData) return;
+  ensureDatasetInfoPanel();
+
+  const summary = getDatasetSummary();
+  const selectedSummary = getSelectedLocationSummary();
+
+  const selectedSectionHtml = selectedSummary
+    ? `
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12);">
+        <div style="font-weight: 700; margin-bottom: 6px;">
+          Nodo: ${escapeHtml(selectedSummary.name)}
+          <span style="opacity: 0.8;">(${escapeHtml(selectedSummary.id)})</span>
+        </div>
+
+        <div><strong>Viajes relacionados:</strong> ${formatRoundedInt(selectedSummary.totalTrips)}</div>
+        <div style="margin-top: 2px;"><strong>Flujos relacionados:</strong> ${formatRoundedInt(selectedSummary.totalFlows)}</div>
+
+        <div style="margin-top: 8px;"><strong>Viajes de entrada:</strong> ${formatRoundedInt(selectedSummary.incomingTrips)}</div>
+        <div style="margin-top: 2px;"><strong>Viajes de salida:</strong> ${formatRoundedInt(selectedSummary.outgoingTrips)}</div>
+        <div style="margin-top: 2px;"><strong>Flujos de entrada:</strong> ${formatRoundedInt(selectedSummary.incomingFlows)}</div>
+        <div style="margin-top: 2px;"><strong>Flujos de salida:</strong> ${formatRoundedInt(selectedSummary.outgoingFlows)}</div>
+      </div>
+    `
+    : "";
+
+  const segmentedWarningHtml =
+    flowmapData.hasSegmentedFlows && segmentedWarningAccepted
+      ? `
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); color: #ffd28c;">
+          <strong>Advertencia:</strong> se está visualizando un dataset con flujos segmentados no soportados por el viewer actual. Los flujos pueden verse solapados o interpretarse de forma engañosa.
+        </div>
+      `
+      : "";
+
+  datasetInfoPanelBodyEl.innerHTML = `
+    <div style="opacity: 0.92; margin-bottom: 10px;">
+      ${escapeHtml(INFO_PANEL_DESCRIPTION)}
+    </div>
+
+    <div><strong>Viajes totales:</strong> ${formatRoundedInt(summary.totalTrips)}</div>
+    <div style="margin-top: 4px;"><strong>Flujos totales:</strong> ${formatRoundedInt(summary.totalFlows)}</div>
+
+    ${selectedSectionHtml}
+    ${segmentedWarningHtml}
+  `;
+}
+
+/** Crea, si no existe, la pantalla de advertencia para datasets segmentados. */
+function ensureSegmentedWarningScreen() {
+  if (segmentedWarningOverlayEl) return segmentedWarningOverlayEl;
+
+  segmentedWarningOverlayEl = document.createElement("div");
+  segmentedWarningOverlayEl.id = "segmented-warning-overlay";
+
+  Object.assign(segmentedWarningOverlayEl.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "60",
+    display: "none",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#292929",
+    padding: "24px",
+    boxSizing: "border-box",
+  });
+
+  const panelEl = document.createElement("div");
+  panelEl.id = "segmented-warning-panel";
+
+  Object.assign(panelEl.style, {
+    width: "min(640px, 100%)",
+    padding: "22px 24px",
+    borderRadius: "10px",
+    background: "rgba(20, 20, 20, 0.98)",
+    color: "#fff",
+    boxShadow: "0 10px 24px rgba(0, 0, 0, 0.28)",
+    fontFamily: "Arial, sans-serif",
+    lineHeight: "1.45",
+  });
+
+  const titleEl = document.createElement("div");
+  titleEl.textContent = "Dataset segmentado detectado";
+  Object.assign(titleEl.style, {
+    fontSize: "20px",
+    fontWeight: "700",
+    marginBottom: "12px",
+  });
+
+  const messageEl = document.createElement("div");
+  messageEl.id = "segmented-warning-message";
+  Object.assign(messageEl.style, {
+    fontSize: "14px",
+    marginBottom: "16px",
+  });
+
+  const buttonEl = document.createElement("button");
+  buttonEl.textContent = "Continuar de todas maneras";
+  Object.assign(buttonEl.style, {
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    cursor: "pointer",
+    background: "#f0f0f0",
+    color: "#222",
+    fontWeight: "700",
+    fontSize: "14px",
+  });
+
+  buttonEl.addEventListener("click", () => {
+    segmentedWarningAccepted = true;
+    segmentedWarningOverlayEl.style.display = "none";
+    startViewer();
+  });
+
+  panelEl.appendChild(titleEl);
+  panelEl.appendChild(messageEl);
+  panelEl.appendChild(buttonEl);
+
+  segmentedWarningOverlayEl.appendChild(panelEl);
+  document.body.appendChild(segmentedWarningOverlayEl);
+
+  return segmentedWarningOverlayEl;
+}
+
+/** Muestra la advertencia previa cuando se detectan columnas extra en flows.csv. */
+function showSegmentedWarningScreen() {
+  const overlayEl = ensureSegmentedWarningScreen();
+  const messageEl = overlayEl.querySelector("#segmented-warning-message");
+
+  const extraColumnsText = flowmapData.extraFlowColumns
+    .map((col) => escapeHtml(col))
+    .join(", ");
+
+  messageEl.innerHTML = `
+    <div style="margin-bottom: 10px;">
+      Se detectaron campos extra en <code>flows.csv</code>, por lo que se asume que el dataset contiene <strong>flujos segmentados</strong>.
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      El visualizador actual no soporta este modo. Si continúas, los flujos segmentados se renderizarán igualmente y pueden verse <strong>solapados</strong> o no interpretarse correctamente.
+    </div>
+
+    <div style="opacity: 0.9;">
+      <strong>Campos detectados:</strong> ${extraColumnsText || "sin detalle"}
+    </div>
+  `;
+
+  overlayEl.style.display = "flex";
+}
+
+/** Construye la instancia de FlowmapLayer con los datos y controles visuales vigentes. */
 function buildLayer() {
   const effectiveData = getFilteredFlowmapData();
   const {locations, flows} = effectiveData;
@@ -290,18 +691,21 @@ function buildLayer() {
   });
 }
 
+/** Re-renderiza la capa del mapa y sincroniza overlays/controles dependientes del estado actual. */
 function updateLayers() {
   if (!deck || !flowmapData) return;
 
   updateBaseMap();
   syncClusteringControls();
   updateFocusModeBanner();
+  updateDatasetInfoPanel();
 
   deck.setProps({
     layers: [buildLayer()],
   });
 }
 
+/** Inicializa el panel de controles visuales basado en lil-gui. */
 function initGui() {
   const gui = new GUI({ title: "Flowmap controls" });
 
@@ -395,12 +799,14 @@ function initGui() {
   return gui;
 }
 
+/** Elimina propiedades undefined antes de pasarlas a FlowmapLayer. */
 function compactProps(obj) {
   return Object.fromEntries(
     Object.entries(obj).filter(([, value]) => value !== undefined)
   );
 }
 
+/** Crea, si no existe, el tooltip de ayuda contextual para controles del panel. */
 function ensureControlHelpTooltip() {
   if (controlHelpTooltipEl) return controlHelpTooltipEl;
 
@@ -423,12 +829,14 @@ function ensureControlHelpTooltip() {
   return controlHelpTooltipEl;
 }
 
+/** Oculta el tooltip de ayuda contextual del panel de controles. */
 function hideControlHelpTooltip() {
   const el = ensureControlHelpTooltip();
   el.style.display = "none";
   el.textContent = "";
 }
 
+/** Muestra el tooltip de ayuda contextual junto al cursor. */
 function showControlHelpTooltip(x, y, text) {
   const el = ensureControlHelpTooltip();
   el.textContent = text;
@@ -454,6 +862,7 @@ function showControlHelpTooltip(x, y, text) {
   });
 }
 
+/** Vincula un texto de ayuda a una fila del panel de controles. */
 function setControllerHelp(controller, text) {
   const rowEl = controller?.domElement;
   if (!rowEl || !text) return;
@@ -491,6 +900,7 @@ function setControllerHelp(controller, text) {
   rowEl.addEventListener("focusout", handleFocusOut);
 }
 
+/** Habilita o deshabilita visualmente el control de nivel de clustering según el estado actual. */
 function syncClusteringControls() {
   if (!clusteringLevelController) return;
 
@@ -499,6 +909,7 @@ function syncClusteringControls() {
   clusteringLevelController.domElement.style.pointerEvents = disabled ? "none" : "auto";
 }
 
+/** Actualiza estilo y opacidad del mapa base según la configuración visual vigente. */
 function updateBaseMap(force = false) {
   const styleKey = config.darkMode ? "dark" : "light";
 
@@ -516,6 +927,7 @@ function updateBaseMap(force = false) {
   }
 }
 
+/** Traduce la configuración del viewer al conjunto de props que recibirá FlowmapLayer. */
 function getLayerVisualProps() {
   const effectiveLocationsEnabled = config.locationsEnabled;
 
@@ -547,8 +959,15 @@ function getLayerVisualProps() {
   });
 }
 
-fetchData().then((data) => {
-  flowmapData = data;
+/** Inicializa mapa, Deck, paneles y controles una vez que los datos ya fueron cargados. */
+function startViewer() {
+  if (viewerInitialized || !flowmapData) {
+    if (viewerInitialized) {
+      updateDatasetInfoPanel();
+      updateLayers();
+    }
+    return;
+  }
 
   const { locations } = flowmapData;
   const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
@@ -564,7 +983,7 @@ fetchData().then((data) => {
   currentMapStyleKey = initialStyleKey;
 
   map = new maplibregl.Map({
-    container: 'map',
+    container: "map",
     style: MAP_STYLES[initialStyleKey],
     interactive: false,
     center: [initialViewState.longitude, initialViewState.latitude],
@@ -574,9 +993,9 @@ fetchData().then((data) => {
   });
 
   deck = new Deck({
-    canvas: 'deck-canvas',
-    width: '100%',
-    height: '100%',
+    canvas: "deck-canvas",
+    width: "100%",
+    height: "100%",
     initialViewState,
     controller: true,
     map: true,
@@ -599,8 +1018,23 @@ fetchData().then((data) => {
     deckCanvasEl.style.mixBlendMode = config.darkMode ? "screen" : "multiply";
   }
 
+  ensureDatasetInfoPanel();
   initGui();
+
+  viewerInitialized = true;
+  updateDatasetInfoPanel();
   updateLayers();
+}
+
+fetchData().then((data) => {
+  flowmapData = data;
+
+  if (flowmapData.hasSegmentedFlows) {
+    showSegmentedWarningScreen();
+    return;
+  }
+
+  startViewer();
 });
 
 window.addEventListener("resize", () => {

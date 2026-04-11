@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Flowmap viewer</title>
     <style>
+      /* Layout base de página y viewport del viewer */
       html,
       body {
         margin: 0;
@@ -25,7 +26,7 @@
         width: 100%;
         height: 100%;
       }
-
+      /* Capas del mapa base y canvas de deck.gl */
       #map {
         opacity: 0.5;
       }
@@ -37,7 +38,7 @@
       .lil-gui {
         z-index: 20 !important;
       }
-
+      /* Estilo del tooltip principal del mapa */
       #tooltip {
         position: fixed;
         z-index: 30;
@@ -70,11 +71,12 @@
     </style>
   </head>
   <body>
+    <!-- Contenedor principal del mapa base y del canvas de deck.gl -->
     <div id="container">
       <div id="map"></div>
       <canvas id="deck-canvas"></canvas>
     </div>
-
+    <!-- Tooltip principal usado para hover sobre flujos y locations -->
     <div id="tooltip"></div>
 
     <script type="module" src="main.js"></script>

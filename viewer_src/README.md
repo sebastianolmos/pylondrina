@@ -30,7 +30,7 @@ Se busca obtener un visualizador web estático que:
 - [x] Instalar dependencias y verificar ejecución en modo desarrollo
 - [x] Verificar generación de build estática
 - [x] Probar visualización de un dataset hardcodeado
-- [ ] Reemplazar dataset remoto por dataset local
+- [x] Reemplazar dataset remoto por dataset local
 - [ ] Agregar menú básico de selección de dataset
 - [ ] Evaluar soporte directo para formato Golondrina
 
@@ -43,24 +43,24 @@ Se busca obtener un visualizador web estático que:
 ## Como ejecutar
 
 ### En modo dev
-Ejecutar
+Ejecutar desde `pylondrina/viewer_src/`
 ```
 yarn
 yarn dev
 ```
 
 ### Generar build
-Ejecutar 
+Ejecutar desde `pylondrina/viewer_src/`
 ```
 yarn build
 ```
 
-Luego para visualizar la build, ejecutar desde la raiz del proyecto:
+Luego para visualizar la build, ejecutar desde la raiz del proyecto, es decir, desde `pylondrina/` ejecutar :
 ```
-python -m http.server --directory viewer 8000
+python -m http.server 8000
 ```
 
 Finalmente visitar:
 ```
-http://localhost:8000
+http://localhost:8000/viewer/
 ```
