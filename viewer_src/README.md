@@ -34,6 +34,49 @@ Se busca obtener un visualizador web estático que:
 - [ ] Agregar menú básico de selección de dataset
 - [ ] Evaluar soporte directo para formato Golondrina
 
+## Estructura propuesta
+
+```text
+viewer_src/
+  index.html
+  package.json
+  vite.config.js
+  app/
+    main.js
+    config.js
+    state.js
+    data/
+      loadFlowmapData.js
+    map/
+      viewer.js
+    ui/
+      controls.js
+      overlays.js
+    utils/
+      format.js
+    styles/
+      base.css
+      overlays.css
+      controls.css
+```
+
+## Responsabilidades por carpeta
+
+- `app/main.js`: bootstrap del viewer.
+- `app/config.js`: constantes, textos y configuración visual inicial.
+- `app/state.js`: estado compartido mínimo del viewer.
+- `app/data/`: carga de datasets y detección de segmentación.
+- `app/map/`: inicialización del mapa, capa Flowmap y actualización de render.
+- `app/ui/`: paneles, tooltips, warning overlay y controles lil-gui.
+- `app/utils/`: helpers puros reutilizables.
+- `app/styles/`: estilos estructurales y visuales del viewer.
+
+## Futuras extensiones sugeridas
+
+- Selector de datasets: `app/data/datasetRegistry.js` o `app/data/listAvailableDatasets.js`
+- Lectura nativa de `flows.golondrina`: `app/data/loadGolondrinaArtifact.js`
+- Selector/filtros de segmentación: `app/ui/segmentationPanel.js`
+
 ## Notas
 
 - Esta carpeta contiene el proyecto fuente del visualizador.

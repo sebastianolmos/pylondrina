@@ -1,81 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Flowmap viewer</title>
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background: #000;
-        font-family: Arial, sans-serif;
-      }
-
-      #container {
-        position: fixed;
-        inset: 0;
-        background: #000;
-      }
-
-      #container > * {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      #map {
-        opacity: 0.5;
-      }
-
-      #deck-canvas {
-        mix-blend-mode: screen;
-      }
-
-      .lil-gui {
-        z-index: 20 !important;
-      }
-
-      #tooltip {
-        position: fixed;
-        z-index: 30;
-        pointer-events: none;
-        display: none;
-        min-width: 180px;
-        max-width: 280px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: rgba(20, 20, 20, 0.92);
-        color: #fff;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-        font-size: 13px;
-        line-height: 1.35;
-        transform: translate(12px, 12px);
-      }
-
-      #tooltip .tooltip-title {
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-
-      #tooltip .tooltip-row {
-        margin-top: 2px;
-      }
-
-      #tooltip .tooltip-value {
-        font-weight: 700;
-      }
-    </style>
-    <script type="module" crossorigin src="./assets/index-0186046d.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pylondrina Viewer</title>
+    <script type="module" crossorigin src="./assets/index-dc5cfc29.js"></script>
+    <link rel="stylesheet" href="./assets/index-e766d82e.css">
   </head>
   <body>
+    <!-- Contenedor principal del mapa base y del canvas de deck.gl -->
     <div id="container">
       <div id="map"></div>
       <canvas id="deck-canvas"></canvas>
     </div>
-
+    <!-- Tooltip principal usado para hover sobre flujos y locations -->
     <div id="tooltip"></div>
 
     

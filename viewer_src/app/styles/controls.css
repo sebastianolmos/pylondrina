@@ -1,0 +1,5 @@
+/* Asegura que el panel de controles quede por encima del mapa y de capas base
+   del viewer, manteniendo su interacción visible y accesible. */
+.lil-gui {
+  z-index: 20 !important;
+}

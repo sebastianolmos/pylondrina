@@ -1,0 +1,227 @@
+/* Clase utilitaria para ocultar elementos de overlay sin eliminar su nodo del DOM. */
+.is-hidden {
+  display: none !important;
+}
+
+/* Estilo visual compartido por overlays y paneles: sombra, color de texto,
+   tipografía y densidad base de lectura. */
+#tooltip,
+.control-help-tooltip,
+.overlay-banner,
+.viewer-panel,
+.warning-overlay__panel {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* Base visual de los tooltips flotantes del viewer, tanto para el mapa como
+   para la ayuda contextual de controles. */
+#tooltip,
+.control-help-tooltip {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  min-width: 180px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.92);
+}
+
+/* Ajustes específicos del tooltip principal del mapa, con offset respecto del
+   cursor para no tapar el elemento sobrevolado. */
+#tooltip {
+  z-index: 30;
+  transform: translate(12px, 12px);
+}
+
+/* Resalta el título del tooltip principal para separar encabezado y contenido. */
+#tooltip .tooltip-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* Espaciado vertical mínimo entre filas de información dentro del tooltip. */
+#tooltip .tooltip-row {
+  margin-top: 2px;
+}
+
+/* Espaciado vertical mínimo entre filas de información dentro del tooltip. */
+#tooltip .tooltip-value {
+  font-weight: 700;
+}
+
+/* Base visual de banners flotantes usados para mensajes breves de estado sobre
+   el mapa, como el modo foco por nodo. */
+.overlay-banner {
+  position: fixed;
+  z-index: 45;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.92);
+  pointer-events: none;
+  text-align: center;
+  max-width: 420px;
+}
+
+/* Variante de posicionamiento para mostrar un banner centrado en la parte
+   superior del viewer. */
+.overlay-banner--top-center {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Estilo auxiliar para texto secundario o menos enfatizado dentro del banner. */
+.overlay-banner__muted {
+  opacity: 0.8;
+}
+
+/* Panel informativo principal del viewer, anclado en la esquina superior
+   izquierda y pensado para mostrar métricas, contexto y warnings persistentes. */
+.viewer-panel {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 36;
+  width: 330px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(31, 31, 31, 0.92);
+}
+
+/* Encabezado del panel principal, con layout horizontal para título y control
+   de colapso. */
+.viewer-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(20, 20, 20, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Estilo del título principal del panel informativo. */
+.viewer-panel__title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Botón minimalista para expandir o colapsar el contenido del panel principal. */
+.viewer-panel__toggle {
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+/* Área de contenido del panel informativo, donde se renderizan descripción,
+   métricas y secciones contextuales. */
+.viewer-panel__body {
+  padding: 10px 12px;
+}
+
+/* Estado colapsado del cuerpo del panel principal. */
+.viewer-panel__body.is-collapsed {
+  display: none;
+}
+
+/* Estilo del texto descriptivo inicial del viewer dentro del panel. */
+.viewer-panel__description {
+  opacity: 0.92;
+  margin-bottom: 10px;
+}
+
+/* Sección separada dentro del panel principal para agrupar métricas o bloques
+   contextuales adicionales. */
+.viewer-panel__section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Título de una sección interna del panel informativo. */
+.viewer-panel__section-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* Espaciado auxiliar para separar subconjuntos de métricas dentro de una misma sección. */
+.viewer-panel__subsection-spacer {
+  margin-top: 8px;
+}
+
+/* Variante visual para texto secundario dentro del panel principal. */
+.viewer-panel__muted {
+  opacity: 0.8;
+}
+
+/* Variante de sección usada para warnings persistentes dentro del panel. */
+.viewer-panel__section--warning {
+  color: #ffd28c;
+}
+
+/* Capa de pantalla completa usada para advertencias previas al inicio del
+   viewer, bloqueando la interacción con el mapa hasta resolver la decisión. */
+.warning-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #292929;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Panel central de la pantalla de advertencia, con estilo consistente con el
+   resto de overlays del viewer. */
+.warning-overlay__panel {
+  width: min(640px, 100%);
+  padding: 22px 24px;
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.98);
+  line-height: 1.45;
+}
+
+/* Título principal del panel de advertencia. */
+.warning-overlay__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* Contenedor del texto principal de advertencia mostrado antes de iniciar el viewer. */
+.warning-overlay__message {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Bloque de párrafo dentro del mensaje de advertencia, usado para separar ideas. */
+.warning-overlay__message-block {
+  margin-bottom: 10px;
+}
+
+/* Estilo para metadatos o detalle secundario dentro del mensaje de advertencia. */
+.warning-overlay__message-meta {
+  opacity: 0.9;
+}
+
+/* Botón principal de confirmación para continuar pese a la advertencia inicial. */
+.warning-overlay__button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #f0f0f0;
+  color: #222;
+  font-weight: 700;
+  font-size: 14px;
+}

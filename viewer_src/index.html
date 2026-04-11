@@ -1,74 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Flowmap viewer</title>
-    <style>
-      /* Layout base de página y viewport del viewer */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background: #000;
-        font-family: Arial, sans-serif;
-      }
-
-      #container {
-        position: fixed;
-        inset: 0;
-        background: #000;
-      }
-
-      #container > * {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
-      /* Capas del mapa base y canvas de deck.gl */
-      #map {
-        opacity: 0.5;
-      }
-
-      #deck-canvas {
-        mix-blend-mode: screen;
-      }
-
-      .lil-gui {
-        z-index: 20 !important;
-      }
-      /* Estilo del tooltip principal del mapa */
-      #tooltip {
-        position: fixed;
-        z-index: 30;
-        pointer-events: none;
-        display: none;
-        min-width: 180px;
-        max-width: 280px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: rgba(20, 20, 20, 0.92);
-        color: #fff;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-        font-size: 13px;
-        line-height: 1.35;
-        transform: translate(12px, 12px);
-      }
-
-      #tooltip .tooltip-title {
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-
-      #tooltip .tooltip-row {
-        margin-top: 2px;
-      }
-
-      #tooltip .tooltip-value {
-        font-weight: 700;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pylondrina Viewer</title>
   </head>
   <body>
     <!-- Contenedor principal del mapa base y del canvas de deck.gl -->
@@ -79,6 +14,6 @@
     <!-- Tooltip principal usado para hover sobre flujos y locations -->
     <div id="tooltip"></div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="./app/main.js"></script>
   </body>
 </html>

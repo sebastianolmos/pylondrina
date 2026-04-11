@@ -1,0 +1,39 @@
+/* Configuración base de la página: elimina márgenes por defecto, fija el
+   viewport como lienzo del viewer y define la tipografía global. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: Arial, sans-serif;
+}
+
+/* Contenedor principal que ocupa toda la ventana y sirve como base para
+   superponer el mapa base y el canvas de deck.gl. */
+#container {
+  position: fixed;
+  inset: 0;
+  background: #000;
+}
+
+/* Hace que las capas internas del contenedor se posicionen de forma absoluta
+   y cubran completamente el viewport del viewer. */
+#container > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ajusta la opacidad inicial del mapa base para que no compita visualmente con
+   los flujos renderizados sobre él. */
+#map {
+  opacity: 0.5;
+}
+
+/* Define el modo de mezcla inicial del canvas de deck.gl para resaltar los
+   flujos sobre el mapa base en modo oscuro. */
+#deck-canvas {
+  mix-blend-mode: screen;
+}
