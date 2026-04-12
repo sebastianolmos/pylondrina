@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "generated_at_utc": "2026-04-12T14:41:21Z",
+  "root_label": "flows",
+  "root_path": "/data/flows",
+  "max_scan_depth": 10,
+  "root": {
+    "type": "directory",
+    "name": "flows",
+    "path": "/data/flows",
+    "children": [
+      {
+        "type": "directory",
+        "name": "flowmap_layout",
+        "path": "/data/flows/flowmap_layout",
+        "children": [
+          {
+            "type": "directory",
+            "name": "demo_trip_to_flow_happy_path_v1",
+            "path": "/data/flows/flowmap_layout/demo_trip_to_flow_happy_path_v1",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__flowmap_layout__demo_trip_to_flow_happy_path_v1",
+                "label": "demo_trip_to_flow_happy_path_v1",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/flowmap_layout/demo_trip_to_flow_happy_path_v1",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "flows_write_happy.golondrina",
+        "path": "/data/flows/flows_write_happy.golondrina",
+        "children": [
+          {
+            "type": "dataset",
+            "id": "golondrina__flows_write_happy.golondrina__flows",
+            "label": "flows_write_happy.golondrina",
+            "format": "golondrina_flows",
+            "dataset_path": "/data/flows/flows_write_happy.golondrina",
+            "files": {
+              "flows": "flows.parquet",
+              "metadata": "flows.metadata.json"
+            }
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "golondrina",
+        "path": "/data/flows/golondrina",
+        "children": [
+          {
+            "type": "directory",
+            "name": "demo_flows_happy_path.golondrina",
+            "path": "/data/flows/golondrina/demo_flows_happy_path.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "golondrina__golondrina__demo_flows_happy_path.golondrina__flows",
+                "label": "demo_flows_happy_path.golondrina",
+                "format": "golondrina_flows",
+                "dataset_path": "/data/flows/golondrina/demo_flows_happy_path.golondrina",
+                "files": {
+                  "flows": "flows.parquet",
+                  "metadata": "flows.metadata.json",
+                  "flow_to_trips": "flow_to_trips.parquet"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "unitrip_eod",
+        "path": "/data/flows/unitrip_eod",
+        "children": [
+          {
+            "type": "dataset",
+            "id": "flowmap__unitrip_eod",
+            "label": "unitrip_eod",
+            "format": "flowmap_layout",
+            "dataset_path": "/data/flows/unitrip_eod",
+            "files": {
+              "flows": "flows.csv",
+              "locations": "locations.csv"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

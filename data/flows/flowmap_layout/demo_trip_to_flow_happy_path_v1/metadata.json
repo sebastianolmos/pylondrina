@@ -1,0 +1,310 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_dbcf9eb7cda0",
+  "created_at_utc": "2026-04-06T07:35:48.915512Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_4d5d92f55041",
+    "aggregation_spec": {
+      "h3_resolution": 5,
+      "group_by": [
+        "mode",
+        "user_gender"
+      ],
+      "time_aggregation": "day",
+      "time_basis": "origin",
+      "min_trips_per_flow": 5,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 200,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "window_start_utc",
+        "window_end_utc",
+        "mode",
+        "user_gender"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "tripds_0ec20aea36a2479b958805ab2bdc46a0",
+          "schema_version": "1.1",
+          "n_rows": 18000
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "import_trips",
+          "ts_utc": "2026-04-06T07:12:03.425905+00:00",
+          "summary": {
+            "input_rows": 18000,
+            "output_rows": 18000,
+            "rows_dropped": 0,
+            "n_fields_mapped": 24,
+            "n_domain_mappings_applied": 5,
+            "columns_added": [
+              "origin_h3_index",
+              "destination_h3_index"
+            ],
+            "columns_deleted": [],
+            "domains_extended_count": 0,
+            "temporal_tier": "tier_1",
+            "temporal_notes": null
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-06T07:14:05Z",
+          "summary": {
+            "ok": true,
+            "n_rows": 18000,
+            "n_issues": 0,
+            "n_errors": 0,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 0,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {},
+            "checked_fields": [
+              "activity_status",
+              "day_type",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_municipality",
+              "destination_time_local_hhmm",
+              "destination_time_utc",
+              "education_level",
+              "fare_amount",
+              "fare_payment_type",
+              "home_tenure",
+              "income_quintile",
+              "mode",
+              "mode_sequence",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_municipality",
+              "origin_time_local_hhmm",
+              "origin_time_utc",
+              "purpose",
+              "season",
+              "time_period",
+              "timezone_offset_min",
+              "travel_time_min",
+              "trip_id",
+              "trip_weight",
+              "user_age_group",
+              "user_gender",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "1.1",
+            "domains": {
+              "mode": "full",
+              "min_required_ratio": 1.0,
+              "fields": {
+                "mode": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "purpose": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "day_type": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "time_period": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "user_gender": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "user_age_group": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "income_quintile": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "activity_status": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "education_level": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "season": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "fare_payment_type": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                },
+                "home_tenure": {
+                  "mode": "full",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 1.0,
+                  "n_checked_non_null": 18000,
+                  "n_in_domain": 18000
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 18000,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 200,
+              "issues_truncated": false,
+              "n_issues_emitted": 0,
+              "n_issues_detected_total": 0
+            }
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_4d5d92f55041",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-06T07:32:34.185795Z",
+          "parameters": {
+            "h3_resolution": 5,
+            "group_by": [
+              "mode",
+              "user_gender"
+            ],
+            "time_aggregation": "day",
+            "time_basis": "origin",
+            "min_trips_per_flow": 5,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 200
+          },
+          "summary": {
+            "n_trips_in": 18000,
+            "n_trips_eligible": 18000,
+            "n_trips_dropped": 0,
+            "n_flows_out": 879,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 5
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "D:\\Memoria\\repos\\pylondrina\\data\\synthetic\\demo_outputs\\flow_exports",
+      "export_dir": "D:\\Memoria\\repos\\pylondrina\\data\\synthetic\\demo_outputs\\flow_exports\\demo_trip_to_flow_happy_path_v1",
+      "format": "flowmap_blue",
+      "mode": "overwrite",
+      "folder_name": "demo_trip_to_flow_happy_path_v1",
+      "extra_flow_fields": [
+        "mode",
+        "user_gender",
+        "window_start_utc",
+        "window_end_utc",
+        "flow_count"
+      ]
+    },
+    "summary": {
+      "n_flows": 879,
+      "n_locations": 8,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}
