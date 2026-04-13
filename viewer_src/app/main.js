@@ -2,56 +2,71 @@
  * Viewer web de Pylondrina para visualizar flujos OD en Flowmap layout.
  *
  * Responsabilidades principales:
- * - Cargar locations.csv y flows.csv.
+ * - Cargar el registry jerárquico de datasets.
+ * - Mostrar la vista de selección previa al mapa.
+ * - Cargar un dataset Flowmap layout concreto.
  * - Inicializar mapa base y FlowmapLayer.
  * - Renderizar overlays/paneles de apoyo.
  * - Exponer controles visuales mediante lil-gui.
- * - Detectar datasets segmentados y advertir al usuario.
- *
- * Alcance actual:
- * - Visualización de flujos no segmentados en layout Flowmap.
- * - Modo foco por nodo.
- * - Paneles informativos y tooltips.
- *
- * Fuera de alcance actual:
- * - Lectura nativa de flows.golondrina (parquet + metadata).
- * - Selector general de datasets.
- * - Soporte completo de segmentaciones analíticas.
  */
 
 import "./styles/base.css";
 import "./styles/overlays.css";
 import "./styles/controls.css";
+import "./styles/selector.css";
 
 import { state } from "./state.js";
+import { fetchViewerRegistry } from "./data/loadViewerRegistry.js";
 import { fetchFlowmapData } from "./data/loadFlowmapData.js";
 import {
   hideControlHelpTooltip,
+  hideSegmentedWarningScreen,
   hideTooltip,
   showSegmentedWarningScreen,
 } from "./ui/overlays.js";
 import { startViewer } from "./map/viewer.js";
+import {
+  hideDatasetSelector,
+  initializeDatasetSelector,
+  showDatasetSelector,
+} from "./ui/datasetSelector.js";
 
-/**
- * Orquesta el arranque del viewer: carga el dataset, actualiza el estado global
- * y decide si iniciar directamente la visualización o mostrar la advertencia
- * previa cuando se detectan flujos segmentados.
- */
-async function bootstrap() {
-  const data = await fetchFlowmapData();
+/** Carga un dataset seleccionado desde el registry y resuelve el arranque del viewer. */
+async function loadSelectedDataset(datasetNode) {
+  state.selectedLocation = null;
+  state.segmentedWarningAccepted = false;
+  state.selectedDatasetNode = datasetNode;
+
+  const data = await fetchFlowmapData(datasetNode);
   state.flowmapData = data;
 
   if (state.flowmapData.hasSegmentedFlows) {
+    hideDatasetSelector();
+
     showSegmentedWarningScreen({
       onContinue: () => {
         state.segmentedWarningAccepted = true;
         startViewer();
       },
+      onBack: () => {
+        showDatasetSelector();
+      },
     });
     return;
   }
 
+  hideSegmentedWarningScreen();
+  hideDatasetSelector();
   startViewer();
+}
+
+/** Orquesta el arranque del viewer: carga el registry y muestra la vista inicial del selector. */
+async function bootstrap() {
+  const registry = await fetchViewerRegistry();
+  initializeDatasetSelector(registry, {
+    onDatasetSelected: loadSelectedDataset,
+  });
+  showDatasetSelector();
 }
 
 bootstrap();

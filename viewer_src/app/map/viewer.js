@@ -154,6 +154,44 @@ function updateBaseMap() {
   }
 }
 
+/** Calcula una vista inicial que encuadra las locations del dataset actualmente cargado. */
+function getCurrentDatasetViewState() {
+  const locations = state.flowmapData?.locations ?? [];
+  const [width, height] = [window.innerWidth, window.innerHeight];
+
+  return getViewStateForLocations(
+    locations,
+    (location) => [location.lon, location.lat],
+    [width, height],
+    { pad: 0.3 }
+  );
+}
+
+/** Libera el mapa y el canvas de deck.gl antes de reconstruir el viewer con otro dataset. */
+export function destroyViewer() {
+  hideTooltip();
+  state.selectedLocation = null;
+
+  if (state.controlsGui) {
+    state.controlsGui.destroy();
+    state.controlsGui = null;
+  }
+
+  if (state.deck) {
+    state.deck.finalize();
+    state.deck = null;
+  }
+
+  if (state.map) {
+    state.map.remove();
+    state.map = null;
+  }
+
+  state.currentMapStyleKey = null;
+  state.clusteringLevelController = null;
+  state.viewerInitialized = false;
+}
+
 /** Re-renderiza la capa del mapa y sincroniza overlays/controles dependientes del estado actual. */
 export function updateLayers() {
   if (!state.deck || !state.flowmapData) return;
@@ -170,25 +208,14 @@ export function updateLayers() {
 
 /** Inicializa mapa, Deck, paneles y controles una vez que los datos ya fueron cargados. */
 export function startViewer() {
-  if (state.viewerInitialized || !state.flowmapData) {
-    if (state.viewerInitialized) {
-      updateDatasetInfoPanel();
-      updateLayers();
-    }
-    return;
+  if (!state.flowmapData) return;
+
+  if (state.viewerInitialized) {
+    destroyViewer();
   }
 
   const { mapEl, deckCanvasEl } = getDomRefs();
-  const { locations } = state.flowmapData;
-  const [width, height] = [window.innerWidth, window.innerHeight];
-
-  const initialViewState = getViewStateForLocations(
-    locations,
-    (location) => [location.lon, location.lat],
-    [width, height],
-    { pad: 0.3 }
-  );
-
+  const initialViewState = getCurrentDatasetViewState();
   const initialStyleKey = config.darkMode ? "dark" : "light";
   state.currentMapStyleKey = initialStyleKey;
 

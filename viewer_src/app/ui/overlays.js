@@ -27,10 +27,7 @@ let datasetInfoPanelBodyEl = null;
 // Referencia lazy al overlay de advertencia mostrado antes de iniciar el viewer con datos segmentados.
 let segmentedWarningOverlayEl = null;
 
-/**
- * Expone un conjunto mínimo de referencias a nodos base del viewer para que
- * otros módulos puedan reutilizarlos sin consultar repetidamente el DOM.
- */
+/** Expone un conjunto mínimo de referencias a nodos base del viewer para que otros módulos puedan reutilizarlos. */
 export function getDomRefs() {
   return { tooltipEl, mapEl, deckCanvasEl };
 }
@@ -246,8 +243,13 @@ export function updateDatasetInfoPanel() {
       `
       : "";
 
+  const datasetNameHtml = state.selectedDatasetNode
+    ? `<div class="viewer-panel__section viewer-panel__section--dataset"><strong>Dataset:</strong> ${escapeHtml(state.selectedDatasetNode.label)}</div>`
+    : "";
+
   datasetInfoPanelBodyEl.innerHTML = `
     <div class="viewer-panel__description">${escapeHtml(INFO_PANEL_DESCRIPTION)}</div>
+    ${datasetNameHtml}
     <div><strong>Viajes totales:</strong> ${formatRoundedInt(summary.totalTrips)}</div>
     <div><strong>Flujos totales:</strong> ${formatRoundedInt(summary.totalFlows)}</div>
     ${selectedSectionHtml}
@@ -275,25 +277,43 @@ function ensureSegmentedWarningScreen() {
   messageEl.id = "segmented-warning-message";
   messageEl.className = "warning-overlay__message";
 
-  const buttonEl = document.createElement("button");
-  buttonEl.type = "button";
-  buttonEl.className = "warning-overlay__button";
-  buttonEl.textContent = "Continuar de todas maneras";
+  const actionsEl = document.createElement("div");
+  actionsEl.className = "warning-overlay__actions";
+
+  const backButtonEl = document.createElement("button");
+  backButtonEl.type = "button";
+  backButtonEl.className = "warning-overlay__button warning-overlay__button--secondary";
+  backButtonEl.textContent = "Volver al selector";
+
+  const continueButtonEl = document.createElement("button");
+  continueButtonEl.type = "button";
+  continueButtonEl.className = "warning-overlay__button";
+  continueButtonEl.textContent = "Continuar de todas maneras";
+
+  actionsEl.appendChild(backButtonEl);
+  actionsEl.appendChild(continueButtonEl);
 
   panelEl.appendChild(titleEl);
   panelEl.appendChild(messageEl);
-  panelEl.appendChild(buttonEl);
+  panelEl.appendChild(actionsEl);
   segmentedWarningOverlayEl.appendChild(panelEl);
   document.body.appendChild(segmentedWarningOverlayEl);
 
   return segmentedWarningOverlayEl;
 }
 
+/** Oculta la pantalla de advertencia para datasets segmentados. */
+export function hideSegmentedWarningScreen() {
+  const overlayEl = ensureSegmentedWarningScreen();
+  overlayEl.classList.add("is-hidden");
+}
+
 /** Muestra la advertencia previa cuando se detectan columnas extra en flows.csv. */
-export function showSegmentedWarningScreen({ onContinue }) {
+export function showSegmentedWarningScreen({ onContinue, onBack }) {
   const overlayEl = ensureSegmentedWarningScreen();
   const messageEl = overlayEl.querySelector("#segmented-warning-message");
-  const buttonEl = overlayEl.querySelector(".warning-overlay__button");
+  const buttons = overlayEl.querySelectorAll(".warning-overlay__button");
+  const [backButtonEl, continueButtonEl] = buttons;
 
   const extraColumnsText = state.flowmapData.extraFlowColumns
     .map((column) => escapeHtml(column))
@@ -313,9 +333,14 @@ export function showSegmentedWarningScreen({ onContinue }) {
     </div>
   `;
 
-  buttonEl.onclick = () => {
-    overlayEl.classList.add("is-hidden");
-    onContinue();
+  backButtonEl.onclick = () => {
+    hideSegmentedWarningScreen();
+    onBack?.();
+  };
+
+  continueButtonEl.onclick = () => {
+    hideSegmentedWarningScreen();
+    onContinue?.();
   };
 
   overlayEl.classList.remove("is-hidden");

@@ -4,12 +4,26 @@ export const MAP_STYLES = {
   light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 };
 
-// Ruta base de datasets exportados a layout Flowmap.
-// Se inyecta desde Vite para diferenciar dev y build.
-export const FLOW_EXPORTS_BASE_PATH = __FLOW_EXPORTS_BASE_PATH__;
+// Ruta única hardcodeada del registry de datasets consumido por el selector.
+export const VIEWER_REGISTRY_URL = "/data/flows/viewer_registry.json";
 
-// Nombre del dataset que se cargará por defecto.
-export const DATASET_DIR_NAME = "unitrip_eod";
+// Formatos soportados por el selector del viewer.
+export const DATASET_FORMAT_OPTIONS = [
+  {
+    value: "flowmap_layout",
+    label: "Flowmap layout",
+    description:
+      "Par de archivos tabulares orientados a visualización: flows.csv y locations.csv.",
+    enabled: true,
+  },
+  {
+    value: "golondrina_flows",
+    label: "Flujos Golondrina",
+    description:
+      "Artefacto persistido de Pylondrina basado en parquet + metadata. Queda deshabilitado por ahora.",
+    enabled: false,
+  },
+];
 
 // Columnas mínimas esperadas para considerar flows.csv como layout Flowmap puro.
 export const FLOW_REQUIRED_COLUMNS = ["origin", "dest", "count"];
@@ -70,6 +84,11 @@ export const PARAM_HELP = {
 export const INFO_PANEL_TITLE = "Visualizador de Pylondrina";
 export const INFO_PANEL_DESCRIPTION =
   "Visualizador de flujos no segmentados para Pylondrina. Actualmente consume datos en formato Flowmap layout y queda preparado para evolucionar hacia soporte directo del formato Golondrina.";
+
+// Textos de la vista de selección de datasets.
+export const DATASET_SELECTOR_TITLE = "Selecciona el dataset de flujos";
+export const DATASET_SELECTOR_DESCRIPTION =
+  "Explora datasets disponibles desde el registry del viewer y carga uno para visualizarlo en el mapa de flujos.";
 
 // Estado de configuración visual editable desde el panel de controles.
 export const config = {

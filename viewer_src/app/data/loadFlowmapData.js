@@ -1,24 +1,24 @@
-import {
-  DATASET_DIR_NAME,
-  FLOW_EXPORTS_BASE_PATH,
-  FLOW_REQUIRED_COLUMNS,
-} from "../config.js";
+import { FLOW_REQUIRED_COLUMNS } from "../config.js";
 import { csv } from "d3-fetch";
 
-/** Construye la ruta final de un archivo del dataset activo. */
-export function datasetFile(fileName) {
-  const datasetBase = FLOW_EXPORTS_BASE_PATH
-    ? `${FLOW_EXPORTS_BASE_PATH}/${DATASET_DIR_NAME}`
-    : `/${DATASET_DIR_NAME}`;
+/** Construye la URL de un archivo perteneciente a un dataset Flowmap del registry. */
+export function datasetFileFromRegistry(datasetNode, fileKey) {
+  if (!datasetNode?.dataset_path || !datasetNode?.files?.[fileKey]) {
+    throw new Error(`No se pudo resolver el archivo '${fileKey}' del dataset seleccionado.`);
+  }
 
-  return `${datasetBase}/${fileName}`;
+  return `${datasetNode.dataset_path}/${datasetNode.files[fileKey]}`;
 }
 
-/** Carga locations.csv y flows.csv, preservando columnas extra para detectar segmentación. */
-export async function fetchFlowmapData() {
+/** Carga un dataset Flowmap layout desde un nodo dataset ya resuelto por el selector. */
+export async function fetchFlowmapData(datasetNode) {
+  if (!datasetNode || datasetNode.format !== "flowmap_layout") {
+    throw new Error("El loader actual solo soporta datasets flowmap_layout.");
+  }
+
   const [locationRows, flowRows] = await Promise.all([
-    csv(datasetFile("locations.csv")),
-    csv(datasetFile("flows.csv")),
+    csv(datasetFileFromRegistry(datasetNode, "locations")),
+    csv(datasetFileFromRegistry(datasetNode, "flows")),
   ]);
 
   const locationColumns =

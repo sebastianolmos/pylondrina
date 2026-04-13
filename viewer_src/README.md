@@ -10,10 +10,8 @@ Su propósito es servir como área de desarrollo del visualizador. El entregable
 
 Este visualizador parte como una adaptación basada en el ejemplo público:
 
-- `flowmap.gl-purejs-example`
-- Repositorio base: `https://github.com/ilyabo/flowmap.gl-purejs-example`
+- Repositorio base: [flowmap.gl-purejs-example](https://github.com/ilyabo/flowmap.gl-purejs-example)
 
-La primera meta es verificar que el ejemplo base puede ejecutarse correctamente en modo desarrollo y compilarse como build estática. Luego se extenderá gradualmente para ajustarlo a las necesidades de Pylondrina.
 
 ## Objetivo final esperado
 
@@ -31,7 +29,7 @@ Se busca obtener un visualizador web estático que:
 - [x] Verificar generación de build estática
 - [x] Probar visualización de un dataset hardcodeado
 - [x] Reemplazar dataset remoto por dataset local
-- [ ] Agregar menú básico de selección de dataset
+- [x] Agregar menú básico de selección de dataset
 - [ ] Evaluar soporte directo para formato Golondrina
 
 ## Estructura propuesta
@@ -46,18 +44,10 @@ viewer_src/
     config.js
     state.js
     data/
-      loadFlowmapData.js
     map/
-      viewer.js
     ui/
-      controls.js
-      overlays.js
     utils/
-      format.js
     styles/
-      base.css
-      overlays.css
-      controls.css
 ```
 
 ## Responsabilidades por carpeta
@@ -73,7 +63,6 @@ viewer_src/
 
 ## Futuras extensiones sugeridas
 
-- Selector de datasets: `app/data/datasetRegistry.js` o `app/data/listAvailableDatasets.js`
 - Lectura nativa de `flows.golondrina`: `app/data/loadGolondrinaArtifact.js`
 - Selector/filtros de segmentación: `app/ui/segmentationPanel.js`
 
@@ -81,9 +70,27 @@ viewer_src/
 
 - Esta carpeta contiene el proyecto fuente del visualizador.
 - La carpeta `viewer/` contendrá la build final generada.
-- Los datasets de prueba se ubicarán fuera de esta carpeta, bajo la estructura general del repositorio.
+- Los datasets que requieran ser visualizados debe estar dentro del directorio `data/flows`
 
-## Como ejecutar
+
+## Antes de ejecutar el visualizador
+
+Para poder utilizar el selector de datasets de flujos, se debe generar un registro de los datasets que hay en `data/flows/`, por lo que se debe asegurar de tener este registro actualizado antes de usar el visualizador.
+
+### Como generar el registro
+Desde la raíz del repo:
+
+```
+python scripts/generate_viewer_registry.py
+```
+
+Con otra profundidad:
+
+```
+python scripts/generate_viewer_registry.py --max-depth 6
+```
+
+## Como ejecutar el visualizador
 
 ### En modo dev
 Ejecutar desde `pylondrina/viewer_src/`

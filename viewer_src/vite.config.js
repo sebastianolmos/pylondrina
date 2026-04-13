@@ -1,25 +1,16 @@
 import path from "node:path";
 import { defineConfig } from "vite";
 
-const FLOW_EXPORTS_DIR = path.resolve(
-  __dirname,
-  "../data/synthetic/demo_outputs/flow_exports"
-);
+const REPO_ROOT = path.resolve(__dirname, "..");
 
 export default defineConfig(({ command }) => ({
+  // Mantiene assets del build con rutas relativas dentro de /viewer/.
   base: "./",
 
-  // En dev, Vite sirve flow_exports/ en "/"
-  // En build, no usa publicDir para no copiar nada a viewer/
-  publicDir: command === "serve" ? FLOW_EXPORTS_DIR : false,
-
-  define: {
-    __FLOW_EXPORTS_BASE_PATH__: JSON.stringify(
-      command === "serve"
-        ? ""
-        : "/data/synthetic/demo_outputs/flow_exports"
-    ),
-  },
+  // En dev, se expone la raíz del repo para que el viewer pueda pedir
+  // /data/flows/viewer_registry.json y los datasets listados en el registry.
+  // En build, no se copia nada extra al directorio viewer/.
+  publicDir: command === "serve" ? REPO_ROOT : false,
 
   build: {
     outDir: "../viewer",

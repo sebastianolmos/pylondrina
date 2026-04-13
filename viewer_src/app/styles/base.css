@@ -1,3 +1,11 @@
+/* Variables globales de layout para mantener alineados paneles y botones del viewer. */
+:root {
+  --viewer-top-offset: 12px;
+  --viewer-left-offset: 12px;
+  --viewer-info-panel-width: 330px;
+  --viewer-gap: 12px;
+}
+
 /* Configuración base de la página: elimina márgenes por defecto, fija el
    viewport como lienzo del viewer y define la tipografía global. */
 html,

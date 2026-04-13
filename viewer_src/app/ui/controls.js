@@ -5,7 +5,14 @@ import { bindControllerHelp } from "./overlays.js";
 
 /** Inicializa el panel de controles visuales basado en lil-gui. */
 export function initControls({ onChange }) {
+  if (state.controlsGui) {
+    state.controlsGui.destroy();
+    state.controlsGui = null;
+    state.clusteringLevelController = null;
+  }
+
   const gui = new GUI({ title: "Flowmap controls" });
+  state.controlsGui = gui;
 
   const darkModeController = gui
     .add(config, "darkMode")
