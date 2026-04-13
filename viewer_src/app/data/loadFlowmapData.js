@@ -21,8 +21,7 @@ export async function fetchFlowmapData(datasetNode) {
     csv(datasetFileFromRegistry(datasetNode, "flows")),
   ]);
 
-  const locationColumns =
-    locationRows.columns ?? Object.keys(locationRows[0] ?? {});
+  const locationColumns = locationRows.columns ?? Object.keys(locationRows[0] ?? {});
   const flowColumns = flowRows.columns ?? Object.keys(flowRows[0] ?? {});
 
   const extraFlowColumns = flowColumns.filter(

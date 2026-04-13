@@ -1,22 +1,65 @@
 import {
-  DATASET_FORMAT_OPTIONS,
+  DATASET_FORMAT_LABELS,
   DATASET_SELECTOR_DESCRIPTION,
+  DATASET_SELECTOR_FORMAT_HELP,
   DATASET_SELECTOR_TITLE,
 } from "../config.js";
 import { state } from "../state.js";
-import {
-  getVisibleDirectoryChildren,
-  isDirectoryNode,
-} from "../data/loadViewerRegistry.js";
+import { getVisibleDirectoryChildren, isDirectoryNode } from "../data/loadViewerRegistry.js";
 import { hideSegmentedWarningScreen } from "./overlays.js";
+import { ICONS } from "./icons.js";
 
 let selectorOverlayEl = null;
 let selectorPanelEl = null;
 let selectorBreadcrumbEl = null;
 let selectorDirectoryListEl = null;
-let selectorFormatHelpEl = null;
 let returnToSelectorButtonEl = null;
 let datasetSelectionHandler = null;
+
+/** Retorna una etiqueta legible para el formato del dataset. */
+function getDatasetFormatLabel(format) {
+  return DATASET_FORMAT_LABELS[format] ?? format;
+}
+
+/** Retorna el SVG inline apropiado para una carpeta o dataset según su formato. */
+function getSelectorItemIcon(node) {
+  if (node.type === "directory") return ICONS.folder;
+  if (node.format === "flowmap_layout") return ICONS.flowmapLayout;
+  if (node.format === "golondrina_flows") return ICONS.golondrinaFlows;
+  return ICONS.flowmapLayout;
+}
+
+/** Retorna la clase de color visual correspondiente al tipo de ítem del selector. */
+function getSelectorItemIconClass(node) {
+  if (node.type === "directory") return "dataset-selector-item__icon--folder";
+  if (node.format === "flowmap_layout") return "dataset-selector-item__icon--flowmap";
+  if (node.format === "golondrina_flows") return "dataset-selector-item__icon--golondrina";
+  return "dataset-selector-item__icon--flowmap";
+}
+
+/** Construye el nodo visual reutilizable para el ícono y el bloque textual de una fila del selector. */
+function appendSelectorItemContent(buttonEl, node, metaText) {
+  const iconEl = document.createElement("span");
+  iconEl.className = `dataset-selector-item__icon ${getSelectorItemIconClass(node)}`;
+  iconEl.innerHTML = getSelectorItemIcon(node);
+
+  const mainEl = document.createElement("span");
+  mainEl.className = "dataset-selector-item__main";
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "dataset-selector-item__title";
+  titleEl.textContent = node.type === "dataset" ? node.label : node.name;
+
+  const metaEl = document.createElement("span");
+  metaEl.className = "dataset-selector-item__meta";
+  metaEl.textContent = metaText;
+
+  mainEl.appendChild(titleEl);
+  mainEl.appendChild(metaEl);
+
+  buttonEl.appendChild(iconEl);
+  buttonEl.appendChild(mainEl);
+}
 
 /** Crea, si no existe, la vista modal usada para seleccionar datasets desde el registry. */
 function ensureDatasetSelectorOverlay() {
@@ -37,55 +80,43 @@ function ensureDatasetSelectorOverlay() {
   descriptionEl.className = "dataset-selector-panel__description";
   descriptionEl.textContent = DATASET_SELECTOR_DESCRIPTION;
 
-  const formatSectionEl = document.createElement("section");
-  formatSectionEl.className = "dataset-selector-panel__section";
+  const helpSectionEl = document.createElement("section");
+  helpSectionEl.className = "dataset-selector-panel__section";
 
-  const formatTitleEl = document.createElement("div");
-  formatTitleEl.className = "dataset-selector-panel__section-title";
-  formatTitleEl.textContent = "Formato";
+  const helpTitleEl = document.createElement("div");
+  helpTitleEl.className = "dataset-selector-panel__section-title";
+  helpTitleEl.textContent = "Formatos soportados";
 
-  const formatOptionsEl = document.createElement("div");
-  formatOptionsEl.className = "dataset-selector-format-options";
+  const helpBodyEl = document.createElement("div");
+  helpBodyEl.className = "dataset-selector-format-help";
+  helpBodyEl.textContent = DATASET_SELECTOR_FORMAT_HELP;
 
-  DATASET_FORMAT_OPTIONS.forEach((option) => {
-    const labelEl = document.createElement("label");
-    labelEl.className = `dataset-selector-format-option${option.enabled ? "" : " dataset-selector-format-option--disabled"}`;
-    labelEl.title = option.description;
+  const legendEl = document.createElement("div");
+  legendEl.className = "dataset-selector-legend";
 
-    const inputEl = document.createElement("input");
-    inputEl.type = "radio";
-    inputEl.name = "dataset-format";
-    inputEl.value = option.value;
-    inputEl.checked = state.selectedFormatFilter === option.value;
-    inputEl.disabled = !option.enabled;
+  [
+    { type: "dataset", format: "flowmap_layout", label: DATASET_FORMAT_LABELS.flowmap_layout },
+    { type: "dataset", format: "golondrina_flows", label: DATASET_FORMAT_LABELS.golondrina_flows },
+    { type: "directory", name: "Carpeta", label: "Carpeta" },
+  ].forEach((node) => {
+    const itemEl = document.createElement("div");
+    itemEl.className = "dataset-selector-legend__item";
 
-    inputEl.addEventListener("change", () => {
-      state.selectedFormatFilter = option.value;
-      renderDatasetSelectorDirectory();
-      selectorFormatHelpEl.textContent = option.description;
-    });
+    const iconEl = document.createElement("span");
+    iconEl.className = `dataset-selector-item__icon ${getSelectorItemIconClass(node)}`;
+    iconEl.innerHTML = getSelectorItemIcon(node);
 
-    const textEl = document.createElement("span");
-    textEl.textContent = option.label;
+    const labelEl = document.createElement("span");
+    labelEl.textContent = node.label;
 
-    labelEl.addEventListener("mouseenter", () => {
-      selectorFormatHelpEl.textContent = option.description;
-    });
-
-    labelEl.appendChild(inputEl);
-    labelEl.appendChild(textEl);
-    formatOptionsEl.appendChild(labelEl);
+    itemEl.appendChild(iconEl);
+    itemEl.appendChild(labelEl);
+    legendEl.appendChild(itemEl);
   });
 
-  selectorFormatHelpEl = document.createElement("div");
-  selectorFormatHelpEl.className = "dataset-selector-format-help";
-  selectorFormatHelpEl.textContent =
-    DATASET_FORMAT_OPTIONS.find((option) => option.value === state.selectedFormatFilter)
-      ?.description ?? "";
-
-  formatSectionEl.appendChild(formatTitleEl);
-  formatSectionEl.appendChild(formatOptionsEl);
-  formatSectionEl.appendChild(selectorFormatHelpEl);
+  helpSectionEl.appendChild(helpTitleEl);
+  helpSectionEl.appendChild(helpBodyEl);
+  helpSectionEl.appendChild(legendEl);
 
   const browserSectionEl = document.createElement("section");
   browserSectionEl.className = "dataset-selector-panel__section";
@@ -118,7 +149,7 @@ function ensureDatasetSelectorOverlay() {
 
   selectorPanelEl.appendChild(titleEl);
   selectorPanelEl.appendChild(descriptionEl);
-  selectorPanelEl.appendChild(formatSectionEl);
+  selectorPanelEl.appendChild(helpSectionEl);
   selectorPanelEl.appendChild(browserSectionEl);
 
   selectorOverlayEl.appendChild(selectorPanelEl);
@@ -169,14 +200,11 @@ function navigateToParentDirectory() {
   renderDatasetSelectorDirectory();
 }
 
-/** Renderiza el contenido visible del directorio actual según formato y jerarquía. */
+/** Renderiza el contenido visible del directorio actual según la jerarquía del registry. */
 export function renderDatasetSelectorDirectory() {
   if (!selectorOverlayEl || !selectorDirectoryListEl || !state.currentDirectoryNode) return;
 
-  const { directories, datasets } = getVisibleDirectoryChildren(
-    state.currentDirectoryNode,
-    state.selectedFormatFilter
-  );
+  const { directories, datasets } = getVisibleDirectoryChildren(state.currentDirectoryNode);
 
   selectorBreadcrumbEl.textContent = buildBreadcrumbText();
   selectorDirectoryListEl.innerHTML = "";
@@ -184,7 +212,7 @@ export function renderDatasetSelectorDirectory() {
   if (directories.length === 0 && datasets.length === 0) {
     const emptyEl = document.createElement("div");
     emptyEl.className = "dataset-selector-empty";
-    emptyEl.textContent = "No hay datasets compatibles en este nivel.";
+    emptyEl.textContent = "No hay datasets disponibles en este nivel.";
     selectorDirectoryListEl.appendChild(emptyEl);
     return;
   }
@@ -193,13 +221,7 @@ export function renderDatasetSelectorDirectory() {
     const buttonEl = document.createElement("button");
     buttonEl.type = "button";
     buttonEl.className = "dataset-selector-item dataset-selector-item--directory";
-    buttonEl.innerHTML = `
-      <span class="dataset-selector-item__icon">📁</span>
-      <span class="dataset-selector-item__main">
-        <span class="dataset-selector-item__title">${directoryNode.name}</span>
-        <span class="dataset-selector-item__meta">Carpeta</span>
-      </span>
-    `;
+    appendSelectorItemContent(buttonEl, directoryNode, "Carpeta");
     buttonEl.addEventListener("click", () => navigateToDirectory(directoryNode));
     selectorDirectoryListEl.appendChild(buttonEl);
   });
@@ -208,13 +230,7 @@ export function renderDatasetSelectorDirectory() {
     const buttonEl = document.createElement("button");
     buttonEl.type = "button";
     buttonEl.className = "dataset-selector-item dataset-selector-item--dataset";
-    buttonEl.innerHTML = `
-      <span class="dataset-selector-item__icon">🗂️</span>
-      <span class="dataset-selector-item__main">
-        <span class="dataset-selector-item__title">${datasetNode.label}</span>
-        <span class="dataset-selector-item__meta">${datasetNode.format}</span>
-      </span>
-    `;
+    appendSelectorItemContent(buttonEl, datasetNode, getDatasetFormatLabel(datasetNode.format));
     buttonEl.addEventListener("click", () => {
       state.selectedDatasetNode = datasetNode;
       if (datasetSelectionHandler) {

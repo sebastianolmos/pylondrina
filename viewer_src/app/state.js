@@ -18,6 +18,5 @@ export const state = {
   registry: null,
   currentDirectoryNode: null,
   navigationStack: [],
-  selectedFormatFilter: "flowmap_layout",
   selectedDatasetNode: null,
 };

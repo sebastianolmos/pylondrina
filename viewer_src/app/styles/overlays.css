@@ -238,3 +238,61 @@
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
+
+/* Overlay de carga usado al leer datasets que requieren procesamiento adicional en navegador. */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 24, 24, 0.58);
+  backdrop-filter: blur(2px);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Panel del estado de carga para datasets Golondrina. */
+.loading-overlay__panel {
+  min-width: min(360px, 100%);
+  max-width: 420px;
+  padding: 22px 24px;
+  border-radius: 12px;
+  background: rgba(20, 20, 20, 0.96);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+/* Spinner circular minimalista para indicar procesamiento activo. */
+.loading-overlay__spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  border-top-color: #ffffff;
+  animation: viewer-loading-spin 0.9s linear infinite;
+}
+
+/* Título principal del overlay de carga. */
+.loading-overlay__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Mensaje auxiliar que describe brevemente la etapa de procesamiento actual. */
+.loading-overlay__message {
+  font-size: 13px;
+  opacity: 0.86;
+  line-height: 1.45;
+}
+
+@keyframes viewer-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

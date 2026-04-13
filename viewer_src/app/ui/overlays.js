@@ -1,5 +1,5 @@
 import { PickingType } from "@flowmap.gl/layers";
-import { INFO_PANEL_DESCRIPTION, INFO_PANEL_TITLE } from "../config.js";
+import { DATASET_FORMAT_LABELS, INFO_PANEL_DESCRIPTION, INFO_PANEL_TITLE } from "../config.js";
 import { state } from "../state.js";
 import { escapeHtml, formatRoundedInt, getTripMetric } from "../utils/format.js";
 
@@ -244,7 +244,12 @@ export function updateDatasetInfoPanel() {
       : "";
 
   const datasetNameHtml = state.selectedDatasetNode
-    ? `<div class="viewer-panel__section viewer-panel__section--dataset"><strong>Dataset:</strong> ${escapeHtml(state.selectedDatasetNode.label)}</div>`
+    ? `
+      <section class="viewer-panel__section viewer-panel__section--dataset">
+        <div><strong>Dataset:</strong> ${escapeHtml(state.selectedDatasetNode.label)}</div>
+        <div class="viewer-panel__muted"><strong>Formato:</strong> ${escapeHtml(DATASET_FORMAT_LABELS[state.selectedDatasetNode.format] ?? state.selectedDatasetNode.format)}</div>
+      </section>
+    `
     : "";
 
   datasetInfoPanelBodyEl.innerHTML = `
@@ -319,9 +324,12 @@ export function showSegmentedWarningScreen({ onContinue, onBack }) {
     .map((column) => escapeHtml(column))
     .join(", ");
 
+  const formatLabel = DATASET_FORMAT_LABELS[state.selectedDatasetNode?.format] ?? "dataset";
+  const sourceFileName = escapeHtml(state.selectedDatasetNode?.files?.flows ?? "flows");
+
   messageEl.innerHTML = `
     <div class="warning-overlay__message-block">
-      Se detectaron campos extra en <code>flows.csv</code>, por lo que se asume que el dataset contiene <strong>flujos segmentados</strong>.
+      Se detectaron campos extra en <code>${sourceFileName}</code>, por lo que se asume que el <strong>${escapeHtml(formatLabel)}</strong> contiene <strong>flujos segmentados</strong>.
     </div>
 
     <div class="warning-overlay__message-block">

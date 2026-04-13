@@ -29,18 +29,14 @@ export function isDatasetNode(node) {
   return node?.type === "dataset";
 }
 
-/** Retorna los hijos visibles de un directorio según el filtro de formato activo. */
-export function getVisibleDirectoryChildren(directoryNode, selectedFormatFilter) {
+/** Retorna los hijos visibles de un directorio sin aplicar filtros adicionales de formato. */
+export function getVisibleDirectoryChildren(directoryNode) {
   const children = Array.isArray(directoryNode?.children)
     ? directoryNode.children
     : [];
 
   const directories = children.filter((child) => child.type === "directory");
-  const datasets = children.filter((child) => {
-    if (child.type !== "dataset") return false;
-    if (selectedFormatFilter === "all") return true;
-    return child.format === selectedFormatFilter;
-  });
+  const datasets = children.filter((child) => child.type === "dataset");
 
   return { directories, datasets };
 }
