@@ -362,4 +362,47 @@ IMPORT_ISSUES: dict[str, IssueSpec] = {
         exception="import",
         fatal=True,
     ),
+
+    # ------------------------------------------------------------------
+    # CATEGORY INFERENCE POLICY
+    # ------------------------------------------------------------------
+    "DOM.INFERENCE.APPLIED": _info(
+        "DOM.INFERENCE.APPLIED",
+        "Se infirió el dominio efectivo de {field!r} a partir de los valores observados ({n_unique_observed} únicos sobre {n_rows_non_null} filas no nulas); el campo se mantiene como categórico.",
+        details_keys=(
+            "field",
+            "n_rows_non_null",
+            "n_unique_observed",
+            "alpha",
+            "k_max",
+            "cardinality_limit",
+            "observed_values_sample",
+            "observed_values_total",
+            "action",
+        ),
+        defaults={"action": "inferred_categorical_domain"},
+    ),
+
+    "DOM.INFERENCE.DEGRADED_TO_STRING": _warn(
+        "DOM.INFERENCE.DEGRADED_TO_STRING",
+        "El campo {field!r} fue declarado categórico con DomainSpec.values vacío, pero su cardinalidad observada ({n_unique_observed} únicos sobre {n_rows_non_null} filas no nulas) supera el límite {cardinality_limit}; se degradará a texto.",
+        details_keys=(
+            "field",
+            "n_rows_non_null",
+            "n_unique_observed",
+            "alpha",
+            "k_max",
+            "cardinality_limit",
+            "observed_values_sample",
+            "observed_values_total",
+            "fallback_dtype",
+            "reason",
+            "action",
+        ),
+        defaults={
+            "fallback_dtype": "string",
+            "reason": "high_cardinality_for_categorical_inference",
+            "action": "fallback_dtype",
+        },
+    ),
 }

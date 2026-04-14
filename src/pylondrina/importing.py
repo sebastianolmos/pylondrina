@@ -63,6 +63,9 @@ DMS_PATTERN = re.compile(
 TRIPDATASET_COLUMNS_SOFT_CAP = 256
 TRIPDATASET_COLUMNS_HARD_CAP = 1024
 
+CATEGORICAL_INFERENCE_K_MAX = 10_000
+CATEGORICAL_INFERENCE_ALPHA_DECLARED = 0.05
+
 _HHMM_RE = re.compile(r"^(?P<h>\d{2}):(?P<m>\d{2})$")
 
 @dataclass(frozen=True)
@@ -238,7 +241,6 @@ def import_trips_from_dataframe(
         work,
         temporal_tier=temporal_tier_detected,
         schema=schema,
-        issues=issues,
     )
     issues.extend(tier_2_issues)
 
@@ -956,7 +958,9 @@ def _standardize_categorical_values(
             DOM.POLICY.FIELD_NOT_EXTENDABLE,
             DOM.POLICY.MAPPING_REQUIRES_EXTENSION_BLOCKED,
             DOM.STRICT.OUT_OF_DOMAIN_ABORT,
-            DOM.EXTENSION.APPLIED
+            DOM.EXTENSION.APPLIED,
+            DOM.INFERENCE.APPLIED,
+            DOM.INFERENCE.DEGRADED_TO_STRING
     """
     issues: List[Issue] = []
     work = df
@@ -1056,10 +1060,103 @@ def _standardize_categorical_values(
 
         base = set(str(v) for v in (domain.values or []))
         observed = set(str(v) for v in s_mapped.dropna().unique())
-        out_of_domain = observed - base
+        observed_values_sorted = sorted(observed)
         unknown_token = _get_unknown_token(domain)
         added_values: set[str] = set()
         unknown_values: List[str] = []
+
+        # Caso especial v1.1:
+        # dtype='categorical' + DomainSpec.values vacío -> inferencia bootstrap controlada.
+        if len(base) == 0:
+            n_rows_non_null = int(s_mapped.notna().sum())
+            n_unique_observed = len(observed)
+            alpha = CATEGORICAL_INFERENCE_ALPHA_DECLARED
+            cardinality_limit = min(
+                float(CATEGORICAL_INFERENCE_K_MAX),
+                alpha * float(n_rows_non_null),
+            )
+
+            inference_policy = {
+                "mode": "declared_categorical_empty_domain",
+                "alpha": alpha,
+                "k_max": CATEGORICAL_INFERENCE_K_MAX,
+                "cardinality_limit": cardinality_limit,
+                "n_rows_non_null": n_rows_non_null,
+            }
+
+            if n_unique_observed <= cardinality_limit:
+                emit_issue(
+                    issues,
+                    IMPORT_ISSUES,
+                    "DOM.INFERENCE.APPLIED",
+                    field=field_name,
+                    n_rows_non_null=n_rows_non_null,
+                    n_unique_observed=n_unique_observed,
+                    alpha=alpha,
+                    k_max=CATEGORICAL_INFERENCE_K_MAX,
+                    cardinality_limit=cardinality_limit,
+                    observed_values_sample=observed_values_sorted[:5],
+                    observed_values_total=n_unique_observed,
+                )
+
+                work[field_name] = s_mapped.astype("string")
+
+                domains_effective[field_name] = {
+                    "base_values": [],
+                    "observed_values": observed_values_sorted,
+                    "extended_values": [],
+                    "unknown_values": [],
+                    "extendable": bool(domain.extendable),
+                    "unknown_value": unknown_token,
+                    "n_unique_observed": n_unique_observed,
+                    "n_added": 0,
+                    "value_correspondence_applied": vc_applied.get(field_name, {}),
+                    "values": observed_values_sorted,
+                    "extended": False,
+                    "added_values": [],
+                    "strict_applied": bool(options.strict_domains),
+                    "inference_applied": True,
+                    "inference_policy": inference_policy,
+                }
+                schema_effective.domains_effective[field_name] = domains_effective[field_name]
+                schema_effective.overrides.setdefault(field_name, {}).setdefault("reasons", []).append(
+                    "categorical_domain_inferred_from_observed_values"
+                )
+                schema_effective.overrides[field_name]["inference_policy"] = inference_policy
+
+                continue
+
+            emit_issue(
+                issues,
+                IMPORT_ISSUES,
+                "DOM.INFERENCE.DEGRADED_TO_STRING",
+                field=field_name,
+                n_rows_non_null=n_rows_non_null,
+                n_unique_observed=n_unique_observed,
+                alpha=alpha,
+                k_max=CATEGORICAL_INFERENCE_K_MAX,
+                cardinality_limit=cardinality_limit,
+                observed_values_sample=observed_values_sorted[:5],
+                observed_values_total=n_unique_observed,
+                fallback_dtype="string",
+                reason="high_cardinality_for_categorical_inference",
+            )
+
+            work[field_name] = s_mapped.astype("string")
+            schema_effective.dtype_effective[field_name] = "string"
+            schema_effective.domains_effective.pop(field_name, None)
+
+            schema_effective.overrides.setdefault(field_name, {}).setdefault("reasons", []).append(
+                "categorical_inference_degraded_to_string_high_cardinality"
+            )
+            schema_effective.overrides[field_name]["fallback_dtype"] = "string"
+            schema_effective.overrides[field_name]["inference_policy"] = inference_policy
+            schema_effective.overrides[field_name]["observed_values_sample"] = observed_values_sorted[:5]
+            schema_effective.overrides[field_name]["observed_values_total"] = n_unique_observed
+
+            continue
+
+        out_of_domain = observed - base
 
         if out_of_domain:
             # Si el dominio no de puede extender se avisa y los valores fuera del dominio pasar a ser unknown
@@ -1285,16 +1382,17 @@ def _normalize_tier2_hhmm_columns(
     *,
     temporal_tier: str,
     schema: TripSchema,
-    issues: list,
-) -> tuple[pd.DataFrame, dict[str, dict[str, int]], list]:
+) -> tuple[pd.DataFrame, dict[str, dict[str, int]], list[Issue]]:
     """
     Normaliza columnas HH:MM cuando el dataset fue detectado como tier_2.
 
     Emite:
         - IMP.TYPE.COERCE_PARTIAL (si hubo valores inválidos convertidos a NA)
     """
+    local_issues: list[Issue] = []
+
     if temporal_tier != "tier_2":
-        return work, {}, issues
+        return work, {}, local_issues
 
     hhmm_stats: dict[str, dict[str, int]] = {}
 
@@ -1307,21 +1405,20 @@ def _normalize_tier2_hhmm_columns(
         hhmm_stats[field] = stats
 
         if stats["n_invalid"] > 0:
-            issues.append(
-                emit_issue(
-                    issues,
-                    IMPORT_ISSUES,
-                    "IMP.TYPE.COERCE_PARTIAL",
-                    field=field,
-                    dtype_expected="string_hhmm",
-                    parse_fail_count=stats["n_invalid"],
-                    total_count=stats["n_total"],
-                    fail_rate=(stats["n_invalid"] / stats["n_total"]) if stats["n_total"] else 0.0,
-                    fallback="set_null",
-                    action="continue",
-                )
+            emit_issue(
+                local_issues,
+                IMPORT_ISSUES,
+                "IMP.TYPE.COERCE_PARTIAL",
+                field=field,
+                dtype_expected="string_hhmm",
+                parse_fail_count=stats["n_invalid"],
+                total_count=stats["n_total"],
+                fail_rate=(stats["n_invalid"] / stats["n_total"]) if stats["n_total"] else 0.0,
+                fallback="set_null",
+                action="continue",
             )
-    return work, hhmm_stats, issues
+
+    return work, hhmm_stats, local_issues
 
 def _parse_od_coordinate_columns(
     df: pd.DataFrame,
