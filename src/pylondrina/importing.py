@@ -60,6 +60,9 @@ DMS_PATTERN = re.compile(
     re.VERBOSE | re.IGNORECASE,
 )
 
+TRIPDATASET_COLUMNS_SOFT_CAP = 256
+TRIPDATASET_COLUMNS_HARD_CAP = 1024
+
 _HHMM_RE = re.compile(r"^(?P<h>\d{2}):(?P<m>\d{2})$")
 
 @dataclass(frozen=True)
@@ -283,6 +286,35 @@ def import_trips_from_dataframe(
         options=options_eff,
     )
     issues.extend(selection_issues)
+
+    # Guardrails de ancho de tabla: soft cap / hard cap.
+    n_columns_out = len(work.columns)
+
+    if n_columns_out > TRIPDATASET_COLUMNS_HARD_CAP:
+        emit_and_maybe_raise(
+            issues,
+            IMPORT_ISSUES,
+            "IMP.COLUMNS.HARD_CAP_EXCEEDED",
+            strict=options_eff.strict,
+            exception_map=EXCEPTION_MAP_IMPORT,
+            default_exception=PylondrinaImportError,
+            n_columns=n_columns_out,
+            soft_cap=TRIPDATASET_COLUMNS_SOFT_CAP,
+            hard_cap=TRIPDATASET_COLUMNS_HARD_CAP,
+            extra_fields_kept_sample=extra_fields_kept[:10],
+            extra_fields_kept_total=len(extra_fields_kept),
+        )
+    elif n_columns_out > TRIPDATASET_COLUMNS_SOFT_CAP:
+        emit_issue(
+            issues,
+            IMPORT_ISSUES,
+            "IMP.COLUMNS.WIDE_TABLE",
+            n_columns=n_columns_out,
+            soft_cap=TRIPDATASET_COLUMNS_SOFT_CAP,
+            hard_cap=TRIPDATASET_COLUMNS_HARD_CAP,
+            extra_fields_kept_sample=extra_fields_kept[:10],
+            extra_fields_kept_total=len(extra_fields_kept),
+        )
 
     # Se hace el chequeo final de construibilidad mínima después de derivaciones y poda.
     _final_required_check(

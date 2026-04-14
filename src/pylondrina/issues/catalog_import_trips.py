@@ -343,4 +343,23 @@ IMPORT_ISSUES: dict[str, IssueSpec] = {
         "Se generó dataset_id para el dataset importado: {dataset_id!r}.",
         details_keys=("dataset_id", "generator", "stored_in"),
     ),
+
+    # ------------------------------------------------------------------
+    # Fields: SOFT CAP / HARD CAP
+    # ------------------------------------------------------------------
+    "IMP.COLUMNS.WIDE_TABLE": _warn(
+        "IMP.COLUMNS.WIDE_TABLE",
+        "El TripDataset resultante tiene {n_columns} columnas, superando el soft cap {soft_cap}; se permite continuar, pero la tabla es ancha y puede generar fricción operativa.",
+        details_keys=("n_columns", "soft_cap", "hard_cap", "extra_fields_kept_sample", "extra_fields_kept_total", "action"),
+        defaults={"action": "allow_with_warning"},
+    ),
+
+    "IMP.COLUMNS.HARD_CAP_EXCEEDED": _err(
+        "IMP.COLUMNS.HARD_CAP_EXCEEDED",
+        "El TripDataset resultante tiene {n_columns} columnas, superando el hard cap {hard_cap}; se rechaza la importación.",
+        details_keys=("n_columns", "soft_cap", "hard_cap", "extra_fields_kept_sample", "extra_fields_kept_total", "action"),
+        defaults={"action": "abort"},
+        exception="import",
+        fatal=True,
+    ),
 }
