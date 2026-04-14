@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Literal, Mapping, Optional, Sequence, Tuple, Union
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.feather as feather
 
 from pylondrina.datasets import TripDataset
 from pylondrina.errors import ExportError, ValidationError
@@ -23,8 +25,9 @@ from pylondrina.schema import DomainSpec, FieldSpec, TripSchema, TripSchemaEffec
 
 WriteMode = Literal["error_if_exists", "overwrite"]
 PathLike = Union[str, Path]
-StorageFormat = Literal["parquet"]
+StorageFormat = Literal["parquet", "feather"]
 ParquetCompression = Optional[Literal["snappy", "gzip", "zstd", "brotli", "none"]]
+FeatherCompression = Optional[Literal["lz4", "zstd", "uncompressed"]]
 
 EXCEPTION_MAP_WRITE = {
     "validation": ValidationError,
@@ -46,8 +49,9 @@ _REQUIRED_SIDECAR_TOP_LEVEL = {
 }
 
 _GOLONDRINA_ARTIFACT_SUFFIX = ".golondrina"
-_SUPPORTED_STORAGE_FORMATS = {"parquet"}
+_SUPPORTED_STORAGE_FORMATS = {"parquet", "feather"}
 _SUPPORTED_PARQUET_COMPRESSIONS = {"snappy", "gzip", "zstd", "brotli", "none", None}
+_SUPPORTED_FEATHER_COMPRESSIONS = {"lz4", "zstd", "uncompressed", None}
 
 
 @dataclass(frozen=True)
@@ -61,10 +65,12 @@ class WriteTripsOptions:
         Política cuando el directorio destino ya existe.
     require_validated : bool, default=True
         Si True, exige `metadata["is_validated"] is True` antes de escribir.
-    storage_format : {"parquet"}, default="parquet"
-        Backend de persistencia tabular. En v1.1 solo se soporta Parquet.
+    storage_format : {"parquet", "feather"}, default="parquet"
+        Backend de persistencia tabular soportado por el artefacto formal.
     parquet_compression : {"snappy", "gzip", "zstd", "brotli", "none", None}, default="snappy"
-        Compresión efectiva usada al escribir `trips.parquet`.
+        Compresión efectiva usada al escribir `trips.parquet` cuando corresponde.
+    feather_compression : {"lz4", "zstd", "uncompressed", None}, default="lz4"
+        Compresión efectiva usada al escribir `trips.feather` cuando corresponde.
     normalize_artifact_dir : bool, default=True
         Si True, normaliza el directorio root del artefacto para que termine en
         `.golondrina`. Si False, usa el path entregado tal cual.
@@ -74,6 +80,7 @@ class WriteTripsOptions:
     require_validated: bool = True
     storage_format: StorageFormat = "parquet"
     parquet_compression: ParquetCompression = "snappy"
+    feather_compression: FeatherCompression = "lz4"
     normalize_artifact_dir: bool = True
 
 
@@ -103,7 +110,6 @@ class TripsArtifactPaths:
     """Rutas resueltas del layout formal de trips."""
 
     root_dir: Path
-    data_path: Path
     sidecar_path: Path
     legacy_sidecar_path: Path
 
@@ -209,9 +215,10 @@ def write_trips(
     try:
         _write_trips_table_to_staging(
             trips.data,
-            staging_paths.data_path,
+            staging_paths.root_dir / _trip_data_filename_for_storage(options_eff.storage_format),
             storage_format=options_eff.storage_format,
             parquet_compression=options_eff.parquet_compression,
+            feather_compression=options_eff.feather_compression,
             schema=trips.schema,
             schema_effective=trips.schema_effective,
             issues=issues,
@@ -301,8 +308,8 @@ def read_trips(
     paths = _resolve_trips_artifact_paths(read_root)
     parameters = _options_to_read_parameters(path=paths.root_dir, options=options_eff)
 
-    # Se valida que exista el layout formal mínimo antes de cargar sidecar o tabla.
-    _validate_read_layout(paths.root_dir, paths, issues=issues)
+    # Se valida primero root + sidecar; la tabla de datos se valida después de leer storage.format.
+    _validate_read_root_and_sidecar(paths.root_dir, paths, issues=issues)
 
     # Se carga el sidecar y se resuelve el backend de almacenamiento desde la metadata persistida.
     sidecar_payload = _load_sidecar_json(
@@ -312,6 +319,13 @@ def read_trips(
     )
     storage_format = _extract_storage_format(
         sidecar_payload,
+        strict=options_eff.strict,
+        issues=issues,
+    )
+    data_path = _resolve_trip_data_path_from_sidecar(
+        paths.root_dir,
+        sidecar_payload,
+        storage_format=storage_format,
         strict=options_eff.strict,
         issues=issues,
     )
@@ -329,7 +343,7 @@ def read_trips(
 
     # Se lee la tabla persistida y se materializa el dataset en memoria.
     data = _read_trips_table_from_storage(
-        paths.data_path,
+        data_path,
         storage_format=storage_format,
         issues=issues,
         destination_path=paths.root_dir,
@@ -415,6 +429,7 @@ def _validate_write_contract(
     - WRT.VALIDATION.REQUIRED_NOT_VALIDATED
     - WRT.PATH.INVALID_DESTINATION
     - WRT.JSON.NOT_SERIALIZABLE
+    - WRT.OPTIONS.UNSUPPORTED_FEATHER_COMPRESSION
     """
     # Se valida que el input realmente sea un TripDataset interpretable.
     if not isinstance(trips, TripDataset):
@@ -481,9 +496,8 @@ def _validate_write_contract(
             storage_format=options_eff.storage_format,
         )
 
-    # Se valida la compresión Parquet permitida por contrato.
-    if options_eff.parquet_compression not in _SUPPORTED_PARQUET_COMPRESSIONS:
-        # Se aborta porque no conviene dejar la elección de compresión a comportamiento implícito.
+    # Se valida la compresión del backend efectivo sin mezclar reglas entre formatos.
+    if options_eff.storage_format == "parquet" and options_eff.parquet_compression not in _SUPPORTED_PARQUET_COMPRESSIONS:
         emit_and_maybe_raise(
             issues,
             WRITE_TRIPS_ISSUES,
@@ -492,6 +506,17 @@ def _validate_write_contract(
             exception_map=EXCEPTION_MAP_WRITE,
             default_exception=ExportError,
             compression=options_eff.parquet_compression,
+        )
+
+    if options_eff.storage_format == "feather" and options_eff.feather_compression not in _SUPPORTED_FEATHER_COMPRESSIONS:
+        emit_and_maybe_raise(
+            issues,
+            WRITE_TRIPS_ISSUES,
+            "WRT.OPTIONS.UNSUPPORTED_FEATHER_COMPRESSION",
+            strict=False,
+            exception_map=EXCEPTION_MAP_WRITE,
+            default_exception=ExportError,
+            compression=options_eff.feather_compression,
         )
 
     # Se valida la precondición de validación cuando el write exige dataset validado.
@@ -609,7 +634,8 @@ def _resolve_write_identity_and_sidecar(
     metadata_work["is_validated"] = _extract_validated_flag(metadata_work)
 
     # Se construye un metadata snapshot con el evento futuro ya incorporado para que disco y memoria queden alineados.
-    files_written = ["trips.parquet", "trips.metadata.json"]
+    data_filename = _trip_data_filename_for_storage(options_eff.storage_format)
+    files_written = [data_filename, "trips.metadata.json"]
     summary_preview = _build_write_trips_summary(
         n_rows=int(len(trips.data)),
         path=paths.root_dir,
@@ -638,14 +664,12 @@ def _resolve_write_identity_and_sidecar(
         "layout_version": "1.1",
         "storage": {
             "format": options_eff.storage_format,
-            "options": {
-                "compression": options_eff.parquet_compression,
-            },
+            "options": _build_storage_options_snapshot(options_eff),
         },
         "dataset_id": dataset_id,
         "artifact_id": artifact_id,
         "files": {
-            "data": "trips.parquet",
+            "data": data_filename,
             "metadata": "trips.metadata.json",
         },
         "schema": _trip_schema_to_snapshot(trips.schema),
@@ -698,12 +722,12 @@ def _create_trips_staging_dir(final_dir: Path, *, issues: List[Issue]) -> Path:
         raise AssertionError("unreachable")
 
 
-def _collect_parquet_categorical_fields(
+def _collect_arrow_categorical_fields(
     df: pd.DataFrame,
     schema: TripSchema,
     schema_effective: Optional[TripSchemaEffective],
 ) -> List[str]:
-    """Retorna los campos que deben persistirse como categóricos en Parquet."""
+    """Retorna los campos que deben persistirse como categóricos en backends Arrow."""
     categorical_fields: set[str] = set()
 
     # Se toman los categóricos declarados en el schema base.
@@ -724,14 +748,14 @@ def _collect_parquet_categorical_fields(
     return [field_name for field_name in df.columns if field_name in categorical_fields]
 
 
-def _prepare_trips_df_for_parquet_write(
+def _prepare_trips_df_for_arrow_write(
     df: pd.DataFrame,
     schema: TripSchema,
     schema_effective: Optional[TripSchemaEffective],
 ) -> pd.DataFrame:
-    """Prepara una copia del dataframe para persistencia Parquet eficiente."""
+    """Prepara una copia del dataframe para persistencia Arrow eficiente."""
     df_prepared = df.copy()
-    categorical_fields = _collect_parquet_categorical_fields(df_prepared, schema, schema_effective)
+    categorical_fields = _collect_arrow_categorical_fields(df_prepared, schema, schema_effective)
 
     # Se convierten a pandas.Categorical solo los campos categóricos del contrato real.
     for field_name in categorical_fields:
@@ -752,6 +776,7 @@ def _write_trips_table_to_staging(
     *,
     storage_format: str,
     parquet_compression: ParquetCompression,
+    feather_compression: FeatherCompression,
     schema: TripSchema,
     schema_effective: Optional[TripSchemaEffective],
     issues: List[Issue],
@@ -763,35 +788,49 @@ def _write_trips_table_to_staging(
     Emite codes
     -----------
     - WRT.PARQUET.WRITE_FAILED
+    - WRT.FEATHER.WRITE_FAILED
     """
-    # Se despacha por backend tabular, aunque v1.1 solo soporte parquet.
     try:
-        if storage_format != "parquet":
-            raise ValueError(f"Unsupported storage_format: {storage_format!r}")
-        compression = None if parquet_compression == "none" else parquet_compression
+        df_to_write = _prepare_trips_df_for_arrow_write(df, schema, schema_effective)
 
-        # Se prepara una copia con campos categóricos reales como pandas.Categorical
-        # para que PyArrow los persista de forma eficiente.
-        df_to_write = _prepare_trips_df_for_parquet_write(df, schema, schema_effective)
-        df_to_write.to_parquet(
-            data_path,
-            index=False,
-            compression=compression,
-            engine="pyarrow",
-        )
+        if storage_format == "parquet":
+            compression = None if parquet_compression == "none" else parquet_compression
+            df_to_write.to_parquet(
+                data_path,
+                index=False,
+                compression=compression,
+                engine="pyarrow",
+            )
+            return
+
+        if storage_format == "feather":
+            compression = None if feather_compression == "uncompressed" else feather_compression
+            table = pa.Table.from_pandas(df_to_write, preserve_index=False)
+            feather.write_feather(
+                table,
+                data_path,
+                compression=compression,
+                compression_level=None,
+                chunksize=None,
+                version=2,
+            )
+            return
+
+        raise ValueError(f"Unsupported storage_format: {storage_format!r}")
     except Exception as exc:
-        # Se aborta porque sin tabla persistida el artefacto formal queda roto.
+        issue_code = "WRT.FEATHER.WRITE_FAILED" if storage_format == "feather" else "WRT.PARQUET.WRITE_FAILED"
+        compression_value = feather_compression if storage_format == "feather" else parquet_compression
         emit_and_maybe_raise(
             issues,
             WRITE_TRIPS_ISSUES,
-            "WRT.PARQUET.WRITE_FAILED",
+            issue_code,
             strict=False,
             exception_map=EXCEPTION_MAP_WRITE,
             default_exception=ExportError,
             path=str(destination_path),
             resolved_path=str(destination_path),
             storage_format=storage_format,
-            compression=parquet_compression,
+            compression=compression_value,
             n_rows=int(len(df)),
             exception_type=type(exc).__name__,
             exception_message=str(exc),
@@ -853,9 +892,10 @@ def _assert_staging_complete(
     - WRT.IO.STAGING_INCOMPLETE
     """
     present = []
-    if staging_paths.data_path.exists():
-        present.append("trips.parquet")
-    if staging_paths.sidecar_path.exists():
+    for expected_file in expected_files:
+        if (staging_paths.root_dir / expected_file).exists():
+            present.append(expected_file)
+    if staging_paths.sidecar_path.exists() and "trips.metadata.json" not in present:
         present.append("trips.metadata.json")
 
     # Se verifica completitud mínima del layout antes de exponer el artefacto final.
@@ -975,25 +1015,23 @@ def _cleanup_staging_dir(
         )
 
 
-def _validate_read_layout(
+def _validate_read_root_and_sidecar(
     root_path: Path,
     paths: TripsArtifactPaths,
     *,
     issues: List[Issue],
 ) -> None:
     """
-    Valida que el layout formal de lectura exista y sea interpretable.
+    Valida que el root formal exista y que el sidecar obligatorio esté presente.
 
     Emite codes
     -----------
     - READ.PATH.INVALID_ROOT
-    - READ.LAYOUT.MISSING_DATA_FILE
     - READ.LAYOUT.MISSING_SIDECAR
     - READ.LAYOUT.LEGACY_SIDECAR_DETECTED
     """
     # Se valida que el root exista y sea directorio antes de inspeccionar el layout.
     if not root_path.exists() or not root_path.is_dir():
-        # Se aborta porque read_trips solo opera sobre artefactos formales en directorio.
         emit_and_maybe_raise(
             issues,
             READ_TRIPS_ISSUES,
@@ -1010,7 +1048,6 @@ def _validate_read_layout(
 
     # Se rechaza explícitamente el sidecar viejo para no reabrir el contrato ya cerrado.
     if not paths.sidecar_path.exists() and paths.legacy_sidecar_path.exists():
-        # Se aborta porque metadata.json legacy ya no es layout formal válido en v1.1.
         emit_and_maybe_raise(
             issues,
             READ_TRIPS_ISSUES,
@@ -1022,25 +1059,8 @@ def _validate_read_layout(
             resolved_path=str(root_path),
         )
 
-    # Se exige el archivo de datos del layout oficial.
-    if not paths.data_path.exists():
-        # Se aborta porque sin trips.parquet no existe superficie tabular a reconstruir.
-        emit_and_maybe_raise(
-            issues,
-            READ_TRIPS_ISSUES,
-            "READ.LAYOUT.MISSING_DATA_FILE",
-            strict=False,
-            exception_map=EXCEPTION_MAP_READ,
-            default_exception=ExportError,
-            path=str(root_path),
-            resolved_path=str(root_path),
-            files_present_sample=present[:10],
-            files_present_total=len(present),
-        )
-
     # Se exige el sidecar formal como fuente de verdad del artefacto persistido.
     if not paths.sidecar_path.exists():
-        # Se aborta porque read formal no admite cargas sin trips.metadata.json.
         emit_and_maybe_raise(
             issues,
             READ_TRIPS_ISSUES,
@@ -1053,6 +1073,59 @@ def _validate_read_layout(
             files_present_sample=present[:10],
             files_present_total=len(present),
         )
+
+
+def _resolve_trip_data_path_from_sidecar(
+    root_path: Path,
+    sidecar_payload: Mapping[str, Any],
+    *,
+    storage_format: str,
+    strict: bool,
+    issues: List[Issue],
+) -> Path:
+    """Resuelve y valida la ruta del archivo tabular desde `files.data` y `storage.format`."""
+    files = sidecar_payload.get("files")
+    data_filename = None
+    if isinstance(files, dict):
+        data_filename = files.get("data")
+
+    expected_filename = _trip_data_filename_for_storage(storage_format)
+    if not _is_non_empty_string(data_filename):
+        data_filename = expected_filename
+    else:
+        data_filename = str(data_filename)
+
+    if data_filename != expected_filename:
+        emit_and_maybe_raise(
+            issues,
+            READ_TRIPS_ISSUES,
+            "READ.LAYOUT.DATA_FILE_MISMATCH",
+            strict=strict,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            expected_file=expected_filename,
+            declared_file=data_filename,
+            storage_format=storage_format,
+        )
+
+    data_path = root_path / data_filename
+    if not data_path.exists():
+        present = _list_directory_entries(root_path)
+        emit_and_maybe_raise(
+            issues,
+            READ_TRIPS_ISSUES,
+            "READ.LAYOUT.MISSING_DATA_FILE",
+            strict=False,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            path=str(root_path),
+            resolved_path=str(root_path),
+            expected_file=data_filename,
+            files_present_sample=present[:10],
+            files_present_total=len(present),
+        )
+
+    return data_path
 
 
 def _load_sidecar_json(
@@ -1290,19 +1363,23 @@ def _read_trips_table_from_storage(
     Emite codes
     -----------
     - READ.PARQUET.LOAD_FAILED
+    - READ.FEATHER.LOAD_FAILED
     - READ.CORE.EMPTY_DATAFRAME
     """
     # Se despacha por backend tabular usando lo que declara el sidecar, no el usuario.
     try:
-        if storage_format != "parquet":
+        if storage_format == "parquet":
+            df = pd.read_parquet(data_path, engine="pyarrow")
+        elif storage_format == "feather":
+            df = feather.read_feather(data_path)
+        else:
             raise ValueError(f"Unsupported storage_format: {storage_format!r}")
-        df = pd.read_parquet(data_path, engine="pyarrow")
     except Exception as exc:
-        # Se aborta porque sin tabla cargada no existe dataset a reconstruir.
+        issue_code = "READ.FEATHER.LOAD_FAILED" if storage_format == "feather" else "READ.PARQUET.LOAD_FAILED"
         emit_and_maybe_raise(
             issues,
             READ_TRIPS_ISSUES,
-            "READ.PARQUET.LOAD_FAILED",
+            issue_code,
             strict=False,
             exception_map=EXCEPTION_MAP_READ,
             default_exception=ExportError,
@@ -1562,12 +1639,29 @@ def _resolve_trips_artifact_root_for_read(root_path: PathLike) -> Path:
     # Si no existe ninguno, se devuelve el original para que la operación falle sobre esa ruta.
     return root_dir
 
+def _trip_data_filename_for_storage(storage_format: str) -> str:
+    """Retorna el nombre canónico del archivo tabular para el backend indicado."""
+    if storage_format == "parquet":
+        return "trips.parquet"
+    if storage_format == "feather":
+        return "trips.feather"
+    raise ValueError(f"Unsupported storage_format: {storage_format!r}")
+
+
+def _build_storage_options_snapshot(options: WriteTripsOptions) -> Dict[str, Any]:
+    """Construye el bloque `storage.options` persistible según el backend efectivo."""
+    if options.storage_format == "parquet":
+        return {"compression": options.parquet_compression}
+    if options.storage_format == "feather":
+        return {"compression": options.feather_compression, "version": 2}
+    raise ValueError(f"Unsupported storage_format: {options.storage_format!r}")
+
+
 def _resolve_trips_artifact_paths(root_path: PathLike) -> TripsArtifactPaths:
     """Resuelve el layout formal de trips a partir del root del artefacto."""
     root_dir = Path(root_path).expanduser()
     return TripsArtifactPaths(
         root_dir=root_dir,
-        data_path=root_dir / "trips.parquet",
         sidecar_path=root_dir / "trips.metadata.json",
         legacy_sidecar_path=root_dir / "metadata.json",
     )
@@ -1748,6 +1842,7 @@ def _options_to_write_parameters(*, path: PathLike, options: WriteTripsOptions) 
         "require_validated": bool(options.require_validated),
         "storage_format": options.storage_format,
         "parquet_compression": options.parquet_compression,
+        "feather_compression": options.feather_compression,
         "normalize_artifact_dir": bool(options.normalize_artifact_dir),
     }
 

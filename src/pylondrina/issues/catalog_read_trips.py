@@ -101,7 +101,14 @@ READ_TRIPS_ISSUES: dict[str, IssueSpec] = {
         "READ.STORAGE.UNSUPPORTED_FORMAT",
         "El formato de almacenamiento {storage_format!r} indicado en el sidecar no está soportado por read_trips v1.1.",
         details_keys=("storage_format", "supported_formats", "action"),
-        defaults={"supported_formats": ["parquet"], "action": "abort"},
+        defaults={"supported_formats": ["parquet", "feather"], "action": "abort"},
+        exception="export",
+    ),
+    "READ.LAYOUT.DATA_FILE_MISMATCH": _err(
+        "READ.LAYOUT.DATA_FILE_MISMATCH",
+        "El sidecar declara un archivo de datos {declared_file!r} inconsistente con storage.format={storage_format!r}; se esperaba {expected_file!r}.",
+        details_keys=("expected_file", "declared_file", "storage_format", "action"),
+        defaults={"action": "abort"},
         exception="export",
     ),
 
@@ -142,6 +149,13 @@ READ_TRIPS_ISSUES: dict[str, IssueSpec] = {
         "No fue posible leer trips.parquet para reconstruir el TripDataset.",
         details_keys=("path", "resolved_path", "storage_format", "exception_type", "exception_message", "action"),
         defaults={"storage_format": "parquet", "action": "abort"},
+        exception="export",
+    ),
+    "READ.FEATHER.LOAD_FAILED": _err(
+        "READ.FEATHER.LOAD_FAILED",
+        "No fue posible leer trips.feather para reconstruir el TripDataset.",
+        details_keys=("path", "resolved_path", "storage_format", "exception_type", "exception_message", "action"),
+        defaults={"storage_format": "feather", "action": "abort"},
         exception="export",
     ),
     "READ.CORE.EMPTY_DATAFRAME": _info(

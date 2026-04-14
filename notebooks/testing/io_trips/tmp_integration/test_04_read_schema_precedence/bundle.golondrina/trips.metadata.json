@@ -8,8 +8,8 @@
       "compression": "snappy"
     }
   },
-  "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
-  "artifact_id": "art_2f626d36-43aa-425a-bfe9-a97296c50980",
+  "dataset_id": "tripds_f9fc7f024d9f4bc685dedc64346ac05d",
+  "artifact_id": "art_d66dcab6-298e-4d6c-a03e-68cc8f506e84",
   "files": {
     "data": "trips.parquet",
     "metadata": "trips.metadata.json"
@@ -638,7 +638,7 @@
     ]
   },
   "metadata": {
-    "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
+    "dataset_id": "tripds_f9fc7f024d9f4bc685dedc64346ac05d",
     "is_validated": true,
     "schema": {
       "version": "1.1",
@@ -1536,7 +1536,7 @@
     "events": [
       {
         "op": "import_trips",
-        "ts_utc": "2026-04-04T17:45:37.275640+00:00",
+        "ts_utc": "2026-04-14T17:28:11.936241+00:00",
         "parameters": {
           "keep_extra_fields": true,
           "selected_fields": null,
@@ -1561,16 +1561,16 @@
         },
         "issues_summary": {
           "counts": {
-            "warning": 2
+            "warning": 1
           },
           "by_code": {
-            "IMP.TYPE.COERCE_PARTIAL": 2
+            "IMP.TYPE.COERCE_PARTIAL": 1
           }
         }
       },
       {
         "op": "validate_trips",
-        "ts_utc": "2026-04-04T17:45:37Z",
+        "ts_utc": "2026-04-14T17:28:11Z",
         "parameters": {
           "strict": false,
           "max_issues": 500,
@@ -1709,13 +1709,14 @@
       },
       {
         "op": "write_trips",
-        "ts_utc": "2026-04-04T18:00:57Z",
+        "ts_utc": "2026-04-14T17:28:12Z",
         "parameters": {
           "path": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\io_trips\\tmp_integration\\test_04_read_schema_precedence\\bundle.golondrina",
           "mode": "error_if_exists",
           "require_validated": true,
           "storage_format": "parquet",
           "parquet_compression": "snappy",
+          "feather_compression": "lz4",
           "normalize_artifact_dir": true
         },
         "summary": {
@@ -1725,8 +1726,8 @@
             "trips.metadata.json"
           ],
           "path": "D:\\Memoria\\repos\\pylondrina\\notebooks\\testing\\io_trips\\tmp_integration\\test_04_read_schema_precedence\\bundle.golondrina",
-          "dataset_id": "tripds_965208ef7ea64c81a8a5dc1c690260a4",
-          "artifact_id": "art_2f626d36-43aa-425a-bfe9-a97296c50980",
+          "dataset_id": "tripds_f9fc7f024d9f4bc685dedc64346ac05d",
+          "artifact_id": "art_d66dcab6-298e-4d6c-a03e-68cc8f506e84",
           "dataset_id_status": "preserved",
           "storage_format": "parquet"
         },
@@ -1790,6 +1791,6 @@
         "destination_h3_index"
       ]
     },
-    "artifact_id": "art_2f626d36-43aa-425a-bfe9-a97296c50980"
+    "artifact_id": "art_d66dcab6-298e-4d6c-a03e-68cc8f506e84"
   }
 }

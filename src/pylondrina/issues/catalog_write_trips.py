@@ -89,7 +89,7 @@ WRITE_TRIPS_ISSUES: dict[str, IssueSpec] = {
         "WRT.OPTIONS.UNSUPPORTED_STORAGE_FORMAT",
         "El formato de persistencia {storage_format!r} no está soportado en v1.1 para write_trips.",
         details_keys=("storage_format", "supported_formats", "action"),
-        defaults={"supported_formats": ["parquet"], "action": "abort"},
+        defaults={"supported_formats": ["parquet", "feather"], "action": "abort"},
         exception="export",
     ),
     "WRT.OPTIONS.UNSUPPORTED_PARQUET_COMPRESSION": _err(
@@ -98,6 +98,16 @@ WRITE_TRIPS_ISSUES: dict[str, IssueSpec] = {
         details_keys=("compression", "supported_compressions", "action"),
         defaults={
             "supported_compressions": ["snappy", "gzip", "zstd", "brotli", "none", None],
+            "action": "abort",
+        },
+        exception="export",
+    ),
+    "WRT.OPTIONS.UNSUPPORTED_FEATHER_COMPRESSION": _err(
+        "WRT.OPTIONS.UNSUPPORTED_FEATHER_COMPRESSION",
+        "La compresión Feather {compression!r} no está soportada para write_trips.",
+        details_keys=("compression", "supported_compressions", "action"),
+        defaults={
+            "supported_compressions": ["lz4", "zstd", "uncompressed", None],
             "action": "abort",
         },
         exception="export",
@@ -166,6 +176,13 @@ WRITE_TRIPS_ISSUES: dict[str, IssueSpec] = {
         "Falló la escritura de trips.parquet durante write_trips.",
         details_keys=("path", "resolved_path", "storage_format", "compression", "n_rows", "exception_type", "exception_message", "action"),
         defaults={"storage_format": "parquet", "action": "abort"},
+        exception="export",
+    ),
+    "WRT.FEATHER.WRITE_FAILED": _err(
+        "WRT.FEATHER.WRITE_FAILED",
+        "Falló la escritura de trips.feather durante write_trips.",
+        details_keys=("path", "resolved_path", "storage_format", "compression", "n_rows", "exception_type", "exception_message", "action"),
+        defaults={"storage_format": "feather", "action": "abort"},
         exception="export",
     ),
     "WRT.JSON.WRITE_FAILED": _err(
