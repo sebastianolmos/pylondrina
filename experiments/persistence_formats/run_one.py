@@ -296,17 +296,19 @@ def verify_fidelity(
     ]
 
     detail: Dict[str, Any] = {
-        "shape_expected": list(shape_expected),
-        "shape_observed": list(shape_observed),
         "shape_match": shape_match,
         "columns_order_match": columns_order_match,
         "dtypes_match": dtypes_match,
         "dataset_fingerprint_match": dataset_fingerprint_match,
-        "mismatched_columns_sample": mismatched_columns[:20],
         "n_mismatched_columns": int(len(mismatched_columns)),
-        "observed_dataset_fingerprint": observed_fingerprint["dataset_fingerprint"],
-        "expected_dataset_fingerprint": expected_fingerprint["dataset_fingerprint"],
     }
+    
+    if not dataset_fingerprint_match or not shape_match or not columns_order_match or not dtypes_match:
+        detail["shape_expected"] = list(shape_expected)
+        detail["shape_observed"] = list(shape_observed)
+        detail["mismatched_columns_sample"] = mismatched_columns[:20]
+        detail["observed_dataset_fingerprint"] = observed_fingerprint["dataset_fingerprint"]
+        detail["expected_dataset_fingerprint"] = expected_fingerprint["dataset_fingerprint"]
 
     is_small_dataset = int(config.n_rows) <= EXACT_COMPARE_MAX_ROWS
     if is_small_dataset:
@@ -395,11 +397,8 @@ def run_one(args: argparse.Namespace) -> Dict[str, Any]:
         "fidelity_detail": None,
         "status": None,
         "notes": [],
-        "artifact_path": None,
         "artifact_kept": bool(int(args.keep_artifact)),
         "hostname": socket.gethostname(),
-        "write_report": None,
-        "read_report": None,
     }
 
     artifact_path: Optional[Path] = None
@@ -413,7 +412,6 @@ def run_one(args: argparse.Namespace) -> Dict[str, Any]:
         df_expected = case.trips.data
         fingerprint_expected = case.expected_fingerprint
         result["expected_dataset_fingerprint"] = fingerprint_expected["dataset_fingerprint"]
-        result["manifest"] = case.manifest
 
         artifact_path = build_artifact_path(
             artifacts_root=Path(args.artifacts_root),
@@ -421,7 +419,9 @@ def run_one(args: argparse.Namespace) -> Dict[str, Any]:
             config_id=config.config_id,
             backend=args.backend,
         )
-        result["artifact_path"] = str(artifact_path)
+        
+        if bool(int(args.keep_artifact)):
+            result["artifact_path"] = str(artifact_path)    
 
         write_options = WriteTripsOptions(
             mode="overwrite",
@@ -443,7 +443,6 @@ def run_one(args: argparse.Namespace) -> Dict[str, Any]:
         )
         result["t_write_s"] = round(t_write_s, 9)
         result["peak_rss_write_MB"] = bytes_to_mb(peak_write_rss_bytes)
-        result["write_report"] = report_to_dict(write_report)
 
         size_breakdown = load_artifact_size_breakdown(artifact_path)
         result.update(size_breakdown)
@@ -464,7 +463,6 @@ def run_one(args: argparse.Namespace) -> Dict[str, Any]:
         trips_read, read_report = read_result
         result["t_read_s"] = round(t_read_s, 9)
         result["peak_rss_read_MB"] = bytes_to_mb(peak_read_rss_bytes)
-        result["read_report"] = report_to_dict(read_report)
 
         fidelity_pass, fidelity_method, fidelity_detail = verify_fidelity(
             df_expected=df_expected,
