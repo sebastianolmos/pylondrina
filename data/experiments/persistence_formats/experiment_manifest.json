@@ -1,0 +1,68 @@
+{
+  "experiment_name": "persistence_formats_v1",
+  "created_at_utc": "2026-04-15T23:47:11.265730Z",
+  "repo_root": "C:\\projects\\pylondrina",
+  "cwd_used_for_runs": "C:\\projects\\pylondrina",
+  "script_path": "C:\\projects\\pylondrina\\experiments\\persistence_formats\\run_matrix.py",
+  "run_one_path": "C:\\projects\\pylondrina\\experiments\\persistence_formats\\run_one.py",
+  "effective_args": {
+    "configs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "backends": [
+      "parquet",
+      "feather"
+    ],
+    "warmup_repetitions": 1,
+    "measured_repetitions": 5,
+    "seed": 20260415,
+    "artifacts_root": "C:\\projects\\pylondrina\\data\\experiments\\persistence_formats\\artifacts_tmp",
+    "keep_artifact": false,
+    "memory_poll_interval_ms": 10,
+    "read_strict": false,
+    "parquet_compression": "snappy",
+    "feather_compression": "lz4",
+    "append": false
+  },
+  "planned_counts": {
+    "n_configs": 9,
+    "n_backends": 2,
+    "warmup_runs": 18,
+    "measured_runs": 90,
+    "total_runs": 108
+  },
+  "measurement_policy": {
+    "time_metric": "time.perf_counter_ns() measured inside run_one.py",
+    "memory_measurement_method": "psutil.Process().memory_info().rss polling",
+    "memory_poll_interval_ms": 10,
+    "artifact_size_definition": "data file + sidecar metadata json",
+    "fidelity_rule_small": "assert_frame_equal+fingerprint when n_rows <= 20000",
+    "fidelity_rule_large": "column_fingerprint + structural checks otherwise"
+  },
+  "machine": {
+    "hostname": "DESKTOP-4EPK98V",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "system": "Windows",
+    "release": "11",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+    "python_version": "3.13.5",
+    "logical_cores": 12,
+    "physical_cores": 6,
+    "total_ram_bytes": 17014509568,
+    "package_versions": {
+      "pandas": "2.3.1",
+      "pyarrow": "19.0.0",
+      "psutil": "5.9.8",
+      "pylondrina": "0.1.0"
+    }
+  }
+}
