@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "flow-dset-links-001",
-  "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8",
+  "artifact_id": "art_47f43722-d59a-435c-bce1-23ceed10906c",
   "files": {
     "data": "flows.parquet",
     "metadata": "flows.metadata.json",
@@ -74,9 +74,9 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:32Z",
+        "ts_utc": "2026-04-16T22:59:37Z",
         "parameters": {
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_16_read_legacy_formal_parquet\\flows_read_legacy_formal_parquet",
           "mode": "error_if_exists",
           "storage_format": "parquet",
           "parquet_compression": "snappy",
@@ -87,14 +87,14 @@
         "summary": {
           "n_flows": 240,
           "n_flow_to_trips": 720,
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_16_read_legacy_formal_parquet\\flows_read_legacy_formal_parquet",
           "files_written": [
             "flows.parquet",
             "flows.metadata.json",
             "flow_to_trips.parquet"
           ],
           "dataset_id": "flow-dset-links-001",
-          "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+          "artifact_id": "art_47f43722-d59a-435c-bce1-23ceed10906c"
         },
         "issues_summary": {
           "counts": {
@@ -109,7 +109,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+    "artifact_id": "art_47f43722-d59a-435c-bce1-23ceed10906c"
   },
   "tables": {
     "flows": {

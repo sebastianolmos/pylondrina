@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "flow-dset-small-001",
-  "artifact_id": "art_717e99e4-ddad-4ab1-850b-06f76a16e53e",
+  "artifact_id": "art_8f5649ec-ec8e-41a6-b458-59e5726a2858",
   "files": {
     "data": "flows.parquet",
     "metadata": "flows.metadata.json",
@@ -74,12 +74,13 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-06T21:49:59Z",
+        "ts_utc": "2026-04-16T22:17:32Z",
         "parameters": {
           "path": "tmp_integration_flows\\artifacts\\case_03_write_collision\\flows_collision",
           "mode": "error_if_exists",
           "storage_format": "parquet",
           "parquet_compression": "snappy",
+          "feather_compression": "lz4",
           "normalize_artifact_dir": false,
           "write_flow_to_trips": false
         },
@@ -92,7 +93,7 @@
             "flows.metadata.json"
           ],
           "dataset_id": "flow-dset-small-001",
-          "artifact_id": "art_717e99e4-ddad-4ab1-850b-06f76a16e53e"
+          "artifact_id": "art_8f5649ec-ec8e-41a6-b458-59e5726a2858"
         },
         "issues_summary": {
           "counts": {
@@ -107,7 +108,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_717e99e4-ddad-4ab1-850b-06f76a16e53e"
+    "artifact_id": "art_8f5649ec-ec8e-41a6-b458-59e5726a2858"
   },
   "tables": {
     "flows": {

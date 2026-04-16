@@ -3,17 +3,18 @@
   "format": "golondrina",
   "layout_version": "1.1",
   "storage": {
-    "format": "parquet",
+    "format": "feather",
     "options": {
-      "compression": "snappy"
+      "compression": "lz4",
+      "version": 2
     }
   },
-  "dataset_id": "flow-dset-links-001",
-  "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8",
+  "dataset_id": "flow-dset-small-001",
+  "artifact_id": "art_c2141803-e1ee-4c69-b47a-cea862a44165",
   "files": {
-    "data": "flows.parquet",
+    "data": "flows.feather",
     "metadata": "flows.metadata.json",
-    "flow_to_trips": "flow_to_trips.parquet"
+    "flow_to_trips": null
   },
   "aggregation_spec": {
     "h3_resolution": 8,
@@ -39,7 +40,7 @@
     }
   },
   "metadata": {
-    "dataset_id": "flow-dset-links-001",
+    "dataset_id": "flow-dset-small-001",
     "is_validated": false,
     "events": [
       {
@@ -61,7 +62,7 @@
           "n_trips_in": 960,
           "n_trips_aggregated": 960,
           "n_trips_dropped": 0,
-          "n_flow_to_trips_rows": 720
+          "n_flow_to_trips_rows": null
         },
         "issues_summary": {
           "counts": {
@@ -74,27 +75,26 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:32Z",
+        "ts_utc": "2026-04-16T22:17:33Z",
         "parameters": {
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_10_write_default_feather\\flows_write_default_feather",
           "mode": "error_if_exists",
-          "storage_format": "parquet",
+          "storage_format": "feather",
           "parquet_compression": "snappy",
           "feather_compression": "lz4",
           "normalize_artifact_dir": false,
-          "write_flow_to_trips": true
+          "write_flow_to_trips": false
         },
         "summary": {
           "n_flows": 240,
-          "n_flow_to_trips": 720,
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "n_flow_to_trips": null,
+          "path": "tmp_integration_flows\\artifacts\\case_10_write_default_feather\\flows_write_default_feather",
           "files_written": [
-            "flows.parquet",
-            "flows.metadata.json",
-            "flow_to_trips.parquet"
+            "flows.feather",
+            "flows.metadata.json"
           ],
-          "dataset_id": "flow-dset-links-001",
-          "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+          "dataset_id": "flow-dset-small-001",
+          "artifact_id": "art_c2141803-e1ee-4c69-b47a-cea862a44165"
         },
         "issues_summary": {
           "counts": {
@@ -109,7 +109,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+    "artifact_id": "art_c2141803-e1ee-4c69-b47a-cea862a44165"
   },
   "tables": {
     "flows": {
@@ -133,13 +133,6 @@
         "segment_label"
       ]
     },
-    "flow_to_trips": {
-      "n_rows": 720,
-      "n_cols": 2,
-      "columns": [
-        "flow_id",
-        "movement_id"
-      ]
-    }
+    "flow_to_trips": null
   }
 }

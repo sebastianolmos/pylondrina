@@ -60,7 +60,7 @@ READ_FLOWS_ISSUES: dict[str, IssueSpec] = {
     ),
     "READ_FLOWS.LAYOUT.MISSING_DATA_FILE": _err(
         "READ_FLOWS.LAYOUT.MISSING_DATA_FILE",
-        "El bundle de flows no contiene el archivo obligatorio flows.parquet.",
+        "El bundle de flows no contiene o no resuelve correctamente el archivo principal de datos requerido.",
         details_keys=("path", "strict", "files_expected", "reason", "action"),
         defaults={"action": "abort"},
         exception="export",
@@ -159,7 +159,7 @@ READ_FLOWS_ISSUES: dict[str, IssueSpec] = {
     # ------------------------------------------------------------------
     "READ_FLOWS.IO.FLOWS_READ_FAILED": _err(
         "READ_FLOWS.IO.FLOWS_READ_FAILED",
-        "No fue posible leer flows.parquet desde el bundle persistido.",
+        "No fue posible leer la tabla principal de flows desde el bundle persistido.",
         details_keys=("path", "strict", "files_read", "reason", "action"),
         defaults={"action": "abort"},
         exception="export",
@@ -184,7 +184,7 @@ READ_FLOWS_ISSUES: dict[str, IssueSpec] = {
     ),
     "READ_FLOWS.IO.FLOW_TO_TRIPS_READ_FAILED": _err(
         "READ_FLOWS.IO.FLOW_TO_TRIPS_READ_FAILED",
-        "No fue posible leer flow_to_trips.parquet desde el bundle persistido.",
+        "No fue posible leer la tabla auxiliar flow_to_trips desde el bundle persistido.",
         details_keys=("path", "strict", "read_flow_to_trips", "files_read", "reason", "action"),
         defaults={"action": "abort"},
         exception="export",

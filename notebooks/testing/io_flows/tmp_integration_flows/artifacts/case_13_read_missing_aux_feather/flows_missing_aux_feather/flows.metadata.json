@@ -3,17 +3,18 @@
   "format": "golondrina",
   "layout_version": "1.1",
   "storage": {
-    "format": "parquet",
+    "format": "feather",
     "options": {
-      "compression": "snappy"
+      "compression": "lz4",
+      "version": 2
     }
   },
   "dataset_id": "flow-dset-links-001",
-  "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8",
+  "artifact_id": "art_f5174499-b094-4060-bf10-507e23870e9e",
   "files": {
-    "data": "flows.parquet",
+    "data": "flows.feather",
     "metadata": "flows.metadata.json",
-    "flow_to_trips": "flow_to_trips.parquet"
+    "flow_to_trips": "flow_to_trips.feather"
   },
   "aggregation_spec": {
     "h3_resolution": 8,
@@ -74,11 +75,11 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:32Z",
+        "ts_utc": "2026-04-16T22:44:12Z",
         "parameters": {
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_13_read_missing_aux_feather\\flows_missing_aux_feather",
           "mode": "error_if_exists",
-          "storage_format": "parquet",
+          "storage_format": "feather",
           "parquet_compression": "snappy",
           "feather_compression": "lz4",
           "normalize_artifact_dir": false,
@@ -87,14 +88,14 @@
         "summary": {
           "n_flows": 240,
           "n_flow_to_trips": 720,
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_13_read_missing_aux_feather\\flows_missing_aux_feather",
           "files_written": [
-            "flows.parquet",
+            "flows.feather",
             "flows.metadata.json",
-            "flow_to_trips.parquet"
+            "flow_to_trips.feather"
           ],
           "dataset_id": "flow-dset-links-001",
-          "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+          "artifact_id": "art_f5174499-b094-4060-bf10-507e23870e9e"
         },
         "issues_summary": {
           "counts": {
@@ -109,7 +110,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+    "artifact_id": "art_f5174499-b094-4060-bf10-507e23870e9e"
   },
   "tables": {
     "flows": {

@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "flow-dset-dict-001",
-  "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8",
+  "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c",
   "files": {
     "data": "flows.parquet",
     "metadata": "flows.metadata.json",
@@ -74,12 +74,13 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-06T21:48:20Z",
+        "ts_utc": "2026-04-16T22:17:32Z",
         "parameters": {
           "path": "tmp_integration_flows\\artifacts\\case_02_write_with_aux_and_dictionary\\flows_with_aux",
           "mode": "error_if_exists",
           "storage_format": "parquet",
           "parquet_compression": "snappy",
+          "feather_compression": "lz4",
           "normalize_artifact_dir": false,
           "write_flow_to_trips": true
         },
@@ -93,7 +94,7 @@
             "flow_to_trips.parquet"
           ],
           "dataset_id": "flow-dset-dict-001",
-          "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8"
+          "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c"
         },
         "issues_summary": {
           "counts": {
@@ -108,7 +109,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_1ebf84ea-9a39-456a-86a0-8e6be74900f8"
+    "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c"
   },
   "tables": {
     "flows": {

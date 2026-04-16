@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Mapping, Optional, Sequence, Tuple, Union
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.feather as feather
 
 from pylondrina.datasets import FlowDataset
 from pylondrina.errors import ExportError
@@ -22,15 +24,17 @@ from pylondrina.reports import Issue, OperationReport
 
 PathLike = Union[str, Path]
 WriteMode = Literal["error_if_exists", "overwrite"]
-StorageFormat = Literal["parquet"]
+StorageFormat = Literal["parquet", "feather"]
 ParquetCompression = Optional[Literal["snappy", "gzip", "zstd", "brotli", "none"]]
+FeatherCompression = Optional[Literal["lz4", "zstd", "uncompressed"]]
 
 EXCEPTION_MAP_WRITE = {"export": ExportError}
 EXCEPTION_MAP_READ = {"export": ExportError}
 
 _GOLONDRINA_ARTIFACT_SUFFIX = ".golondrina"
-_SUPPORTED_STORAGE_FORMATS = {"parquet"}
+_SUPPORTED_STORAGE_FORMATS = {"parquet", "feather"}
 _SUPPORTED_PARQUET_COMPRESSIONS = {"snappy", "gzip", "zstd", "brotli", "none", None}
+_SUPPORTED_FEATHER_COMPRESSIONS = {"lz4", "zstd", "uncompressed", None}
 _REQUIRED_SIDECAR_TOP_LEVEL = {
     "dataset_type",
     "format",
@@ -55,10 +59,12 @@ class WriteFlowsOptions:
     ----------
     mode : {"error_if_exists", "overwrite"}, default="error_if_exists"
         Política cuando el directorio destino ya existe.
-    storage_format : {"parquet"}, default="parquet"
-        Backend tabular de persistencia. En v1.1 solo se soporta Parquet.
+    storage_format : {"parquet", "feather"}, default="feather"
+        Backend tabular de persistencia soportado por el artefacto formal.
     parquet_compression : {"snappy", "gzip", "zstd", "brotli", "none", None}, default="snappy"
-        Compresión efectiva usada al escribir tablas Parquet.
+        Compresión efectiva usada al escribir tablas Parquet cuando corresponde.
+    feather_compression : {"lz4", "zstd", "uncompressed", None}, default="lz4"
+        Compresión efectiva usada al escribir tablas Feather cuando corresponde.
     normalize_artifact_dir : bool, default=True
         Si True, normaliza el directorio root para que termine en `.golondrina`.
     write_flow_to_trips : bool, default=True
@@ -66,8 +72,9 @@ class WriteFlowsOptions:
     """
 
     mode: WriteMode = "error_if_exists"
-    storage_format: StorageFormat = "parquet"
+    storage_format: StorageFormat = "feather"
     parquet_compression: ParquetCompression = "snappy"
+    feather_compression: FeatherCompression = "lz4"
     normalize_artifact_dir: bool = True
     write_flow_to_trips: bool = True
 
@@ -94,12 +101,10 @@ class ReadFlowsOptions:
 
 @dataclass(frozen=True)
 class FlowsArtifactPaths:
-    """Rutas resueltas del layout formal de flows."""
+    """Rutas base resueltas del layout formal de flows."""
 
     root_dir: Path
-    data_path: Path
     sidecar_path: Path
-    flow_to_trips_path: Path
 
 
 @dataclass(frozen=True)
@@ -179,21 +184,26 @@ def write_flows(
     staging_dir = _create_flows_staging_dir(paths.root_dir, issues=issues)
     staging_paths = _resolve_flows_artifact_paths(staging_dir)
     try:
+        staging_data_path = staging_paths.root_dir / _flow_data_filename_for_storage(options_eff.storage_format)
+        staging_flow_to_trips_path = staging_paths.root_dir / _flow_to_trips_filename_for_storage(options_eff.storage_format)
+
         _write_flows_table_to_staging(
             flows.flows,
-            staging_paths.data_path,
+            staging_data_path,
             storage_format=options_eff.storage_format,
             parquet_compression=options_eff.parquet_compression,
+            feather_compression=options_eff.feather_compression,
             aggregation_spec=flows.aggregation_spec,
             issues=issues,
             destination_path=paths.root_dir,
         )
         _write_optional_flow_to_trips_to_staging(
             flows.flow_to_trips,
-            staging_paths.flow_to_trips_path,
+            staging_flow_to_trips_path,
             write_flow_to_trips=options_eff.write_flow_to_trips,
             storage_format=options_eff.storage_format,
             parquet_compression=options_eff.parquet_compression,
+            feather_compression=options_eff.feather_compression,
             issues=issues,
             destination_path=paths.root_dir,
         )
@@ -245,7 +255,6 @@ def write_flows(
     )
 
 
-
 def read_flows(
     path: PathLike,
     *,
@@ -295,22 +304,39 @@ def read_flows(
         destination_path=paths.root_dir,
     )
 
+    # Se resuelven primero las rutas físicas desde el sidecar para soportar multi-backend real.
+    flows_data_path = _resolve_flows_data_path_from_sidecar(
+        paths.root_dir,
+        sidecar_payload,
+        storage_format=recovered["storage_format"],
+        strict=options_eff.strict,
+        issues=issues,
+    )
+    flow_to_trips_path = _resolve_flow_to_trips_path_from_sidecar(
+        paths.root_dir,
+        sidecar_payload,
+        storage_format=recovered["storage_format"],
+        requested=options_eff.read_flow_to_trips,
+        strict=options_eff.strict,
+        issues=issues,
+    )
+
     # Se leen las tablas persistidas que el contrato de lectura autoriza materializar.
     flows_df = _read_flows_table(
-        paths.data_path,
+        flows_data_path,
         storage_format=recovered["storage_format"],
         issues=issues,
         destination_path=paths.root_dir,
     )
     flow_to_trips, flow_to_trips_loaded, files_read, n_flow_to_trips = _read_optional_flow_to_trips(
-        paths.flow_to_trips_path,
+        flow_to_trips_path,
         requested=options_eff.read_flow_to_trips,
         strict=options_eff.strict,
         storage_format=recovered["storage_format"],
         issues=issues,
         destination_path=paths.root_dir,
     )
-    files_read.insert(0, "flows.parquet")
+    files_read.insert(0, flows_data_path.name)
     files_read.append("flows.metadata.json")
 
     # Se reconstruye el dataset vivo desde los snapshots efectivos y se fuerza el estado no validado.
@@ -460,8 +486,32 @@ def _validate_write_contract(
             reason="unsupported_storage_format",
         )
 
-    # La compresión se deja pasar hasta la capa de escritura real; si el backend no la soporta,
-    # la falla se captura como WRITE_FLOWS.IO.FLOWS_WRITE_FAILED con evidencia concreta del motivo.
+    # Se valida compresión solo cuando el backend lo requiere para evitar fallos tardíos innecesarios.
+    if options_eff.storage_format == "parquet" and options_eff.parquet_compression not in _SUPPORTED_PARQUET_COMPRESSIONS:
+        emit_and_maybe_raise(
+            issues,
+            WRITE_FLOWS_ISSUES,
+            "WRITE_FLOWS.OPTIONS.UNSUPPORTED_STORAGE_FORMAT",
+            strict=False,
+            exception_map=EXCEPTION_MAP_WRITE,
+            default_exception=ExportError,
+            path=str(path),
+            storage_format=options_eff.storage_format,
+            reason=f"invalid_parquet_compression={options_eff.parquet_compression!r}",
+        )
+
+    if options_eff.storage_format == "feather" and options_eff.feather_compression not in _SUPPORTED_FEATHER_COMPRESSIONS:
+        emit_and_maybe_raise(
+            issues,
+            WRITE_FLOWS_ISSUES,
+            "WRITE_FLOWS.OPTIONS.UNSUPPORTED_STORAGE_FORMAT",
+            strict=False,
+            exception_map=EXCEPTION_MAP_WRITE,
+            default_exception=ExportError,
+            path=str(path),
+            storage_format=options_eff.storage_format,
+            reason=f"invalid_feather_compression={options_eff.feather_compression!r}",
+        )
 
     # Se valida que el directorio destino sea resoluble como root formal del artefacto.
     try:
@@ -546,10 +596,12 @@ def _freeze_flow_write_snapshot(
     metadata_base["dataset_id"] = dataset_id
     metadata_base["artifact_id"] = artifact_id
 
-    files_written = ["flows.parquet", "flows.metadata.json"]
+    data_filename = _flow_data_filename_for_storage(options_eff.storage_format)
+    flow_to_trips_filename = _flow_to_trips_filename_for_storage(options_eff.storage_format)
+    files_written = [data_filename, "flows.metadata.json"]
     n_flow_to_trips: Optional[int] = None
     if options_eff.write_flow_to_trips and isinstance(flows.flow_to_trips, pd.DataFrame):
-        files_written.append("flow_to_trips.parquet")
+        files_written.append(flow_to_trips_filename)
         n_flow_to_trips = int(len(flows.flow_to_trips))
     elif options_eff.write_flow_to_trips:
         # Se registra warning porque el auxiliar fue pedido, pero el dataset no lo trae en memoria.
@@ -559,7 +611,7 @@ def _freeze_flow_write_snapshot(
             "WRITE_FLOWS.FLOW_TO_TRIPS.REQUESTED_BUT_MISSING",
             path=str(paths.root_dir),
             write_flow_to_trips=True,
-            artifact="flow_to_trips.parquet",
+            artifact=flow_to_trips_filename,
             reason="flow_to_trips_missing_in_memory",
         )
 
@@ -571,7 +623,7 @@ def _freeze_flow_write_snapshot(
         },
         "flow_to_trips": None,
     }
-    if isinstance(flows.flow_to_trips, pd.DataFrame) and "flow_to_trips.parquet" in files_written:
+    if isinstance(flows.flow_to_trips, pd.DataFrame) and flow_to_trips_filename in files_written:
         tables["flow_to_trips"] = {
             "n_rows": int(len(flows.flow_to_trips)),
             "n_cols": int(len(flows.flow_to_trips.columns)),
@@ -603,15 +655,15 @@ def _freeze_flow_write_snapshot(
         "storage": {
             "format": options_eff.storage_format,
             "options": {
-                "compression": options_eff.parquet_compression,
+                **_build_flow_storage_options_snapshot(options_eff),
             },
         },
         "dataset_id": dataset_id,
         "artifact_id": artifact_id,
         "files": {
-            "data": "flows.parquet",
+            "data": data_filename,
             "metadata": "flows.metadata.json",
-            "flow_to_trips": "flow_to_trips.parquet" if "flow_to_trips.parquet" in files_written else None,
+            "flow_to_trips": flow_to_trips_filename if flow_to_trips_filename in files_written else None,
         },
         "aggregation_spec": aggregation_spec,
         "provenance": provenance,
@@ -684,44 +736,60 @@ def _create_flows_staging_dir(final_dir: Path, *, issues: List[Issue]) -> Path:
 
 def _write_flows_table_to_staging(
     df_flows: pd.DataFrame,
-    parquet_path: Path,
+    data_path: Path,
     *,
     storage_format: str,
     parquet_compression: ParquetCompression,
+    feather_compression: FeatherCompression,
     aggregation_spec: Optional[Mapping[str, Any]] = None,
     issues: List[Issue],
     destination_path: Path,
 ) -> None:
     """
-    Escribe `flows.parquet` en staging.
+    Escribe la tabla principal de flows en staging según el backend efectivo.
 
     Emite codes
     -----------
     - WRITE_FLOWS.IO.FLOWS_WRITE_FAILED
     """
     try:
-        parquet_path.parent.mkdir(parents=True, exist_ok=True)
-        if storage_format != "parquet":
-            raise ValueError(f"unsupported storage_format: {storage_format!r}")
+        data_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Se fuerzan como categóricos solo los campos segmentadores reales del FlowDataset.
-        categorical_fields = _collect_flow_parquet_categorical_fields(
+        categorical_fields = _collect_flow_arrow_categorical_fields(
             df_flows,
             aggregation_spec=aggregation_spec,
         )
-        df_out = _prepare_dataframe_for_parquet(
+
+        df_out = _prepare_flows_df_for_arrow_write(
             df_flows,
             categorical_fields=categorical_fields,
         )
-        compression = None if parquet_compression == "none" else parquet_compression
-        df_out.to_parquet(
-            parquet_path,
-            index=False,
-            compression=compression,
-            engine="pyarrow",
-        )
+
+        if storage_format == "parquet":
+            compression = None if parquet_compression == "none" else parquet_compression
+            df_out.to_parquet(
+                data_path,
+                index=False,
+                compression=compression,
+                engine="pyarrow",
+            )
+            return
+
+        if storage_format == "feather":
+            compression = None if feather_compression == "uncompressed" else feather_compression
+            table = pa.Table.from_pandas(df_out, preserve_index=False)
+            feather.write_feather(
+                table,
+                data_path,
+                compression=compression,
+                compression_level=None,
+                chunksize=None,
+                version=2,
+            )
+            return
+
+        raise ValueError(f"unsupported storage_format: {storage_format!r}")
     except Exception as exc:
-        # Se aborta porque la tabla principal del bundle no quedó materializada.
         emit_and_maybe_raise(
             issues,
             WRITE_FLOWS_ISSUES,
@@ -730,48 +798,63 @@ def _write_flows_table_to_staging(
             exception_map=EXCEPTION_MAP_WRITE,
             default_exception=ExportError,
             path=str(destination_path),
-            artifact="flows.parquet",
+            artifact=data_path.name,
             storage_format=storage_format,
             parquet_compression=parquet_compression,
+            feather_compression=feather_compression,
             reason=str(exc),
         )
 
-
 def _write_optional_flow_to_trips_to_staging(
     flow_to_trips: Optional[pd.DataFrame],
-    parquet_path: Path,
+    data_path: Path,
     *,
     write_flow_to_trips: bool,
     storage_format: str,
     parquet_compression: ParquetCompression,
+    feather_compression: FeatherCompression,
     issues: List[Issue],
     destination_path: Path,
 ) -> None:
     """
-    Escribe `flow_to_trips.parquet` solo cuando el contrato lo pide y el auxiliar existe.
+    Escribe el auxiliar flow_to_trips solo cuando el contrato lo pide y la tabla existe.
 
     Emite codes
     -----------
     - WRITE_FLOWS.IO.FLOW_TO_TRIPS_WRITE_FAILED
     """
-    # Si el usuario no pidió el auxiliar o no existe en memoria, no se escribe nada.
     if not write_flow_to_trips or not isinstance(flow_to_trips, pd.DataFrame):
         return
 
     try:
-        parquet_path.parent.mkdir(parents=True, exist_ok=True)
-        if storage_format != "parquet":
-            raise ValueError(f"unsupported storage_format: {storage_format!r}")
-        df_out = _prepare_dataframe_for_parquet(flow_to_trips)
-        compression = None if parquet_compression == "none" else parquet_compression
-        df_out.to_parquet(
-            parquet_path,
-            index=False,
-            compression=compression,
-            engine="pyarrow",
-        )
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        df_out = flow_to_trips.copy(deep=True)
+
+        if storage_format == "parquet":
+            compression = None if parquet_compression == "none" else parquet_compression
+            df_out.to_parquet(
+                data_path,
+                index=False,
+                compression=compression,
+                engine="pyarrow",
+            )
+            return
+
+        if storage_format == "feather":
+            compression = None if feather_compression == "uncompressed" else feather_compression
+            table = pa.Table.from_pandas(df_out, preserve_index=False)
+            feather.write_feather(
+                table,
+                data_path,
+                compression=compression,
+                compression_level=None,
+                chunksize=None,
+                version=2,
+            )
+            return
+
+        raise ValueError(f"unsupported storage_format: {storage_format!r}")
     except Exception as exc:
-        # Se aborta porque el auxiliar fue solicitado explícitamente y su escritura falló.
         emit_and_maybe_raise(
             issues,
             WRITE_FLOWS_ISSUES,
@@ -780,9 +863,10 @@ def _write_optional_flow_to_trips_to_staging(
             exception_map=EXCEPTION_MAP_WRITE,
             default_exception=ExportError,
             path=str(destination_path),
-            artifact="flow_to_trips.parquet",
+            artifact=data_path.name,
             storage_format=storage_format,
             parquet_compression=parquet_compression,
+            feather_compression=feather_compression,
             reason=str(exc),
         )
 
@@ -834,14 +918,8 @@ def _assert_flows_staging_complete(
     -----------
     - WRITE_FLOWS.IO.STAGING_INCOMPLETE
     """
-    expected_paths = {
-        "flows.parquet": paths.data_path,
-        "flows.metadata.json": paths.sidecar_path,
-        "flow_to_trips.parquet": paths.flow_to_trips_path,
-    }
-    missing = [name for name in expected_files if not expected_paths[name].exists()]
+    missing = [name for name in expected_files if not (paths.root_dir / name).exists()]
     if missing:
-        # Se aborta porque el commit no puede promover un bundle incompleto.
         emit_and_maybe_raise(
             issues,
             WRITE_FLOWS_ISSUES,
@@ -928,17 +1006,15 @@ def _validate_read_layout(
     issues: List[Issue],
 ) -> None:
     """
-    Valida el layout formal mínimo antes de leer sidecar o tablas.
+    Valida el layout formal mínimo antes de leer sidecar o resolver el archivo tabular.
 
     Emite codes
     -----------
     - READ_FLOWS.PATH.INVALID_ROOT
-    - READ_FLOWS.LAYOUT.MISSING_DATA_FILE
     - READ_FLOWS.LAYOUT.MISSING_SIDECAR
     """
-    files_expected = ["flows.parquet", "flows.metadata.json"]
+    files_expected = ["flows.metadata.json"]
     if not read_root.exists() or not read_root.is_dir():
-        # Se aborta porque no existe un root formal sobre el cual resolver el artefacto.
         emit_and_maybe_raise(
             issues,
             READ_FLOWS_ISSUES,
@@ -951,22 +1027,7 @@ def _validate_read_layout(
             reason="root_not_directory",
         )
 
-    if not paths.data_path.exists():
-        # Se aborta porque la tabla principal es obligatoria en el round-trip formal.
-        emit_and_maybe_raise(
-            issues,
-            READ_FLOWS_ISSUES,
-            "READ_FLOWS.LAYOUT.MISSING_DATA_FILE",
-            strict=strict,
-            exception_map=EXCEPTION_MAP_READ,
-            default_exception=ExportError,
-            path=str(read_root),
-            files_expected=files_expected,
-            reason="missing_flows_parquet",
-        )
-
     if not paths.sidecar_path.exists():
-        # Se aborta porque la lectura formal v1.1 no es recuperable sin sidecar obligatorio.
         emit_and_maybe_raise(
             issues,
             READ_FLOWS_ISSUES,
@@ -1221,18 +1282,19 @@ def _read_flows_table(
     destination_path: Path,
 ) -> pd.DataFrame:
     """
-    Lee la tabla principal `flows.parquet` usando el backend resuelto desde sidecar.
+    Lee la tabla principal usando el backend resuelto desde sidecar.
 
     Emite codes
     -----------
     - READ_FLOWS.IO.FLOWS_READ_FAILED
     """
     try:
-        if storage_format != "parquet":
-            raise ValueError(f"unsupported storage_format: {storage_format!r}")
-        return pd.read_parquet(data_path)
+        if storage_format == "parquet":
+            return pd.read_parquet(data_path, engine="pyarrow")
+        if storage_format == "feather":
+            return feather.read_feather(data_path)
+        raise ValueError(f"unsupported storage_format: {storage_format!r}")
     except Exception as exc:
-        # Se aborta porque la tabla principal del bundle no pudo materializarse en memoria.
         emit_and_maybe_raise(
             issues,
             READ_FLOWS_ISSUES,
@@ -1241,7 +1303,7 @@ def _read_flows_table(
             exception_map=EXCEPTION_MAP_READ,
             default_exception=ExportError,
             path=str(destination_path),
-            files_read=["flows.metadata.json"],
+            files_read=[data_path.name],
             reason=str(exc),
         )
         raise AssertionError("unreachable")
@@ -1257,7 +1319,7 @@ def _read_optional_flow_to_trips(
     destination_path: Path,
 ) -> Tuple[Optional[pd.DataFrame], bool, List[str], Optional[int]]:
     """
-    Resuelve la carga opcional de `flow_to_trips.parquet`.
+    Resuelve la carga opcional de `flow_to_trips` desde el backend declarado en sidecar.
 
     Emite codes
     -----------
@@ -1270,7 +1332,6 @@ def _read_optional_flow_to_trips(
 
     if not aux_path.exists():
         if strict:
-            # Se aborta porque strict=True no permite degradar la ausencia del auxiliar solicitado.
             emit_and_maybe_raise(
                 issues,
                 READ_FLOWS_ISSUES,
@@ -1284,27 +1345,28 @@ def _read_optional_flow_to_trips(
                 reason="missing_flow_to_trips_file",
             )
             raise AssertionError("unreachable")
-        # Se degrada porque strict=False permite continuar sin el auxiliar ausente.
         emit_issue(
             issues,
             READ_FLOWS_ISSUES,
             "READ_FLOWS.FLOW_TO_TRIPS.REQUESTED_BUT_MISSING",
             path=str(destination_path),
             read_flow_to_trips=True,
-            files_expected=["flow_to_trips.parquet"],
+            files_expected=[aux_path.name],
             files_read=files_read,
             reason="missing_flow_to_trips_file",
         )
         return None, False, files_read, None
 
     try:
-        if storage_format != "parquet":
+        if storage_format == "parquet":
+            df = pd.read_parquet(aux_path, engine="pyarrow")
+        elif storage_format == "feather":
+            df = feather.read_feather(aux_path)
+        else:
             raise ValueError(f"unsupported storage_format: {storage_format!r}")
-        df = pd.read_parquet(aux_path)
-        files_read.append("flow_to_trips.parquet")
+        files_read.append(aux_path.name)
         return df, True, files_read, int(len(df))
     except Exception as exc:
-        # Se aborta porque el auxiliar solicitado existe pero no se pudo materializar en memoria.
         emit_and_maybe_raise(
             issues,
             READ_FLOWS_ISSUES,
@@ -1371,14 +1433,135 @@ def _resolve_flows_artifact_root_for_read(root_path: PathLike) -> Path:
 
 
 def _resolve_flows_artifact_paths(root_path: PathLike) -> FlowsArtifactPaths:
-    """Resuelve el layout formal de flows a partir del root del artefacto."""
+    """Resuelve las rutas base del artefacto formal de flows a partir del root."""
     root_dir = Path(root_path).expanduser()
     return FlowsArtifactPaths(
         root_dir=root_dir,
-        data_path=root_dir / "flows.parquet",
         sidecar_path=root_dir / "flows.metadata.json",
-        flow_to_trips_path=root_dir / "flow_to_trips.parquet",
     )
+
+
+def _flow_data_filename_for_storage(storage_format: str) -> str:
+    """Retorna el nombre canónico del archivo tabular principal según backend."""
+    if storage_format == "parquet":
+        return "flows.parquet"
+    if storage_format == "feather":
+        return "flows.feather"
+    raise ValueError(f"Unsupported storage_format: {storage_format!r}")
+
+
+def _flow_to_trips_filename_for_storage(storage_format: str) -> str:
+    """Retorna el nombre canónico del auxiliar flow_to_trips según backend."""
+    if storage_format == "parquet":
+        return "flow_to_trips.parquet"
+    if storage_format == "feather":
+        return "flow_to_trips.feather"
+    raise ValueError(f"Unsupported storage_format: {storage_format!r}")
+
+
+def _build_flow_storage_options_snapshot(options: WriteFlowsOptions) -> Dict[str, Any]:
+    """Construye el bloque `storage.options` persistible según backend efectivo."""
+    if options.storage_format == "parquet":
+        return {"compression": options.parquet_compression}
+    if options.storage_format == "feather":
+        return {"compression": options.feather_compression, "version": 2}
+    raise ValueError(f"Unsupported storage_format: {options.storage_format!r}")
+
+
+def _resolve_flows_data_path_from_sidecar(
+    root_path: Path,
+    sidecar_payload: Mapping[str, Any],
+    *,
+    storage_format: str,
+    strict: bool,
+    issues: List[Issue],
+) -> Path:
+    """Resuelve y valida la ruta de la tabla principal desde `files.data` y `storage.format`."""
+    files = sidecar_payload.get("files")
+    declared_filename = files.get("data") if isinstance(files, Mapping) else None
+
+    expected_filename = _flow_data_filename_for_storage(storage_format)
+    if not _is_non_empty_string(declared_filename):
+        declared_filename = expected_filename
+    else:
+        declared_filename = str(declared_filename)
+
+    if declared_filename != expected_filename:
+        emit_and_maybe_raise(
+            issues,
+            READ_FLOWS_ISSUES,
+            "READ_FLOWS.LAYOUT.MISSING_DATA_FILE",
+            strict=strict,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            path=str(root_path),
+            files_expected=[expected_filename],
+            reason=f"data_file_mismatch: declared={declared_filename!r} expected={expected_filename!r}",
+        )
+
+    data_path = root_path / declared_filename
+    if not data_path.exists():
+        emit_and_maybe_raise(
+            issues,
+            READ_FLOWS_ISSUES,
+            "READ_FLOWS.LAYOUT.MISSING_DATA_FILE",
+            strict=strict,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            path=str(root_path),
+            files_expected=[expected_filename],
+            reason=f"missing_data_file: {declared_filename!r}",
+        )
+    return data_path
+
+
+def _resolve_flow_to_trips_path_from_sidecar(
+    root_path: Path,
+    sidecar_payload: Mapping[str, Any],
+    *,
+    storage_format: str,
+    requested: bool,
+    strict: bool,
+    issues: List[Issue],
+) -> Path:
+    """Resuelve la ruta del auxiliar flow_to_trips desde el sidecar cuando corresponda."""
+    files = sidecar_payload.get("files")
+    declared_filename = files.get("flow_to_trips") if isinstance(files, Mapping) else None
+
+    expected_filename = _flow_to_trips_filename_for_storage(storage_format)
+    if not requested or declared_filename is None:
+        return root_path / expected_filename
+
+    if not _is_non_empty_string(declared_filename):
+        emit_and_maybe_raise(
+            issues,
+            READ_FLOWS_ISSUES,
+            "READ_FLOWS.IO.FLOW_TO_TRIPS_READ_FAILED",
+            strict=strict,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            path=str(root_path),
+            read_flow_to_trips=True,
+            files_read=[],
+            reason="invalid_declared_flow_to_trips_file",
+        )
+
+    declared_filename = str(declared_filename)
+    if declared_filename != expected_filename:
+        emit_and_maybe_raise(
+            issues,
+            READ_FLOWS_ISSUES,
+            "READ_FLOWS.IO.FLOW_TO_TRIPS_READ_FAILED",
+            strict=strict,
+            exception_map=EXCEPTION_MAP_READ,
+            default_exception=ExportError,
+            path=str(root_path),
+            read_flow_to_trips=True,
+            files_read=[],
+            reason=f"flow_to_trips_file_mismatch: declared={declared_filename!r} expected={expected_filename!r}",
+        )
+
+    return root_path / declared_filename
 
 
 def _build_write_flows_summary(
@@ -1456,6 +1639,7 @@ def _options_to_write_parameters(*, path: PathLike, options: WriteFlowsOptions) 
         "mode": options.mode,
         "storage_format": options.storage_format,
         "parquet_compression": options.parquet_compression,
+        "feather_compression": options.feather_compression,
         "normalize_artifact_dir": bool(options.normalize_artifact_dir),
         "write_flow_to_trips": bool(options.write_flow_to_trips),
     }
@@ -1518,7 +1702,7 @@ def _append_event(metadata: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, 
     return metadata_out
 
 
-def _collect_flow_parquet_categorical_fields(
+def _collect_flow_arrow_categorical_fields(
     df: pd.DataFrame,
     *,
     aggregation_spec: Optional[Mapping[str, Any]] = None,
@@ -1561,7 +1745,7 @@ def _collect_flow_parquet_categorical_fields(
 
 
 
-def _prepare_dataframe_for_parquet(
+def _prepare_flows_df_for_arrow_write(
     df: pd.DataFrame,
     *,
     categorical_fields: Optional[Sequence[str]] = None,

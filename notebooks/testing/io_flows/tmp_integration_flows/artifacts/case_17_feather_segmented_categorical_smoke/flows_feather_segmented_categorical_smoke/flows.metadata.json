@@ -3,23 +3,23 @@
   "format": "golondrina",
   "layout_version": "1.1",
   "storage": {
-    "format": "parquet",
+    "format": "feather",
     "options": {
-      "compression": "snappy"
+      "compression": "lz4",
+      "version": 2
     }
   },
-  "dataset_id": "flow-dset-links-001",
-  "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8",
+  "dataset_id": "flow-dset-segmented-categorical-001",
+  "artifact_id": "art_288dc34e-fc73-4f9a-9816-56939e3c1e6e",
   "files": {
-    "data": "flows.parquet",
+    "data": "flows.feather",
     "metadata": "flows.metadata.json",
-    "flow_to_trips": "flow_to_trips.parquet"
+    "flow_to_trips": null
   },
   "aggregation_spec": {
     "h3_resolution": 8,
     "group_by": [
       "mode",
-      "day_type",
       "user_gender"
     ],
     "time_aggregation": "hour",
@@ -39,7 +39,7 @@
     }
   },
   "metadata": {
-    "dataset_id": "flow-dset-links-001",
+    "dataset_id": "flow-dset-segmented-categorical-001",
     "is_validated": false,
     "events": [
       {
@@ -57,11 +57,11 @@
           "min_trips_per_flow": 1
         },
         "summary": {
-          "n_flows": 240,
-          "n_trips_in": 960,
-          "n_trips_aggregated": 960,
+          "n_flows": 720,
+          "n_trips_in": 2880,
+          "n_trips_aggregated": 2880,
           "n_trips_dropped": 0,
-          "n_flow_to_trips_rows": 720
+          "n_flow_to_trips_rows": null
         },
         "issues_summary": {
           "counts": {
@@ -74,27 +74,26 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:32Z",
+        "ts_utc": "2026-04-16T23:02:53Z",
         "parameters": {
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "path": "tmp_integration_flows\\artifacts\\case_17_feather_segmented_categorical_smoke\\flows_feather_segmented_categorical_smoke",
           "mode": "error_if_exists",
-          "storage_format": "parquet",
+          "storage_format": "feather",
           "parquet_compression": "snappy",
           "feather_compression": "lz4",
           "normalize_artifact_dir": false,
-          "write_flow_to_trips": true
+          "write_flow_to_trips": false
         },
         "summary": {
-          "n_flows": 240,
-          "n_flow_to_trips": 720,
-          "path": "tmp_integration_flows\\artifacts\\case_05_read_with_aux\\flows_with_aux",
+          "n_flows": 720,
+          "n_flow_to_trips": null,
+          "path": "tmp_integration_flows\\artifacts\\case_17_feather_segmented_categorical_smoke\\flows_feather_segmented_categorical_smoke",
           "files_written": [
-            "flows.parquet",
-            "flows.metadata.json",
-            "flow_to_trips.parquet"
+            "flows.feather",
+            "flows.metadata.json"
           ],
-          "dataset_id": "flow-dset-links-001",
-          "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+          "dataset_id": "flow-dset-segmented-categorical-001",
+          "artifact_id": "art_288dc34e-fc73-4f9a-9816-56939e3c1e6e"
         },
         "issues_summary": {
           "counts": {
@@ -109,11 +108,11 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_24bb0b07-e7bc-499d-90d5-005fe834e5e8"
+    "artifact_id": "art_288dc34e-fc73-4f9a-9816-56939e3c1e6e"
   },
   "tables": {
     "flows": {
-      "n_rows": 240,
+      "n_rows": 720,
       "n_cols": 15,
       "columns": [
         "flow_id",
@@ -133,13 +132,6 @@
         "segment_label"
       ]
     },
-    "flow_to_trips": {
-      "n_rows": 720,
-      "n_cols": 2,
-      "columns": [
-        "flow_id",
-        "movement_id"
-      ]
-    }
+    "flow_to_trips": null
   }
 }
