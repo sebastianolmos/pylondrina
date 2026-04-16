@@ -24,7 +24,9 @@ El repositorio corresponde a una versión de trabajo de **Pylondrina v1.1**. El 
 2. validar y transformar datasets,
 3. construir flujos OD,
 4. exportarlos o persistirlos,
-5. y visualizarlos en un viewer web incluido en el repositorio.
+5. visualizarlos en un viewer web incluido en el repositorio,
+6. Además, se incorporó un bloque experimental para evaluar **Parquet** y **Feather** como backends de persistencia. A partir de ese experimento, **Feather** quedó adoptado como backend por defecto para persistencia, mientras que **Parquet** se mantiene como opción soportada, ya que en algunos escenarios pesados puede producir artefactos más compactos y además tiene mejor compatibilidad con herramientas externas.
+
 
 
 
@@ -95,6 +97,20 @@ Contiene la **build estática** del visualizador web generada desde `viewer_src/
 
 Para uso normal del visualizador no es necesario modificar esta carpeta manualmente.
 
+### `experiments/`
+
+Contiene código y documentación asociada a experimentos técnicos del proyecto.
+
+Actualmente incluye `experiments/persistence_formats/`, donde se implementó y ejecutó el experimento comparativo entre **Parquet** y **Feather** como formatos de persistencia. En esa carpeta se encuentran el generador de casos experimentales, la ejecución de runs individuales y el orquestador de la matriz completa del experimento.
+
+Para más detalles sobre la metodología, archivos involucrados y conclusión adoptada, ver:
+
+- `experiments/persistence_formats/README.md`
+
+El análisis completo de resultados e interpretación final se encuentra en:
+
+- `notebooks/experiments/persistence_formats/analyze_persistence_experiment.ipynb`
+
 ## Instalación rápida del módulo
 
 Desde la raíz del repositorio:
@@ -122,7 +138,7 @@ A nivel funcional, el módulo actualmente provee soporte para:
 - **limpieza y filtrado** de viajes,
 - **construcción de flujos OD** a partir de viajes,
 - **exportación de flujos** a layout externo para visualización,
-- **persistencia formal** de trips y flows mediante artefactos con sidecar,
+- **persistencia formal de trips y flows** mediante artefactos con sidecar, con **Feather** como backend por defecto y **Parquet** como alternativa soportada,
 - **consulta de correspondencia flujo-viajes**,
 - y **soporte inicial para trazas** e inferencia básica de viajes.
 
