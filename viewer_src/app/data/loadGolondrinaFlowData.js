@@ -1,12 +1,20 @@
 import { tableFromIPC } from "apache-arrow";
+import {
+  CompressionType,
+  setCompressionCodec,
+  tableFromIPC as flechetteTableFromIPC,
+} from "@uwdata/flechette";
 import { cellToLatLng, isValidCell } from "h3-js";
+import * as lz4 from "lz4js";
 import initParquetWasm, { readParquet } from "parquet-wasm";
 import parquetWasmUrl from "parquet-wasm/esm/parquet_wasm_bg.wasm?url";
+import { ZstdCodec } from "zstd-codec";
 
 import { GOLONDRINA_FLOW_REQUIRED_COLUMNS } from "../config.js";
 import { datasetFileFromRegistry } from "./loadFlowmapData.js";
 
 let parquetRuntimeInitPromise = null;
+let flechetteCompressionInitPromise = null;
 
 /** Inicializa una sola vez el runtime WebAssembly necesario para leer Parquet en el navegador. */
 async function ensureParquetRuntime() {
@@ -17,12 +25,43 @@ async function ensureParquetRuntime() {
   await parquetRuntimeInitPromise;
 }
 
+/**
+ * Registra una sola vez los codecs de compresión Arrow IPC requeridos para Feather v2.
+ *
+ * Se registra:
+ * - LZ4_FRAME mediante `lz4js`
+ * - ZSTD mediante `zstd-codec`
+ */
+async function ensureFlechetteCompressionCodecs() {
+  if (!flechetteCompressionInitPromise) {
+    flechetteCompressionInitPromise = (async () => {
+      setCompressionCodec(CompressionType.LZ4_FRAME, {
+        encode: (data) => lz4.compress(data),
+        decode: (data) => lz4.decompress(data),
+      });
+
+      await new Promise((resolve) => {
+        ZstdCodec.run((zstd) => {
+          const codec = new zstd.Simple();
+          setCompressionCodec(CompressionType.ZSTD, {
+            encode: (data) => codec.compress(data),
+            decode: (data) => codec.decompress(data),
+          });
+          resolve();
+        });
+      });
+    })();
+  }
+
+  await flechetteCompressionInitPromise;
+}
+
 /** Indica si un nodo del registry representa un dataset Golondrina soportado por el viewer. */
 function isGolondrinaDatasetNode(datasetNode) {
   return ["golondrina_parquet", "golondrina_feather"].includes(datasetNode?.format);
 }
 
-/** Normaliza valores escalares provenientes de Apache Arrow a tipos JS más manejables. */
+/** Normaliza valores escalares provenientes de tablas Arrow a tipos JS más manejables. */
 function normalizeArrowScalar(value) {
   if (value == null) return null;
   if (typeof value === "bigint") return Number(value);
@@ -132,8 +171,15 @@ async function loadGolondrinaParquetTable(datasetNode) {
   return tableFromIPC(arrowWasmTable.intoIPCStream());
 }
 
-/** Lee un dataset Golondrina almacenado físicamente en Feather v2 y lo convierte a Arrow Table. */
+/**
+ * Lee un dataset Golondrina almacenado físicamente en Feather v2.
+ *
+ * Esta ruta usa Flechette porque permite registrar codecs de compresión
+ * Arrow IPC (LZ4_FRAME y ZSTD) requeridos por Feather comprimido.
+ */
 async function loadGolondrinaFeatherTable(datasetNode) {
+  await ensureFlechetteCompressionCodecs();
+
   const featherUrl = datasetFileFromRegistry(datasetNode, "flows");
   const response = await fetch(featherUrl, { cache: "no-store" });
 
@@ -144,7 +190,7 @@ async function loadGolondrinaFeatherTable(datasetNode) {
   }
 
   const featherBytes = new Uint8Array(await response.arrayBuffer());
-  return tableFromIPC(featherBytes);
+  return flechetteTableFromIPC(featherBytes);
 }
 
 /** Resuelve el backend físico del dataset Golondrina y retorna una Arrow Table uniforme. */
