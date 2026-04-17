@@ -22,7 +22,8 @@ export const GOLONDRINA_FLOW_REQUIRED_COLUMNS = [
 // Etiquetas legibles por formato usadas en el selector y paneles auxiliares.
 export const DATASET_FORMAT_LABELS = {
   flowmap_layout: "Flowmap layout",
-  golondrina_flows: "Flujos Golondrina",
+  golondrina_parquet: "Golondrina Parquet",
+  golondrina_feather: "Golondrina Feather",
 };
 
 // Paletas de color disponibles para FlowmapLayer.
@@ -85,16 +86,16 @@ export const INFO_PANEL_DESCRIPTION =
 // Textos de la vista de selección de datasets.
 export const DATASET_SELECTOR_TITLE = "Selecciona el dataset de flujos";
 export const DATASET_SELECTOR_DESCRIPTION =
-  "Explora datasets disponibles desde el registry del viewer. El selector muestra tanto Flowmap layout (CSV) como Flujos Golondrina (Parquet), usando iconos distintos para cada formato.";
+  "Explora datasets disponibles desde el registry del viewer. El selector muestra datasets en Flowmap layout, Golondrina Parquet y Golondrina Feather, usando iconos distintos para cada formato.";
 
 // Texto breve de ayuda para la leyenda del selector.
 export const DATASET_SELECTOR_FORMAT_HELP =
-  "Formatos disponibles: Flowmap layout (flows.csv + locations.csv) y Flujos Golondrina (flows.parquet del artefacto persistido).";
+  "Formatos disponibles: Flowmap layout (CSV), Golondrina Parquet y Golondrina Feather dentro del artefacto persistido.";
 
 // Mensajes del overlay de carga al leer datasets Golondrina.
 export const GOLONDRINA_LOADING_TITLE = "Cargando dataset Golondrina";
 export const GOLONDRINA_LOADING_MESSAGE =
-  "Leyendo Parquet Golondrina y preparando locations + flows para el mapa.";
+  "Leyendo flujos Golondrina y preparando locations + flows para el mapa.";
 
 // Estado de configuración visual editable desde el panel de controles.
 export const config = {

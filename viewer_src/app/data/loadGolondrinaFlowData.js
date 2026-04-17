@@ -17,6 +17,11 @@ async function ensureParquetRuntime() {
   await parquetRuntimeInitPromise;
 }
 
+/** Indica si un nodo del registry representa un dataset Golondrina soportado por el viewer. */
+function isGolondrinaDatasetNode(datasetNode) {
+  return ["golondrina_parquet", "golondrina_feather"].includes(datasetNode?.format);
+}
+
 /** Normaliza valores escalares provenientes de Apache Arrow a tipos JS más manejables. */
 function normalizeArrowScalar(value) {
   if (value == null) return null;
@@ -45,15 +50,15 @@ function arrowTableToRows(arrowTable) {
   });
 }
 
-/** Valida que el parquet contenga las columnas mínimas exigidas por el viewer para flujos Golondrina. */
-function assertRequiredGolondrinaColumns(columns) {
+/** Valida que el archivo Golondrina contenga las columnas mínimas exigidas por el viewer. */
+function assertRequiredGolondrinaColumns(columns, fileName) {
   const missingColumns = GOLONDRINA_FLOW_REQUIRED_COLUMNS.filter(
     (column) => !columns.includes(column)
   );
 
   if (missingColumns.length > 0) {
     throw new Error(
-      `El parquet de flujos Golondrina no contiene las columnas mínimas requeridas: ${missingColumns.join(", ")}.`
+      `El archivo de flujos Golondrina '${fileName}' no contiene las columnas mínimas requeridas: ${missingColumns.join(", ")}.`
     );
   }
 }
@@ -71,7 +76,7 @@ function buildLocationsFromH3Rows(rows) {
     .sort()
     .map((h3Index) => {
       if (!isValidCell(h3Index)) {
-        throw new Error(`Se encontró un índice H3 inválido en el parquet: ${h3Index}`);
+        throw new Error(`Se encontró un índice H3 inválido en el archivo de flujos: ${h3Index}`);
       }
 
       const [lat, lon] = cellToLatLng(h3Index);
@@ -109,12 +114,8 @@ function buildViewerFlowsFromGolondrinaRows(rows) {
   });
 }
 
-/** Carga un parquet Golondrina y lo adapta a la estructura locations + flows que consume FlowmapLayer. */
-export async function fetchGolondrinaFlowData(datasetNode) {
-  if (!datasetNode || datasetNode.format !== "golondrina_flows") {
-    throw new Error("El loader Golondrina solo soporta datasets golondrina_flows.");
-  }
-
+/** Lee un dataset Golondrina almacenado físicamente en Parquet y lo convierte a Arrow Table. */
+async function loadGolondrinaParquetTable(datasetNode) {
   await ensureParquetRuntime();
 
   const parquetUrl = datasetFileFromRegistry(datasetNode, "flows");
@@ -122,32 +123,69 @@ export async function fetchGolondrinaFlowData(datasetNode) {
 
   if (!response.ok) {
     throw new Error(
-      `No se pudo cargar el parquet de flujos Golondrina (${response.status} ${response.statusText}).`
+      `No se pudo cargar el archivo Parquet de flujos Golondrina (${response.status} ${response.statusText}).`
     );
   }
 
-    const parquetBytes = new Uint8Array(await response.arrayBuffer());
-    const arrowWasmTable = readParquet(parquetBytes);
+  const parquetBytes = new Uint8Array(await response.arrayBuffer());
+  const arrowWasmTable = readParquet(parquetBytes);
+  return tableFromIPC(arrowWasmTable.intoIPCStream());
+}
 
-    const arrowTable = tableFromIPC(arrowWasmTable.intoIPCStream());
-    const flowColumns = arrowTable.schema.fields.map((field) => field.name);
+/** Lee un dataset Golondrina almacenado físicamente en Feather v2 y lo convierte a Arrow Table. */
+async function loadGolondrinaFeatherTable(datasetNode) {
+  const featherUrl = datasetFileFromRegistry(datasetNode, "flows");
+  const response = await fetch(featherUrl, { cache: "no-store" });
 
-    assertRequiredGolondrinaColumns(flowColumns);
-
-    const extraFlowColumns = flowColumns.filter(
-    (column) => !GOLONDRINA_FLOW_REQUIRED_COLUMNS.includes(column)
+  if (!response.ok) {
+    throw new Error(
+      `No se pudo cargar el archivo Feather de flujos Golondrina (${response.status} ${response.statusText}).`
     );
+  }
 
-    const rows = arrowTableToRows(arrowTable);
-    const locations = buildLocationsFromH3Rows(rows);
-    const flows = buildViewerFlowsFromGolondrinaRows(rows);
+  const featherBytes = new Uint8Array(await response.arrayBuffer());
+  return tableFromIPC(featherBytes);
+}
 
-    return {
-        locations,
-        flows,
-        locationColumns: ["id", "name", "lat", "lon"],
-        flowColumns,
-        extraFlowColumns,
-        hasSegmentedFlows: extraFlowColumns.length > 0,
-    };
+/** Resuelve el backend físico del dataset Golondrina y retorna una Arrow Table uniforme. */
+async function loadGolondrinaArrowTable(datasetNode) {
+  switch (datasetNode?.format) {
+    case "golondrina_parquet":
+      return loadGolondrinaParquetTable(datasetNode);
+    case "golondrina_feather":
+      return loadGolondrinaFeatherTable(datasetNode);
+    default:
+      throw new Error(`Formato Golondrina no soportado: ${datasetNode?.format ?? "desconocido"}.`);
+  }
+}
+
+/** Carga un dataset Golondrina y lo adapta a la estructura locations + flows que consume FlowmapLayer. */
+export async function fetchGolondrinaFlowData(datasetNode) {
+  if (!isGolondrinaDatasetNode(datasetNode)) {
+    throw new Error(
+      "El loader Golondrina solo soporta datasets golondrina_parquet o golondrina_feather."
+    );
+  }
+
+  const arrowTable = await loadGolondrinaArrowTable(datasetNode);
+  const flowColumns = arrowTable.schema.fields.map((field) => field.name);
+
+  assertRequiredGolondrinaColumns(flowColumns, datasetNode?.files?.flows ?? "flows");
+
+  const extraFlowColumns = flowColumns.filter(
+    (column) => !GOLONDRINA_FLOW_REQUIRED_COLUMNS.includes(column)
+  );
+
+  const rows = arrowTableToRows(arrowTable);
+  const locations = buildLocationsFromH3Rows(rows);
+  const flows = buildViewerFlowsFromGolondrinaRows(rows);
+
+  return {
+    locations,
+    flows,
+    locationColumns: ["id", "name", "lat", "lon"],
+    flowColumns,
+    extraFlowColumns,
+    hasSegmentedFlows: extraFlowColumns.length > 0,
+  };
 }

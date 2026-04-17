@@ -38,7 +38,9 @@ async function loadSelectedDataset(datasetNode) {
   state.segmentedWarningAccepted = false;
   state.selectedDatasetNode = datasetNode;
 
-  const isGolondrinaDataset = datasetNode?.format === "golondrina_flows";
+  const isGolondrinaDataset = ["golondrina_parquet", "golondrina_feather"].includes(
+    datasetNode?.format
+  );
 
   try {
     if (isGolondrinaDataset) {

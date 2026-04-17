@@ -25,7 +25,8 @@ function getDatasetFormatLabel(format) {
 function getSelectorItemIcon(node) {
   if (node.type === "directory") return ICONS.folder;
   if (node.format === "flowmap_layout") return ICONS.flowmapLayout;
-  if (node.format === "golondrina_flows") return ICONS.golondrinaFlows;
+  if (node.format === "golondrina_parquet") return ICONS.golondrinaFlows;
+  if (node.format === "golondrina_feather") return ICONS.featherFlows;
   return ICONS.flowmapLayout;
 }
 
@@ -33,7 +34,8 @@ function getSelectorItemIcon(node) {
 function getSelectorItemIconClass(node) {
   if (node.type === "directory") return "dataset-selector-item__icon--folder";
   if (node.format === "flowmap_layout") return "dataset-selector-item__icon--flowmap";
-  if (node.format === "golondrina_flows") return "dataset-selector-item__icon--golondrina";
+  if (node.format === "golondrina_parquet") return "dataset-selector-item__icon--golondrina";
+  if (node.format === "golondrina_feather") return "dataset-selector-item__icon--feather";
   return "dataset-selector-item__icon--flowmap";
 }
 
@@ -96,7 +98,8 @@ function ensureDatasetSelectorOverlay() {
 
   [
     { type: "dataset", format: "flowmap_layout", label: DATASET_FORMAT_LABELS.flowmap_layout },
-    { type: "dataset", format: "golondrina_flows", label: DATASET_FORMAT_LABELS.golondrina_flows },
+    { type: "dataset", format: "golondrina_parquet", label: DATASET_FORMAT_LABELS.golondrina_parquet },
+    { type: "dataset", format: "golondrina_feather", label: DATASET_FORMAT_LABELS.golondrina_feather },
     { type: "directory", name: "Carpeta", label: "Carpeta" },
   ].forEach((node) => {
     const itemEl = document.createElement("div");

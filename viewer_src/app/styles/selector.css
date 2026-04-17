@@ -144,6 +144,10 @@
   color: #b58cff;
 }
 
+.dataset-selector-item__icon--feather {
+  color: #8fe6a8;
+}
+
 .dataset-selector-item__main {
   display: flex;
   flex-direction: column;

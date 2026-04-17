@@ -6,7 +6,8 @@ export async function fetchDatasetData(datasetNode) {
   switch (datasetNode?.format) {
     case "flowmap_layout":
       return fetchFlowmapData(datasetNode);
-    case "golondrina_flows":
+    case "golondrina_parquet":
+    case "golondrina_feather":
       return fetchGolondrinaFlowData(datasetNode);
     default:
       throw new Error(`Formato de dataset no soportado: ${datasetNode?.format ?? "desconocido"}.`);
