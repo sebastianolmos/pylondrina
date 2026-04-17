@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at_utc": "2026-04-12T14:41:21Z",
+  "generated_at_utc": "2026-04-17T02:15:40Z",
   "root_label": "flows",
   "root_path": "/data/flows",
   "max_scan_depth": 10,
@@ -42,9 +42,9 @@
         "children": [
           {
             "type": "dataset",
-            "id": "golondrina__flows_write_happy.golondrina__flows",
+            "id": "parquet__flows_write_happy.golondrina__flows",
             "label": "flows_write_happy.golondrina",
-            "format": "golondrina_flows",
+            "format": "golondrina_parquet",
             "dataset_path": "/data/flows/flows_write_happy.golondrina",
             "files": {
               "flows": "flows.parquet",
@@ -65,14 +65,100 @@
             "children": [
               {
                 "type": "dataset",
-                "id": "golondrina__golondrina__demo_flows_happy_path.golondrina__flows",
+                "id": "parquet__golondrina__demo_flows_happy_path.golondrina__flows",
                 "label": "demo_flows_happy_path.golondrina",
-                "format": "golondrina_flows",
+                "format": "golondrina_parquet",
                 "dataset_path": "/data/flows/golondrina/demo_flows_happy_path.golondrina",
                 "files": {
                   "flows": "flows.parquet",
                   "metadata": "flows.metadata.json",
                   "flow_to_trips": "flow_to_trips.parquet"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "happy_feather",
+        "path": "/data/flows/happy_feather",
+        "children": [
+          {
+            "type": "directory",
+            "name": "flows_read_happy_feather.golondrina",
+            "path": "/data/flows/happy_feather/flows_read_happy_feather.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__happy_feather__flows_read_happy_feather.golondrina__flows",
+                "label": "flows_read_happy_feather.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/happy_feather/flows_read_happy_feather.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "segmented_feather",
+        "path": "/data/flows/segmented_feather",
+        "children": [
+          {
+            "type": "dataset",
+            "id": "feather__segmented_feather__flows",
+            "label": "segmented_feather",
+            "format": "golondrina_feather",
+            "dataset_path": "/data/flows/segmented_feather",
+            "files": {
+              "flows": "flows.feather",
+              "metadata": "flows.metadata.json"
+            }
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "uncompressed_feather",
+        "path": "/data/flows/uncompressed_feather",
+        "children": [
+          {
+            "type": "directory",
+            "name": "flows_feather_segmented_categorical_smoke",
+            "path": "/data/flows/uncompressed_feather/flows_feather_segmented_categorical_smoke",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__uncompressed_feather__flows_feather_segmented_categorical_smoke__flows",
+                "label": "flows_feather_segmented_categorical_smoke",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/uncompressed_feather/flows_feather_segmented_categorical_smoke",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "flows_write_default_feather",
+            "path": "/data/flows/uncompressed_feather/flows_write_default_feather",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__uncompressed_feather__flows_write_default_feather__flows",
+                "label": "flows_write_default_feather",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/uncompressed_feather/flows_write_default_feather",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
                 }
               }
             ]

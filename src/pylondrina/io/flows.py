@@ -776,7 +776,8 @@ def _write_flows_table_to_staging(
             return
 
         if storage_format == "feather":
-            compression = None if feather_compression == "uncompressed" else feather_compression
+            # compression = None if feather_compression == "uncompressed" else feather_compression
+            compression = feather_compression
             table = pa.Table.from_pandas(df_out, preserve_index=False)
             feather.write_feather(
                 table,
@@ -841,7 +842,8 @@ def _write_optional_flow_to_trips_to_staging(
             return
 
         if storage_format == "feather":
-            compression = None if feather_compression == "uncompressed" else feather_compression
+            # compression = None if feather_compression == "uncompressed" else feather_compression
+            compression = feather_compression
             table = pa.Table.from_pandas(df_out, preserve_index=False)
             feather.write_feather(
                 table,

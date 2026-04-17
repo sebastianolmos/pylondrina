@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "flow-dset-dict-001",
-  "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c",
+  "artifact_id": "art_b1a5ac7d-54a6-40f3-bef4-122acdbe9091",
   "files": {
     "data": "flows.parquet",
     "metadata": "flows.metadata.json",
@@ -74,7 +74,7 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:32Z",
+        "ts_utc": "2026-04-17T02:14:14Z",
         "parameters": {
           "path": "tmp_integration_flows\\artifacts\\case_02_write_with_aux_and_dictionary\\flows_with_aux",
           "mode": "error_if_exists",
@@ -94,7 +94,7 @@
             "flow_to_trips.parquet"
           ],
           "dataset_id": "flow-dset-dict-001",
-          "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c"
+          "artifact_id": "art_b1a5ac7d-54a6-40f3-bef4-122acdbe9091"
         },
         "issues_summary": {
           "counts": {
@@ -109,7 +109,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_98288779-5cc6-4405-a728-db4ec15e9c9c"
+    "artifact_id": "art_b1a5ac7d-54a6-40f3-bef4-122acdbe9091"
   },
   "tables": {
     "flows": {

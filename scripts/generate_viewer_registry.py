@@ -13,9 +13,12 @@ from typing import Any
 
 
 try:
+    import pyarrow.feather as feather
     import pyarrow.parquet as pq
 except ImportError:  # pragma: no cover
+    feather = None
     pq = None
+    
 
 
 FLOWMAP_FLOWS_REQUIRED = {"origin", "dest", "count"}
@@ -30,6 +33,8 @@ GOLONDRINA_FLOWS_REQUIRED = {
 }
 
 FLOW_TO_TRIPS_SIGNATURE = {"flow_id", "movement_id"}
+GOLONDRINA_PARQUET_FORMAT = "golondrina_parquet"
+GOLONDRINA_FEATHER_FORMAT = "golondrina_feather"
 
 DEFAULT_MAX_DEPTH = 10
 
@@ -127,6 +132,26 @@ def inspect_parquet_columns(path: Path) -> list[str] | None:
         return list(schema.names)
     except Exception:
         return None
+    
+def inspect_feather_columns(path: Path) -> list[str] | None:
+    """
+    Inspecciona columnas de un Feather v2 usando PyArrow.
+
+    Nota:
+    - Feather v2 está representado en disco como Arrow IPC.
+    - Para este generador se usa `pyarrow.feather.read_table(...)`
+      por simplicidad y compatibilidad del flujo.
+    """
+    if feather is None:
+        raise RuntimeError(
+            "pyarrow no está instalado. Instálalo para poder inspeccionar archivos feather."
+        )
+
+    try:
+        table = feather.read_table(path)
+        return list(table.schema.names)
+    except Exception:
+        return None
 
 
 def build_dataset_node(
@@ -218,80 +243,106 @@ def detect_flowmap_layout_dataset(dir_path: Path, config: ScanConfig) -> dict[st
 
 def detect_golondrina_flows_datasets(dir_path: Path, config: ScanConfig) -> list[dict[str, Any]]:
     """
-    Detecta datasets válidos Golondrina flows dentro de una carpeta.
+    Detecta datasets válidos de flujos Golondrina dentro de una carpeta,
+    distinguiendo explícitamente entre backend Parquet y backend Feather v2.
 
-    Un Parquet se considera dataset principal si contiene la firma mínima:
-    - flow_id
-    - origin_h3_index
-    - destination_h3_index
-    - flow_count
-    - flow_value
+    Formatos emitidos en el registry:
+    - golondrina_parquet
+    - golondrina_feather
 
-    Un parquet con firma flow_id + movement_id pero sin firma mínima de flujo
-    se considera flow_to_trips auxiliar, no dataset principal.
+    Reglas:
+    - Un archivo principal de flows es válido si contiene la firma mínima:
+      flow_id, origin_h3_index, destination_h3_index, flow_count, flow_value
+    - Un archivo auxiliar flow_to_trips se reconoce por la firma mínima:
+      flow_id, movement_id
+    - La metadata sidecar compartida sigue siendo flows.metadata.json
     """
-    parquet_files = sorted([p for p in dir_path.iterdir() if p.is_file() and p.suffix.lower() == ".parquet"])
 
-    valid_flow_parquets: list[Path] = []
-    auxiliary_flow_to_trips: list[Path] = []
-
-    for parquet_path in parquet_files:
-        columns = inspect_parquet_columns(parquet_path)
-        if not columns:
-            continue
-
-        normalized = normalize_columns(columns)
-
-        if GOLONDRINA_FLOWS_REQUIRED.issubset(normalized):
-            valid_flow_parquets.append(parquet_path)
-            continue
-
-        if FLOW_TO_TRIPS_SIGNATURE.issubset(normalized):
-            auxiliary_flow_to_trips.append(parquet_path)
+    backend_specs = [
+        {
+            "storage_name": "parquet",
+            "format_name": GOLONDRINA_PARQUET_FORMAT,
+            "suffix": ".parquet",
+            "flows_name_hint": "flows.parquet",
+            "flow_to_trips_name_hint": "flow_to_trips.parquet",
+            "inspect_columns": inspect_parquet_columns,
+        },
+        {
+            "storage_name": "feather",
+            "format_name": GOLONDRINA_FEATHER_FORMAT,
+            "suffix": ".feather",
+            "flows_name_hint": "flows.feather",
+            "flow_to_trips_name_hint": "flow_to_trips.feather",
+            "inspect_columns": inspect_feather_columns,
+        },
+    ]
 
     dataset_nodes: list[dict[str, Any]] = []
 
-    # Si hay exactamente un flows parquet válido, se permite asociar sidecars auxiliares del layout v1.1.
-    attach_shared_aux_files = len(valid_flow_parquets) == 1
+    for backend in backend_specs:
+        candidate_files = sorted(
+            [p for p in dir_path.iterdir() if p.is_file() and p.suffix.lower() == backend["suffix"]]
+        )
 
-    for flows_parquet in valid_flow_parquets:
-        relative_dir = dir_path.relative_to(config.data_root)
+        valid_flow_files: list[Path] = []
+        auxiliary_flow_to_trips: list[Path] = []
 
-        # Id estable por ruta + stem del parquet para evitar colisiones si hay más de uno por carpeta.
-        dataset_id = make_dataset_id("golondrina", *relative_dir.parts, flows_parquet.stem)
+        for candidate_path in candidate_files:
+            columns = backend["inspect_columns"](candidate_path)
+            if not columns:
+                continue
 
-        # Si el archivo se llama "flows.parquet", el label por defecto queda más limpio usando el nombre de la carpeta.
-        label = dir_path.name if flows_parquet.stem == "flows" else flows_parquet.stem
+            normalized = normalize_columns(columns)
 
-        files: dict[str, str] = {
-            "flows": flows_parquet.name,
-        }
+            if GOLONDRINA_FLOWS_REQUIRED.issubset(normalized):
+                valid_flow_files.append(candidate_path)
+                continue
 
-        if attach_shared_aux_files:
+            if FLOW_TO_TRIPS_SIGNATURE.issubset(normalized):
+                auxiliary_flow_to_trips.append(candidate_path)
+
+        attach_shared_aux_files = len(valid_flow_files) == 1
+
+        for flows_file in valid_flow_files:
+            relative_dir = dir_path.relative_to(config.data_root)
+
+            dataset_id = make_dataset_id(
+                backend["storage_name"],
+                *relative_dir.parts,
+                flows_file.stem,
+            )
+
+            label = dir_path.name if flows_file.name == backend["flows_name_hint"] else flows_file.stem
+
+            files: dict[str, str] = {
+                "flows": flows_file.name,
+            }
+
             metadata_path = dir_path / "flows.metadata.json"
             if metadata_path.is_file():
                 files["metadata"] = metadata_path.name
 
-            flow_to_trips_path = dir_path / "flow_to_trips.parquet"
-            if flow_to_trips_path.is_file():
-                files["flow_to_trips"] = flow_to_trips_path.name
+            if attach_shared_aux_files:
+                preferred_aux_path = dir_path / backend["flow_to_trips_name_hint"]
+                if preferred_aux_path.is_file():
+                    files["flow_to_trips"] = preferred_aux_path.name
 
-        dataset_nodes.append(
-            build_dataset_node(
+            dataset_node = build_dataset_node(
                 dataset_id=dataset_id,
                 label=label,
-                format_name="golondrina_flows",
+                format_name=backend["format_name"],
                 dataset_path=dir_path,
                 files=files,
                 repo_root=config.repo_root,
             )
-        )
 
-    if auxiliary_flow_to_trips and not valid_flow_parquets:
-        log(
-            f"[golondrina] flow_to_trips detectado sin flows principal en: {dir_path}",
-            verbose=config.verbose,
-        )
+            dataset_nodes.append(dataset_node)
+
+        if auxiliary_flow_to_trips and not valid_flow_files:
+            log(
+                f"[{backend['storage_name']}] flow_to_trips detectado sin flows principal en: {dir_path}",
+                verbose=config.verbose,
+            )
 
     return dataset_nodes
 
@@ -392,10 +443,11 @@ def main() -> int:
     """Punto de entrada del script."""
     args = parse_args()
 
-    if pq is None:
+    if pq is None or feather is None:
         print(
             "ERROR: falta la dependencia 'pyarrow'.\n"
-            "Instálala en tu entorno Python para poder detectar datasets Golondrina en Parquet.\n"
+            "Instálala en tu entorno Python para poder detectar datasets Golondrina "
+            "en Parquet y Feather v2.\n"
             "Ejemplo:\n"
             "  pip install pyarrow\n"
             "o con conda:\n"

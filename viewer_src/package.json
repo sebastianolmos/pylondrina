@@ -18,7 +18,10 @@
     "maplibre-gl": "^3.3.1",
     "apache-arrow": "^21.1.0",
     "h3-js": "^4.4.0",
-    "parquet-wasm": "^0.7.1"
+    "parquet-wasm": "^0.7.1",
+    "@uwdata/flechette": "^2.2.0",
+    "lz4js": "^0.2.0",
+    "zstd-codec": "^0.1.5"
   },
   "devDependencies": {
     "lil-gui": "^0.21.0",

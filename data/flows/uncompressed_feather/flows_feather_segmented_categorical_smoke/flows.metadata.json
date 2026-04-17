@@ -3,15 +3,16 @@
   "format": "golondrina",
   "layout_version": "1.1",
   "storage": {
-    "format": "parquet",
+    "format": "feather",
     "options": {
-      "compression": "snappy"
+      "compression": "uncompressed",
+      "version": 2
     }
   },
-  "dataset_id": "flow-dset-small-001",
-  "artifact_id": "art_8ec77767-b0ff-43c4-ad78-8e049aa7e718",
+  "dataset_id": "flow-dset-segmented-categorical-001",
+  "artifact_id": "art_5ed71cc4-8993-4f2e-b197-372ac07bfc71",
   "files": {
-    "data": "flows.parquet",
+    "data": "flows.feather",
     "metadata": "flows.metadata.json",
     "flow_to_trips": null
   },
@@ -19,7 +20,6 @@
     "h3_resolution": 8,
     "group_by": [
       "mode",
-      "day_type",
       "user_gender"
     ],
     "time_aggregation": "hour",
@@ -39,7 +39,7 @@
     }
   },
   "metadata": {
-    "dataset_id": "flow-dset-small-001",
+    "dataset_id": "flow-dset-segmented-categorical-001",
     "is_validated": false,
     "events": [
       {
@@ -57,9 +57,9 @@
           "min_trips_per_flow": 1
         },
         "summary": {
-          "n_flows": 240,
-          "n_trips_in": 960,
-          "n_trips_aggregated": 960,
+          "n_flows": 720,
+          "n_trips_in": 2880,
+          "n_trips_aggregated": 2880,
           "n_trips_dropped": 0,
           "n_flow_to_trips_rows": null
         },
@@ -76,24 +76,24 @@
         "op": "write_flows",
         "ts_utc": "2026-04-17T02:14:17Z",
         "parameters": {
-          "path": "tmp_integration_flows\\artifacts\\case_15_write_explicit_parquet_still_works\\flows_write_explicit_parquet",
+          "path": "tmp_integration_flows\\artifacts\\case_17_feather_segmented_categorical_smoke\\flows_feather_segmented_categorical_smoke",
           "mode": "error_if_exists",
-          "storage_format": "parquet",
+          "storage_format": "feather",
           "parquet_compression": "snappy",
-          "feather_compression": "lz4",
+          "feather_compression": "uncompressed",
           "normalize_artifact_dir": false,
           "write_flow_to_trips": false
         },
         "summary": {
-          "n_flows": 240,
+          "n_flows": 720,
           "n_flow_to_trips": null,
-          "path": "tmp_integration_flows\\artifacts\\case_15_write_explicit_parquet_still_works\\flows_write_explicit_parquet",
+          "path": "tmp_integration_flows\\artifacts\\case_17_feather_segmented_categorical_smoke\\flows_feather_segmented_categorical_smoke",
           "files_written": [
-            "flows.parquet",
+            "flows.feather",
             "flows.metadata.json"
           ],
-          "dataset_id": "flow-dset-small-001",
-          "artifact_id": "art_8ec77767-b0ff-43c4-ad78-8e049aa7e718"
+          "dataset_id": "flow-dset-segmented-categorical-001",
+          "artifact_id": "art_5ed71cc4-8993-4f2e-b197-372ac07bfc71"
         },
         "issues_summary": {
           "counts": {
@@ -108,11 +108,11 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_8ec77767-b0ff-43c4-ad78-8e049aa7e718"
+    "artifact_id": "art_5ed71cc4-8993-4f2e-b197-372ac07bfc71"
   },
   "tables": {
     "flows": {
-      "n_rows": 240,
+      "n_rows": 720,
       "n_cols": 15,
       "columns": [
         "flow_id",

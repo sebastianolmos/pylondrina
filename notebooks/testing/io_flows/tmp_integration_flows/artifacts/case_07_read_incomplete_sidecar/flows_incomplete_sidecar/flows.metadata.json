@@ -64,7 +64,7 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:33Z",
+        "ts_utc": "2026-04-17T02:14:15Z",
         "parameters": {
           "path": "tmp_integration_flows\\artifacts\\case_07_read_incomplete_sidecar\\flows_incomplete_sidecar",
           "mode": "error_if_exists",
@@ -83,7 +83,7 @@
             "flows.metadata.json"
           ],
           "dataset_id": "flow-dset-small-001",
-          "artifact_id": "art_e6ce8b99-6ad7-46b6-869b-bdd9f22b5c87"
+          "artifact_id": "art_b74caf18-2329-475b-ab1c-5ceb3f6861bb"
         },
         "issues_summary": {
           "counts": {
@@ -98,7 +98,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_e6ce8b99-6ad7-46b6-869b-bdd9f22b5c87"
+    "artifact_id": "art_b74caf18-2329-475b-ab1c-5ceb3f6861bb"
   },
   "tables": {
     "flows": {

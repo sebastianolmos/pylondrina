@@ -9,7 +9,7 @@
     }
   },
   "dataset_id": "flow-dset-roundtrip-001",
-  "artifact_id": "art_49adee1b-a873-41e3-b056-dfe82855f09d",
+  "artifact_id": "art_22b55a2d-62b0-469b-9006-072640fc3612",
   "files": {
     "data": "flows.parquet",
     "metadata": "flows.metadata.json",
@@ -74,7 +74,7 @@
       },
       {
         "op": "write_flows",
-        "ts_utc": "2026-04-16T22:17:33Z",
+        "ts_utc": "2026-04-17T02:14:16Z",
         "parameters": {
           "path": "tmp_integration_flows\\artifacts\\case_09_roundtrip_policy\\flows_roundtrip",
           "mode": "error_if_exists",
@@ -94,7 +94,7 @@
             "flow_to_trips.parquet"
           ],
           "dataset_id": "flow-dset-roundtrip-001",
-          "artifact_id": "art_49adee1b-a873-41e3-b056-dfe82855f09d"
+          "artifact_id": "art_22b55a2d-62b0-469b-9006-072640fc3612"
         },
         "issues_summary": {
           "counts": {
@@ -109,7 +109,7 @@
     "notes": {
       "fixture": "integration_rich_flowdataset"
     },
-    "artifact_id": "art_49adee1b-a873-41e3-b056-dfe82855f09d"
+    "artifact_id": "art_22b55a2d-62b0-469b-9006-072640fc3612"
   },
   "tables": {
     "flows": {
