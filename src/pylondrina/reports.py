@@ -205,22 +205,25 @@ class ImportReport:
 @dataclass
 class InferenceReport:
     """
-    Reporte de inferencia de viajes desde trazas (GPS/XDR/POIs).
+    Reporte de inferencia de viajes desde trazas discretas.
 
     Attributes
     ----------
     ok : bool
-        True si se generó un conjunto de viajes; False si no.
+        True si la operación terminó sin issues de nivel ERROR.
     issues : list[Issue]
-        Hallazgos (p. ej., inconsistencias temporales, puntos inválidos, trayectorias incompletas).
+        Hallazgos agregados emitidos durante el pipeline de inferencia.
     summary : dict
-        Resumen de resultados (número de viajes, cobertura, descartes, etc.).
+        Resumen mínimo y estable de la inferencia (puntos, candidatos, descartes y viajes).
+    parameters : dict
+        Parámetros efectivos de ejecución, serializables y alineados con el evento.
     metadata : dict
-        Metadatos de parámetros de inferencia (umbral de detención, ventanas de tiempo, etc.).
+        Espacio opcional para contexto adicional del reporte cuando aplique.
     """
     ok: bool
     issues: List[Issue] = field(default_factory=list)
     summary: Dict[str, Any] = field(default_factory=dict)
+    parameters: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
