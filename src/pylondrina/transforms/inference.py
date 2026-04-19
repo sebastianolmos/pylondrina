@@ -355,6 +355,36 @@ def _resolve_infer_request(
             value=cluster_max_time_gap_s,
             allow_zero=False,
         )
+
+        if cluster_radius_m is None:
+            # En modo clusters este parámetro no es opcional; su ausencia es inconsistencia fatal.
+            emit_and_maybe_raise(
+                issues,
+                INFER_TRIPS_ISSUES,
+                "INF.OPTIONS.INVALID_CLUSTER_RADIUS",
+                strict=False,
+                exception_map=EXCEPTION_MAP_INFER,
+                default_exception=InferenceError,
+                option="cluster_radius_m",
+                value=cluster_radius_m,
+                expected="positive number",
+                action="abort",
+            )
+
+        if cluster_max_time_gap_s is None:
+            # En modo clusters este parámetro no es opcional; su ausencia es inconsistencia fatal.
+            emit_and_maybe_raise(
+                issues,
+                INFER_TRIPS_ISSUES,
+                "INF.OPTIONS.INVALID_CLUSTER_MAX_TIME_GAP",
+                strict=False,
+                exception_map=EXCEPTION_MAP_INFER,
+                default_exception=InferenceError,
+                option="cluster_max_time_gap_s",
+                value=cluster_max_time_gap_s,
+                expected="positive number",
+                action="abort",
+            )
     else:
         cluster_radius_m = None
         cluster_max_time_gap_s = None
@@ -1245,40 +1275,26 @@ def _enrich_trip_dataframe(
             )
 
     schema_fields = trip_schema.fields
-    for field_name, mapping in (value_correspondence or {}).items():
-        if field_name not in enriched.columns:
-            # Se emite warning porque se pidió normalización para un campo que no quedó materializado en el output.
-            emit_issue(
-                issues,
-                INFER_TRIPS_ISSUES,
-                "MAP.VALUES.FIELD_NOT_MATERIALIZED",
-                field=field_name,
-                output_fields_sample=_sample_list(enriched.columns, 20),
-                output_fields_total=len(enriched.columns),
-                reason="field_not_materialized",
-            )
-            continue
 
-        field_spec = schema_fields.get(field_name)
-        if field_spec is None or field_spec.dtype != "categorical":
-            # Se emite warning porque value_correspondence solo aplica a campos categóricos del TripSchema.
-            emit_issue(
-                issues,
-                INFER_TRIPS_ISSUES,
-                "MAP.VALUES.NON_CATEGORICAL_FIELD",
-                field=field_name,
-                field_dtype=getattr(field_spec, "dtype", None),
-                reason="value_mapping_on_non_categorical",
-            )
-            continue
+    categorical_output_fields = [
+        field_name
+        for field_name, field_spec in schema_fields.items()
+        if field_name in enriched.columns and getattr(field_spec, "dtype", None) == "categorical"
+    ]
 
-        normalized_series, field_domain_effective, field_applied_map, field_issues, field_dtype_effective = _normalize_output_categorical_field(
-            enriched[field_name],
-            field_name=field_name,
-            field_spec=field_spec,
-            value_mapping=mapping,
-            strict_domains=options_eff.strict_domains,
+    for field_name in categorical_output_fields:
+        mapping = dict((value_correspondence or {}).get(field_name, {}))
+
+        normalized_series, field_domain_effective, field_applied_map, field_issues, field_dtype_effective = (
+            _normalize_output_categorical_field(
+                enriched[field_name],
+                field_name=field_name,
+                field_spec=schema_fields[field_name],
+                value_mapping=mapping,
+                strict_domains=options_eff.strict_domains,
+            )
         )
+
         enriched[field_name] = normalized_series
         domains_effective[field_name] = field_domain_effective
         if field_applied_map:

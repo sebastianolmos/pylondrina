@@ -659,7 +659,7 @@ def _normalize_trace_time_utc(
     tz_source_used: Optional[str] = None
     timezone_resolution = "explicit_data_timezone"
     if ptypes.is_datetime64tz_dtype(parsed):
-        normalized = parsed.dt.tz_convert("UTC").dt.tz_localize(None)
+        normalized = parsed.dt.tz_convert("UTC")
         tz_source_used = "data"
     else:
         source_tz, _ = _normalize_timezone_spec(options_eff.source_timezone)
@@ -670,7 +670,7 @@ def _normalize_trace_time_utc(
             timezone_resolution = "options.source_timezone" if source_tz is not None else "schema.timezone"
             try:
                 localized = parsed.dt.tz_localize(effective_tz)
-                normalized = localized.dt.tz_convert("UTC").dt.tz_localize(None)
+                normalized = localized.dt.tz_convert("UTC")
             except Exception:
                 # Se emite error fatal porque la localización temporal explícita no pudo aplicarse correctamente.
                 emit_and_maybe_raise(
