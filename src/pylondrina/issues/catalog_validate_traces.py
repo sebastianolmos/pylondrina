@@ -246,7 +246,7 @@ VALIDATE_TRACES_ISSUES: dict[str, IssueSpec] = {
             "field": "time_utc",
             "action": "report_warning",
         },
-        exception="validate",
-        fatal=False,
+        #exception="validate",
+        #fatal=False,
     ),
 }
