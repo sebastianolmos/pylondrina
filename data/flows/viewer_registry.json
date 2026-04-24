@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at_utc": "2026-04-17T02:15:40Z",
+  "generated_at_utc": "2026-04-24T15:58:36Z",
   "root_label": "flows",
   "root_path": "/data/flows",
   "max_scan_depth": 10,
@@ -9,6 +9,542 @@
     "name": "flows",
     "path": "/data/flows",
     "children": [
+      {
+        "type": "directory",
+        "name": "demo_1_adatarap_viajes",
+        "path": "/data/flows/demo_1_adatarap_viajes",
+        "children": [
+          {
+            "type": "directory",
+            "name": "a1_baseline_06_13",
+            "path": "/data/flows/demo_1_adatarap_viajes/a1_baseline_06_13",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_1_adatarap_viajes__a1_baseline_06_13",
+                "label": "a1_baseline_06_13",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_1_adatarap_viajes/a1_baseline_06_13",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "a1_peak_07_10",
+            "path": "/data/flows/demo_1_adatarap_viajes/a1_peak_07_10",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_1_adatarap_viajes__a1_peak_07_10",
+                "label": "a1_peak_07_10",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_1_adatarap_viajes/a1_peak_07_10",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "a1_work_06_13",
+            "path": "/data/flows/demo_1_adatarap_viajes/a1_work_06_13",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_1_adatarap_viajes__a1_work_06_13",
+                "label": "a1_work_06_13",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_1_adatarap_viajes/a1_work_06_13",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_2_adatrap_etapas",
+        "path": "/data/flows/demo_2_adatrap_etapas",
+        "children": [
+          {
+            "type": "directory",
+            "name": "a2_baseline_stages_07_10",
+            "path": "/data/flows/demo_2_adatrap_etapas/a2_baseline_stages_07_10",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_2_adatrap_etapas__a2_baseline_stages_07_10",
+                "label": "a2_baseline_stages_07_10",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_2_adatrap_etapas/a2_baseline_stages_07_10",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "a2_mode_bus",
+            "path": "/data/flows/demo_2_adatrap_etapas/a2_mode_bus",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_2_adatrap_etapas__a2_mode_bus",
+                "label": "a2_mode_bus",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_2_adatrap_etapas/a2_mode_bus",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "a2_mode_metro",
+            "path": "/data/flows/demo_2_adatrap_etapas/a2_mode_metro",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_2_adatrap_etapas__a2_mode_metro",
+                "label": "a2_mode_metro",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_2_adatrap_etapas/a2_mode_metro",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_3_eod_viajes",
+        "path": "/data/flows/demo_3_eod_viajes",
+        "children": [
+          {
+            "type": "directory",
+            "name": "b1_baseline_estudio",
+            "path": "/data/flows/demo_3_eod_viajes/b1_baseline_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes__b1_baseline_estudio",
+                "label": "b1_baseline_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_baseline_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_flows_baseline_estudio.golondrina",
+            "path": "/data/flows/demo_3_eod_viajes/b1_flows_baseline_estudio.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_3_eod_viajes__b1_flows_baseline_estudio.golondrina__flows",
+                "label": "b1_flows_baseline_estudio.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_flows_baseline_estudio.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json",
+                  "flow_to_trips": "flow_to_trips.feather"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_flows_baseline_parquet.golondrina",
+            "path": "/data/flows/demo_3_eod_viajes/b1_flows_baseline_parquet.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "parquet__demo_3_eod_viajes__b1_flows_baseline_parquet.golondrina__flows",
+                "label": "b1_flows_baseline_parquet.golondrina",
+                "format": "golondrina_parquet",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_flows_baseline_parquet.golondrina",
+                "files": {
+                  "flows": "flows.parquet",
+                  "metadata": "flows.metadata.json",
+                  "flow_to_trips": "flow_to_trips.parquet"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_hombre_estudio",
+            "path": "/data/flows/demo_3_eod_viajes/b1_hombre_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes__b1_hombre_estudio",
+                "label": "b1_hombre_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_hombre_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_mujer_estudio",
+            "path": "/data/flows/demo_3_eod_viajes/b1_mujer_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes__b1_mujer_estudio",
+                "label": "b1_mujer_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_mujer_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_peak_am_estudio",
+            "path": "/data/flows/demo_3_eod_viajes/b1_peak_am_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes__b1_peak_am_estudio",
+                "label": "b1_peak_am_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes/b1_peak_am_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_4_eod_etapas",
+        "path": "/data/flows/demo_4_eod_etapas",
+        "children": [
+          {
+            "type": "directory",
+            "name": "b2_baseline_stages.golondrina",
+            "path": "/data/flows/demo_4_eod_etapas/b2_baseline_stages.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_4_eod_etapas__b2_baseline_stages.golondrina__flows",
+                "label": "b2_baseline_stages.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_4_eod_etapas/b2_baseline_stages.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b2_mode_bus.golondrina",
+            "path": "/data/flows/demo_4_eod_etapas/b2_mode_bus.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_4_eod_etapas__b2_mode_bus.golondrina__flows",
+                "label": "b2_mode_bus.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_4_eod_etapas/b2_mode_bus.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b2_mode_metro.golondrina",
+            "path": "/data/flows/demo_4_eod_etapas/b2_mode_metro.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_4_eod_etapas__b2_mode_metro.golondrina__flows",
+                "label": "b2_mode_metro.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_4_eod_etapas/b2_mode_metro.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_5_foursquare_traces",
+        "path": "/data/flows/demo_5_foursquare_traces",
+        "children": [
+          {
+            "type": "directory",
+            "name": "c_foursquare_baseline.golondrina",
+            "path": "/data/flows/demo_5_foursquare_traces/c_foursquare_baseline.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_5_foursquare_traces__c_foursquare_baseline.golondrina__flows",
+                "label": "c_foursquare_baseline.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_5_foursquare_traces/c_foursquare_baseline.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "c_foursquare_weekday.golondrina",
+            "path": "/data/flows/demo_5_foursquare_traces/c_foursquare_weekday.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_5_foursquare_traces__c_foursquare_weekday.golondrina__flows",
+                "label": "c_foursquare_weekday.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_5_foursquare_traces/c_foursquare_weekday.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "c_foursquare_weekend.golondrina",
+            "path": "/data/flows/demo_5_foursquare_traces/c_foursquare_weekend.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_5_foursquare_traces__c_foursquare_weekend.golondrina__flows",
+                "label": "c_foursquare_weekend.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_5_foursquare_traces/c_foursquare_weekend.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_6_telefonia_traces",
+        "path": "/data/flows/demo_6_telefonia_traces",
+        "children": [
+          {
+            "type": "directory",
+            "name": "d_nuble_baseline.golondrina",
+            "path": "/data/flows/demo_6_telefonia_traces/d_nuble_baseline.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_6_telefonia_traces__d_nuble_baseline.golondrina__flows",
+                "label": "d_nuble_baseline.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_6_telefonia_traces/d_nuble_baseline.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "d_rm_baseline.golondrina",
+            "path": "/data/flows/demo_6_telefonia_traces/d_rm_baseline.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_6_telefonia_traces__d_rm_baseline.golondrina__flows",
+                "label": "d_rm_baseline.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_6_telefonia_traces/d_rm_baseline.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "d_rm_peak_am.golondrina",
+            "path": "/data/flows/demo_6_telefonia_traces/d_rm_peak_am.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_6_telefonia_traces__d_rm_peak_am.golondrina__flows",
+                "label": "d_rm_peak_am.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_6_telefonia_traces/d_rm_peak_am.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_7_awto_traces",
+        "path": "/data/flows/demo_7_awto_traces",
+        "children": [
+          {
+            "type": "directory",
+            "name": "e_awto_12_16.golondrina",
+            "path": "/data/flows/demo_7_awto_traces/e_awto_12_16.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_7_awto_traces__e_awto_12_16.golondrina__flows",
+                "label": "e_awto_12_16.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_7_awto_traces/e_awto_12_16.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "e_awto_baseline.golondrina",
+            "path": "/data/flows/demo_7_awto_traces/e_awto_baseline.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_7_awto_traces__e_awto_baseline.golondrina__flows",
+                "label": "e_awto_baseline.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_7_awto_traces/e_awto_baseline.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_8_scooters_trips",
+        "path": "/data/flows/demo_8_scooters_trips",
+        "children": [
+          {
+            "type": "directory",
+            "name": "f_scooters_baseline.golondrina",
+            "path": "/data/flows/demo_8_scooters_trips/f_scooters_baseline.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_8_scooters_trips__f_scooters_baseline.golondrina__flows",
+                "label": "f_scooters_baseline.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_8_scooters_trips/f_scooters_baseline.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "f_scooters_evening_18_22.golondrina",
+            "path": "/data/flows/demo_8_scooters_trips/f_scooters_evening_18_22.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_8_scooters_trips__f_scooters_evening_18_22.golondrina__flows",
+                "label": "f_scooters_evening_18_22.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_8_scooters_trips/f_scooters_evening_18_22.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "f_scooters_march_2019.golondrina",
+            "path": "/data/flows/demo_8_scooters_trips/f_scooters_march_2019.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_8_scooters_trips__f_scooters_march_2019.golondrina__flows",
+                "label": "f_scooters_march_2019.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_8_scooters_trips/f_scooters_march_2019.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
       {
         "type": "directory",
         "name": "flowmap_layout",

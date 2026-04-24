@@ -1,0 +1,156 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_7cd9b0fe6529",
+  "created_at_utc": "2026-04-24T06:10:16.045577Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_52834fa5b699",
+    "aggregation_spec": {
+      "h3_resolution": 8,
+      "group_by": [
+        "mode"
+      ],
+      "time_aggregation": "none",
+      "time_basis": "origin",
+      "min_trips_per_flow": 5,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "mode"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "flows",
+          "dataset_id": "flows_52834fa5b699",
+          "artifact_id": null,
+          "n_rows": 21464
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T06:09:36.253197Z"
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_52834fa5b699",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T06:09:36.253197Z",
+          "parameters": {
+            "h3_resolution": 8,
+            "group_by": [
+              "mode"
+            ],
+            "time_aggregation": "none",
+            "time_basis": "origin",
+            "min_trips_per_flow": 5,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 859967,
+            "n_trips_eligible": 859967,
+            "n_trips_dropped": 0,
+            "n_flows_out": 21464,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        },
+        {
+          "op": "filter_flows",
+          "ts_utc": "2026-04-24T06:09:52.341913Z",
+          "parameters": {
+            "where": {
+              "mode": "metro"
+            },
+            "h3_cells": null,
+            "spatial_predicate": "origin",
+            "keep_flow_to_trips": false,
+            "keep_metadata": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "rows_in": 21464,
+            "rows_out": 6245,
+            "dropped_total": 15219,
+            "dropped_by_filter": {
+              "where": 15219,
+              "h3_cells": 0
+            },
+            "filters_requested": [
+              "where"
+            ],
+            "filters_applied": [
+              "where"
+            ],
+            "filters_omitted": [],
+            "flow_to_trips_status": "not_requested"
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 1,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": [
+              {
+                "code": "FLT_FLOW.WHERE.APPLIED",
+                "count": 1
+              }
+            ]
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 8
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "C:\\projects\\pylondrina\\data\\flows\\demo_2_adatrap_etapas",
+      "export_dir": "C:\\projects\\pylondrina\\data\\flows\\demo_2_adatrap_etapas\\a2_mode_metro",
+      "format": "flowmap_blue",
+      "mode": "overwrite",
+      "folder_name": "a2_mode_metro",
+      "extra_flow_fields": null
+    },
+    "summary": {
+      "n_flows": 6245,
+      "n_locations": 94,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flows_d6cbc9e41b54",
+  "artifact_id": "art_9697fd8e-e527-4026-960b-96bcbb5c01d4",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 7,
+    "group_by": [],
+    "time_aggregation": "none",
+    "time_basis": "origin",
+    "min_trips_per_flow": 5,
+    "keep_flow_to_trips": false,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "tripds_1625ec6f7f614b71bc63f3d9021c665d",
+        "schema_version": "foursquare-inferred-trips-c1",
+        "n_rows": 154129
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "infer_trips",
+        "ts_utc": "2026-04-24T11:04:37Z",
+        "summary": {
+          "infer_mode": "consecutive_points",
+          "n_points_in": 1306408,
+          "n_candidates_in": 1265321,
+          "n_candidates_dropped": 768699,
+          "n_trips_out": 496622,
+          "dropped_by_reason": {
+            "max_time_delta_s": 626077,
+            "min_time_delta_s": 65513,
+            "min_distance_m": 207946
+          }
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T11:09:04Z",
+        "summary": {
+          "ok": true,
+          "n_rows": 496622,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "destination_category",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "movement_id",
+            "movement_seq",
+            "origin_category",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "trip_id",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "foursquare-inferred-trips-c1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {
+              "origin_category": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 24832,
+                "n_in_domain": 24832
+              },
+              "destination_category": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 24832,
+                "n_in_domain": 24832
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 496622,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        }
+      },
+      {
+        "op": "filter_trips",
+        "ts_utc": "2026-04-24T11:11:03.143901Z",
+        "summary": {
+          "rows_in": 496622,
+          "rows_out": 198911,
+          "dropped_total": 297711,
+          "dropped_by_filter": {
+            "where": 0,
+            "time": 297711,
+            "bbox": 0,
+            "polygon": 0,
+            "h3_cells": 0
+          },
+          "filters_requested": [
+            "time"
+          ],
+          "filters_applied": [
+            "time"
+          ],
+          "filters_omitted": []
+        }
+      },
+      {
+        "op": "filter_trips",
+        "ts_utc": "2026-04-24T11:14:19.893865Z",
+        "summary": {
+          "rows_in": 198911,
+          "rows_out": 154129,
+          "dropped_total": 44782,
+          "dropped_by_filter": {
+            "where": 44782,
+            "time": 0,
+            "bbox": 0,
+            "polygon": 0,
+            "h3_cells": 0
+          },
+          "filters_requested": [
+            "where"
+          ],
+          "filters_applied": [
+            "where"
+          ],
+          "filters_omitted": []
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_d6cbc9e41b54",
+    "artifact_id": "art_9697fd8e-e527-4026-960b-96bcbb5c01d4",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-24T11:15:58.633247Z",
+        "parameters": {
+          "h3_resolution": 7,
+          "group_by": null,
+          "time_aggregation": "none",
+          "time_basis": "origin",
+          "min_trips_per_flow": 5,
+          "keep_flow_to_trips": false,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 154129,
+          "n_trips_eligible": 154129,
+          "n_trips_dropped": 0,
+          "n_flows_out": 3845,
+          "n_flow_to_trips_rows": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-24T11:17:21Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_5_foursquare_traces\\c_foursquare_weekday.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 3845,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_5_foursquare_traces\\c_foursquare_weekday.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_d6cbc9e41b54",
+          "artifact_id": "art_9697fd8e-e527-4026-960b-96bcbb5c01d4"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 7
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 3845,
+      "n_cols": 5,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}

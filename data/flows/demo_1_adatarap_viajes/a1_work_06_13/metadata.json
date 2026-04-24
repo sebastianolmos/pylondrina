@@ -1,0 +1,349 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_9e39a919cf54",
+  "created_at_utc": "2026-04-24T03:12:51.895910Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_6157ae441bf3",
+    "aggregation_spec": {
+      "h3_resolution": 8,
+      "group_by": [],
+      "time_aggregation": "none",
+      "time_basis": "origin",
+      "min_trips_per_flow": 5,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "tripds_9339f85bf45b42e59e8ce79cd57e4499",
+          "schema_version": "adatrap-trips-lvl1-a1",
+          "n_rows": 643287
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "import_trips",
+          "ts_utc": "2026-04-24T03:09:38.930843+00:00",
+          "summary": {
+            "input_rows": 1455831,
+            "output_rows": 1455831,
+            "rows_dropped": 0,
+            "n_fields_mapped": 8,
+            "n_domain_mappings_applied": 11,
+            "columns_added": [
+              "origin_h3_index",
+              "destination_h3_index",
+              "trip_id",
+              "movement_seq"
+            ],
+            "columns_deleted": [],
+            "domains_extended_count": 0,
+            "temporal_tier": "tier_1",
+            "temporal_notes": null
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T03:10:02Z",
+          "summary": {
+            "ok": false,
+            "n_rows": 1455831,
+            "n_issues": 2,
+            "n_errors": 2,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 2,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {
+              "VAL.CORE.OD_SPATIAL_BOTH_MISSING": 1,
+              "VAL.TEMPORAL.ORIGIN_AFTER_DESTINATION": 1
+            },
+            "checked_fields": [
+              "day_type",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "purpose",
+              "time_period",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "adatrap-trips-lvl1-a1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "purpose": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 29117,
+                  "n_in_domain": 29117
+                },
+                "day_type": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 29117,
+                  "n_in_domain": 29117
+                },
+                "time_period": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 22877,
+                  "n_in_domain": 22877
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 1244289,
+              "n_violations": 65,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 2,
+              "n_issues_detected_total": 2
+            }
+          }
+        },
+        {
+          "op": "clean_trips",
+          "ts_utc": "2026-04-24T03:10:21.671609+00:00",
+          "summary": {
+            "rows_in": 1455831,
+            "rows_out": 888830,
+            "dropped_total": 567001,
+            "dropped_by_rule": {
+              "nulls_required": 485131,
+              "nulls_fields": 0,
+              "invalid_latlon": 0,
+              "invalid_h3": 0,
+              "origin_after_destination": 62,
+              "duplicates": 0,
+              "categorical_values": 81808
+            }
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T03:10:51Z",
+          "summary": {
+            "ok": true,
+            "n_rows": 888830,
+            "n_issues": 0,
+            "n_errors": 0,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 0,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {},
+            "checked_fields": [
+              "day_type",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "purpose",
+              "time_period",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "adatrap-trips-lvl1-a1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "purpose": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 17777,
+                  "n_in_domain": 17777
+                },
+                "day_type": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 17777,
+                  "n_in_domain": 17777
+                },
+                "time_period": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 17777,
+                  "n_in_domain": 17777
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 888830,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 0,
+              "n_issues_detected_total": 0
+            }
+          }
+        },
+        {
+          "op": "filter_trips",
+          "ts_utc": "2026-04-24T03:11:11.019907Z",
+          "summary": {
+            "rows_in": 888830,
+            "rows_out": 643287,
+            "dropped_total": 245543,
+            "dropped_by_filter": {
+              "where": 245543,
+              "time": 0,
+              "bbox": 0,
+              "polygon": 0,
+              "h3_cells": 0
+            },
+            "filters_requested": [
+              "where"
+            ],
+            "filters_applied": [
+              "where"
+            ],
+            "filters_omitted": []
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_6157ae441bf3",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T03:12:09.182227Z",
+          "parameters": {
+            "h3_resolution": 8,
+            "group_by": null,
+            "time_aggregation": "none",
+            "time_basis": "origin",
+            "min_trips_per_flow": 5,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 643287,
+            "n_trips_eligible": 643287,
+            "n_trips_dropped": 0,
+            "n_flows_out": 22691,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 8
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "C:\\projects\\pylondrina\\data\\flows\\demo_1_adatarap_viajes",
+      "export_dir": "C:\\projects\\pylondrina\\data\\flows\\demo_1_adatarap_viajes\\a1_work_06_13",
+      "format": "flowmap_blue",
+      "mode": "overwrite",
+      "folder_name": "a1_work_06_13",
+      "extra_flow_fields": null
+    },
+    "summary": {
+      "n_flows": 22691,
+      "n_locations": 887,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}

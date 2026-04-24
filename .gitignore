@@ -214,6 +214,10 @@ __marimo__/
 *.viajes
 *_Checkins.csv
 *_POIs.csv
+*_POIs_fixed.csv
+data/awto/
+data/telefonia/
+data/scooters/
 
 # viewer source deps/cache
 viewer_src/node_modules/

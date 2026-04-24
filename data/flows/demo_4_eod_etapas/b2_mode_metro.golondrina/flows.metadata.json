@@ -1,0 +1,187 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flows_e4b8695a973e",
+  "artifact_id": "art_10d9ab45-5b5a-4441-b359-32a1a60b2fa5",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 7,
+    "group_by": [
+      "mode"
+    ],
+    "time_aggregation": "none",
+    "time_basis": "origin",
+    "min_trips_per_flow": 5,
+    "keep_flow_to_trips": false,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index",
+      "mode"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "flows",
+        "dataset_id": "flows_e4b8695a973e",
+        "artifact_id": null,
+        "n_rows": 3789
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-24T09:44:46.800076Z"
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_e4b8695a973e",
+    "artifact_id": "art_10d9ab45-5b5a-4441-b359-32a1a60b2fa5",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-24T09:44:46.800076Z",
+        "parameters": {
+          "h3_resolution": 7,
+          "group_by": [
+            "mode"
+          ],
+          "time_aggregation": "none",
+          "time_basis": "origin",
+          "min_trips_per_flow": 5,
+          "keep_flow_to_trips": false,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 74862,
+          "n_trips_eligible": 74862,
+          "n_trips_dropped": 0,
+          "n_flows_out": 3789,
+          "n_flow_to_trips_rows": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "filter_flows",
+        "ts_utc": "2026-04-24T09:46:03.175400Z",
+        "parameters": {
+          "where": {
+            "mode": "metro"
+          },
+          "h3_cells": null,
+          "spatial_predicate": "origin",
+          "keep_flow_to_trips": false,
+          "keep_metadata": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "rows_in": 3789,
+          "rows_out": 580,
+          "dropped_total": 3209,
+          "dropped_by_filter": {
+            "where": 3209,
+            "h3_cells": 0
+          },
+          "filters_requested": [
+            "where"
+          ],
+          "filters_applied": [
+            "where"
+          ],
+          "filters_omitted": [],
+          "flow_to_trips_status": "not_requested"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 1,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": [
+            {
+              "code": "FLT_FLOW.WHERE.APPLIED",
+              "count": 1
+            }
+          ]
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-24T09:47:47Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_4_eod_etapas\\b2_mode_metro.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 580,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_4_eod_etapas\\b2_mode_metro.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_e4b8695a973e",
+          "artifact_id": "art_10d9ab45-5b5a-4441-b359-32a1a60b2fa5"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 7
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 580,
+      "n_cols": 6,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "mode",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}

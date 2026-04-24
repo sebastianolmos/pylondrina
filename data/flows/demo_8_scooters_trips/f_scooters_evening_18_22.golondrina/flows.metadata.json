@@ -1,0 +1,280 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flows_6f84e144c9df",
+  "artifact_id": "art_a86428d4-e267-4f57-a472-d60927fe6f1a",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [],
+    "time_aggregation": "none",
+    "time_basis": "origin",
+    "min_trips_per_flow": 3,
+    "keep_flow_to_trips": false,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "tripds_a575bfe16a9d44358d5c3acefed36149",
+        "schema_version": "scooters-trips-f1",
+        "n_rows": 17575
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "import_trips",
+        "ts_utc": "2026-04-24T15:48:58.191661+00:00",
+        "summary": {
+          "input_rows": 44964,
+          "output_rows": 44964,
+          "rows_dropped": 0,
+          "n_fields_mapped": 2,
+          "n_domain_mappings_applied": 0,
+          "columns_added": [
+            "origin_h3_index",
+            "destination_h3_index",
+            "movement_id",
+            "trip_id",
+            "movement_seq"
+          ],
+          "columns_deleted": [],
+          "domains_extended_count": 0,
+          "temporal_tier": "tier_1",
+          "temporal_notes": null
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T15:49:41Z",
+        "summary": {
+          "ok": true,
+          "n_rows": 44964,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "average_speed",
+            "coverage_period",
+            "departure_period",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "destination_zone",
+            "distance_covered",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "origin_zone",
+            "travel_time_minutes",
+            "trip_id",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "scooters-trips-f1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {
+              "departure_period": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 2249,
+                "n_in_domain": 2249
+              },
+              "coverage_period": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 2249,
+                "n_in_domain": 2249
+              },
+              "origin_zone": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 2249,
+                "n_in_domain": 2249
+              },
+              "destination_zone": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 2249,
+                "n_in_domain": 2249
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 44964,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        }
+      },
+      {
+        "op": "filter_trips",
+        "ts_utc": "2026-04-24T15:53:13.225427Z",
+        "summary": {
+          "rows_in": 44964,
+          "rows_out": 17575,
+          "dropped_total": 27389,
+          "dropped_by_filter": {
+            "where": 27389,
+            "time": 0,
+            "bbox": 0,
+            "polygon": 0,
+            "h3_cells": 0
+          },
+          "filters_requested": [
+            "where"
+          ],
+          "filters_applied": [
+            "where"
+          ],
+          "filters_omitted": []
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_6f84e144c9df",
+    "artifact_id": "art_a86428d4-e267-4f57-a472-d60927fe6f1a",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-24T15:55:51.939652Z",
+        "parameters": {
+          "h3_resolution": 8,
+          "group_by": null,
+          "time_aggregation": "none",
+          "time_basis": "origin",
+          "min_trips_per_flow": 3,
+          "keep_flow_to_trips": false,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 17575,
+          "n_trips_eligible": 17575,
+          "n_trips_dropped": 0,
+          "n_flows_out": 582,
+          "n_flow_to_trips_rows": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-24T15:56:30Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_8_scooters_trips\\f_scooters_evening_18_22.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 582,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_8_scooters_trips\\f_scooters_evening_18_22.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_6f84e144c9df",
+          "artifact_id": "art_a86428d4-e267-4f57-a472-d60927fe6f1a"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 8
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 582,
+      "n_cols": 5,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}

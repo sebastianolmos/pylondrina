@@ -1,0 +1,212 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flows_198b3a6fd2af",
+  "artifact_id": "art_0a58b178-d614-4b7c-b3cc-c48fe6fe7bf2",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [],
+    "time_aggregation": "none",
+    "time_basis": "origin",
+    "min_trips_per_flow": 2,
+    "keep_flow_to_trips": false,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "tripds_4a687d565c0e4bd98d5ea3d9bd395d2b",
+        "schema_version": "telefonia-inferred-trips-d1",
+        "n_rows": 11179
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "infer_trips",
+        "ts_utc": "2026-04-24T13:14:32Z",
+        "summary": {
+          "infer_mode": "consecutive_clusters",
+          "n_points_in": 52292,
+          "n_candidates_in": 11179,
+          "n_candidates_dropped": 0,
+          "n_trips_out": 11179,
+          "dropped_by_reason": {},
+          "n_clusters_out": 52280
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T13:15:54Z",
+        "summary": {
+          "ok": true,
+          "n_rows": 11179,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "trip_id",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "telefonia-inferred-trips-d1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {}
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 11179,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_198b3a6fd2af",
+    "artifact_id": "art_0a58b178-d614-4b7c-b3cc-c48fe6fe7bf2",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-24T13:31:16.589993Z",
+        "parameters": {
+          "h3_resolution": 8,
+          "group_by": null,
+          "time_aggregation": "none",
+          "time_basis": "origin",
+          "min_trips_per_flow": 2,
+          "keep_flow_to_trips": false,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 11179,
+          "n_trips_eligible": 11179,
+          "n_trips_dropped": 0,
+          "n_flows_out": 132,
+          "n_flow_to_trips_rows": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-24T13:31:30Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_6_telefonia_traces\\d_nuble_baseline.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 132,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\demo_6_telefonia_traces\\d_nuble_baseline.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_198b3a6fd2af",
+          "artifact_id": "art_0a58b178-d614-4b7c-b3cc-c48fe6fe7bf2"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 8
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 132,
+      "n_cols": 5,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}

@@ -1,0 +1,3137 @@
+{
+  "dataset_type": "trips",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+  "artifact_id": "art_c207f9dc-d8df-4537-ac53-61394f5abfcb",
+  "files": {
+    "data": "trips.feather",
+    "metadata": "trips.metadata.json"
+  },
+  "schema": {
+    "version": "eod-trips-b1",
+    "fields": {
+      "movement_id": {
+        "name": "movement_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "unique": true,
+          "length": {
+            "min": 1,
+            "max": 80
+          }
+        },
+        "domain": null
+      },
+      "trip_id": {
+        "name": "trip_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "length": {
+            "min": 1,
+            "max": 80
+          }
+        },
+        "domain": null
+      },
+      "movement_seq": {
+        "name": "movement_seq",
+        "dtype": "int",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "range": {
+            "min": 0
+          }
+        },
+        "domain": null
+      },
+      "user_id": {
+        "name": "user_id",
+        "dtype": "string",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "length": {
+            "min": 1,
+            "max": 80
+          }
+        },
+        "domain": null
+      },
+      "origin_longitude": {
+        "name": "origin_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "range": {
+            "min": -180.0,
+            "max": 180.0
+          }
+        },
+        "domain": null
+      },
+      "origin_latitude": {
+        "name": "origin_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "range": {
+            "min": -90.0,
+            "max": 90.0
+          }
+        },
+        "domain": null
+      },
+      "destination_longitude": {
+        "name": "destination_longitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "range": {
+            "min": -180.0,
+            "max": 180.0
+          }
+        },
+        "domain": null
+      },
+      "destination_latitude": {
+        "name": "destination_latitude",
+        "dtype": "float",
+        "required": true,
+        "constraints": {
+          "nullable": false,
+          "range": {
+            "min": -90.0,
+            "max": 90.0
+          }
+        },
+        "domain": null
+      },
+      "origin_time_utc": {
+        "name": "origin_time_utc",
+        "dtype": "datetime",
+        "required": false,
+        "constraints": {
+          "nullable": true,
+          "datetime": {
+            "allow_naive": false
+          }
+        },
+        "domain": null
+      },
+      "destination_time_utc": {
+        "name": "destination_time_utc",
+        "dtype": "datetime",
+        "required": false,
+        "constraints": {
+          "nullable": true,
+          "datetime": {
+            "allow_naive": false
+          }
+        },
+        "domain": null
+      },
+      "origin_h3_index": {
+        "name": "origin_h3_index",
+        "dtype": "string",
+        "required": false,
+        "constraints": {
+          "nullable": true,
+          "h3": {
+            "require_valid": true,
+            "resolution": 10
+          }
+        },
+        "domain": null
+      },
+      "destination_h3_index": {
+        "name": "destination_h3_index",
+        "dtype": "string",
+        "required": false,
+        "constraints": {
+          "nullable": true,
+          "h3": {
+            "require_valid": true,
+            "resolution": 10
+          }
+        },
+        "domain": null
+      },
+      "trip_weight": {
+        "name": "trip_weight",
+        "dtype": "float",
+        "required": false,
+        "constraints": {
+          "nullable": true,
+          "range": {
+            "min": 0.0
+          }
+        },
+        "domain": null
+      },
+      "ComunaOrigen": {
+        "name": "ComunaOrigen",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "ComunaDestino": {
+        "name": "ComunaDestino",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "Proposito": {
+        "name": "Proposito",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "ModoAgregado": {
+        "name": "ModoAgregado",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "TipoDia": {
+        "name": "TipoDia",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [
+            "Día habil",
+            "Día festivo"
+          ],
+          "extendable": false,
+          "aliases": null
+        }
+      },
+      "CodigoTiempo": {
+        "name": "CodigoTiempo",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "Sexo": {
+        "name": "Sexo",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [
+            "Hombre",
+            "Mujer"
+          ],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "Actividad": {
+        "name": "Actividad",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      },
+      "ModoMotor": {
+        "name": "ModoMotor",
+        "dtype": "categorical",
+        "required": false,
+        "constraints": {
+          "nullable": true
+        },
+        "domain": {
+          "values": [],
+          "extendable": true,
+          "aliases": null
+        }
+      }
+    },
+    "required": [
+      "movement_id",
+      "trip_id",
+      "movement_seq",
+      "user_id",
+      "origin_longitude",
+      "origin_latitude",
+      "destination_longitude",
+      "destination_latitude"
+    ],
+    "semantic_rules": null
+  },
+  "schema_effective": {
+    "dtype_effective": {
+      "movement_id": "string",
+      "trip_id": "string",
+      "movement_seq": "int",
+      "user_id": "string",
+      "origin_longitude": "float",
+      "origin_latitude": "float",
+      "destination_longitude": "float",
+      "destination_latitude": "float",
+      "origin_time_utc": "datetime",
+      "destination_time_utc": "datetime",
+      "origin_h3_index": "string",
+      "destination_h3_index": "string",
+      "trip_weight": "float",
+      "ComunaOrigen": "categorical",
+      "ComunaDestino": "categorical",
+      "Proposito": "categorical",
+      "ModoAgregado": "categorical",
+      "TipoDia": "categorical",
+      "CodigoTiempo": "categorical",
+      "Sexo": "categorical",
+      "Actividad": "categorical",
+      "ModoMotor": "categorical"
+    },
+    "overrides": {
+      "ComunaOrigen": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3868.05,
+          "n_rows_non_null": 77361
+        }
+      },
+      "ComunaDestino": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3863.55,
+          "n_rows_non_null": 77271
+        }
+      },
+      "Proposito": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3940.6000000000004,
+          "n_rows_non_null": 78812
+        }
+      },
+      "ModoAgregado": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      },
+      "CodigoTiempo": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3930.05,
+          "n_rows_non_null": 78601
+        }
+      },
+      "Actividad": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3676.4500000000003,
+          "n_rows_non_null": 73529
+        }
+      },
+      "ModoMotor": {
+        "reasons": [
+          "categorical_domain_inferred_from_observed_values"
+        ],
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      }
+    },
+    "domains_effective": {
+      "ComunaOrigen": {
+        "base_values": [],
+        "observed_values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 45,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3868.05,
+          "n_rows_non_null": 77361
+        }
+      },
+      "ComunaDestino": {
+        "base_values": [],
+        "observed_values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 45,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3863.55,
+          "n_rows_non_null": 77271
+        }
+      },
+      "Proposito": {
+        "values": [
+          "A casa",
+          "Buscar o Dejar a alguien",
+          "Buscar o dejar algo",
+          "Entretención",
+          "Estudio",
+          "Otro",
+          "Salud",
+          "Trabajo",
+          "Trámites",
+          "Visitar a alguien"
+        ],
+        "extended": true,
+        "added_values": [
+          "A casa",
+          "Buscar o Dejar a alguien",
+          "Buscar o dejar algo",
+          "Entretención",
+          "Estudio",
+          "Otro",
+          "Salud",
+          "Trabajo",
+          "Trámites",
+          "Visitar a alguien"
+        ],
+        "strict_applied": false
+      },
+      "ModoAgregado": {
+        "base_values": [],
+        "observed_values": [
+          "Auto",
+          "Auto - Metro",
+          "Bicicleta",
+          "Bus TS",
+          "Bus TS - Bus no TS",
+          "Bus TS - Metro",
+          "Bus no TS",
+          "Bus no TS - Metro",
+          "Caminata",
+          "Metro",
+          "Otros",
+          "Otros - Bus TS",
+          "Otros - Bus TS - Metro",
+          "Otros - Metro",
+          "Taxi",
+          "Taxi - Metro",
+          "Taxi Colectivo",
+          "Taxi Colectivo - Metro"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 18,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Auto",
+          "Auto - Metro",
+          "Bicicleta",
+          "Bus TS",
+          "Bus TS - Bus no TS",
+          "Bus TS - Metro",
+          "Bus no TS",
+          "Bus no TS - Metro",
+          "Caminata",
+          "Metro",
+          "Otros",
+          "Otros - Bus TS",
+          "Otros - Bus TS - Metro",
+          "Otros - Metro",
+          "Taxi",
+          "Taxi - Metro",
+          "Taxi Colectivo",
+          "Taxi Colectivo - Metro"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      },
+      "TipoDia": {
+        "base_values": [
+          "Día festivo",
+          "Día habil"
+        ],
+        "observed_values": [
+          "Día habil"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": false,
+        "unknown_value": "unknown",
+        "n_unique_observed": 1,
+        "n_added": 0,
+        "value_correspondence_applied": {
+          "Laboral": "Día habil"
+        },
+        "values": [
+          "Día festivo",
+          "Día habil",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "CodigoTiempo": {
+        "base_values": [],
+        "observed_values": [
+          "Inconsistencia en reporte de horas",
+          "Tiempo con distancia = 0",
+          "Tiempo de viaje correcto",
+          "Tiempo sin coordenadas geográficas",
+          "Viaje hacia (o desde) zona externa",
+          "Viaje motorizado corto (200 m o menos)"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 6,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Inconsistencia en reporte de horas",
+          "Tiempo con distancia = 0",
+          "Tiempo de viaje correcto",
+          "Tiempo sin coordenadas geográficas",
+          "Viaje hacia (o desde) zona externa",
+          "Viaje motorizado corto (200 m o menos)"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3930.05,
+          "n_rows_non_null": 78601
+        }
+      },
+      "Sexo": {
+        "base_values": [
+          "Hombre",
+          "Mujer"
+        ],
+        "observed_values": [
+          "Hombre",
+          "Mujer"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 2,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Hombre",
+          "Mujer",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "Actividad": {
+        "base_values": [],
+        "observed_values": [
+          "Busca trabajo por primera vez",
+          "Desempleado",
+          "Dueña(o) de casa",
+          "Estudia",
+          "Jubilado(a)",
+          "Otro (especifique)",
+          "Trabaja"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 7,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Busca trabajo por primera vez",
+          "Desempleado",
+          "Dueña(o) de casa",
+          "Estudia",
+          "Jubilado(a)",
+          "Otro (especifique)",
+          "Trabaja"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3676.4500000000003,
+          "n_rows_non_null": 73529
+        }
+      },
+      "ModoMotor": {
+        "base_values": [],
+        "observed_values": [
+          "Motorizado",
+          "No Motorizado",
+          "Otro"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 3,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Motorizado",
+          "No Motorizado",
+          "Otro"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      }
+    },
+    "temporal": {},
+    "fields_effective": [
+      "movement_id",
+      "trip_id",
+      "movement_seq",
+      "user_id",
+      "origin_time_utc",
+      "destination_time_utc",
+      "origin_longitude",
+      "origin_latitude",
+      "destination_longitude",
+      "destination_latitude",
+      "ComunaOrigen",
+      "ComunaDestino",
+      "Proposito",
+      "ModoAgregado",
+      "TipoDia",
+      "CodigoTiempo",
+      "Sexo",
+      "Actividad",
+      "ModoMotor",
+      "trip_weight",
+      "origin_h3_index",
+      "destination_h3_index"
+    ]
+  },
+  "provenance": {
+    "source": {
+      "name": "EOD",
+      "entity": "trips",
+      "version": "EOD_STGO_laboral"
+    },
+    "notes": [
+      "viajes resumidos EOD",
+      "join relacional viajes-personas-hogares",
+      "peso final laboral ya construido en preprocess"
+    ]
+  },
+  "metadata": {
+    "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+    "is_validated": true,
+    "schema": {
+      "version": "eod-trips-b1",
+      "fields": {
+        "movement_id": {
+          "name": "movement_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "unique": true,
+            "length": {
+              "min": 1,
+              "max": 80
+            }
+          },
+          "domain": null
+        },
+        "trip_id": {
+          "name": "trip_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "length": {
+              "min": 1,
+              "max": 80
+            }
+          },
+          "domain": null
+        },
+        "movement_seq": {
+          "name": "movement_seq",
+          "dtype": "int",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "range": {
+              "min": 0
+            }
+          },
+          "domain": null
+        },
+        "user_id": {
+          "name": "user_id",
+          "dtype": "string",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "length": {
+              "min": 1,
+              "max": 80
+            }
+          },
+          "domain": null
+        },
+        "origin_longitude": {
+          "name": "origin_longitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "range": {
+              "min": -180.0,
+              "max": 180.0
+            }
+          },
+          "domain": null
+        },
+        "origin_latitude": {
+          "name": "origin_latitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "range": {
+              "min": -90.0,
+              "max": 90.0
+            }
+          },
+          "domain": null
+        },
+        "destination_longitude": {
+          "name": "destination_longitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "range": {
+              "min": -180.0,
+              "max": 180.0
+            }
+          },
+          "domain": null
+        },
+        "destination_latitude": {
+          "name": "destination_latitude",
+          "dtype": "float",
+          "required": true,
+          "constraints": {
+            "nullable": false,
+            "range": {
+              "min": -90.0,
+              "max": 90.0
+            }
+          },
+          "domain": null
+        },
+        "origin_time_utc": {
+          "name": "origin_time_utc",
+          "dtype": "datetime",
+          "required": false,
+          "constraints": {
+            "nullable": true,
+            "datetime": {
+              "allow_naive": false
+            }
+          },
+          "domain": null
+        },
+        "destination_time_utc": {
+          "name": "destination_time_utc",
+          "dtype": "datetime",
+          "required": false,
+          "constraints": {
+            "nullable": true,
+            "datetime": {
+              "allow_naive": false
+            }
+          },
+          "domain": null
+        },
+        "origin_h3_index": {
+          "name": "origin_h3_index",
+          "dtype": "string",
+          "required": false,
+          "constraints": {
+            "nullable": true,
+            "h3": {
+              "require_valid": true,
+              "resolution": 10
+            }
+          },
+          "domain": null
+        },
+        "destination_h3_index": {
+          "name": "destination_h3_index",
+          "dtype": "string",
+          "required": false,
+          "constraints": {
+            "nullable": true,
+            "h3": {
+              "require_valid": true,
+              "resolution": 10
+            }
+          },
+          "domain": null
+        },
+        "trip_weight": {
+          "name": "trip_weight",
+          "dtype": "float",
+          "required": false,
+          "constraints": {
+            "nullable": true,
+            "range": {
+              "min": 0.0
+            }
+          },
+          "domain": null
+        },
+        "ComunaOrigen": {
+          "name": "ComunaOrigen",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "ComunaDestino": {
+          "name": "ComunaDestino",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "Proposito": {
+          "name": "Proposito",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "ModoAgregado": {
+          "name": "ModoAgregado",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "TipoDia": {
+          "name": "TipoDia",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [
+              "Día habil",
+              "Día festivo"
+            ],
+            "extendable": false,
+            "aliases": null
+          }
+        },
+        "CodigoTiempo": {
+          "name": "CodigoTiempo",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "Sexo": {
+          "name": "Sexo",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [
+              "Hombre",
+              "Mujer"
+            ],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "Actividad": {
+          "name": "Actividad",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        },
+        "ModoMotor": {
+          "name": "ModoMotor",
+          "dtype": "categorical",
+          "required": false,
+          "constraints": {
+            "nullable": true
+          },
+          "domain": {
+            "values": [],
+            "extendable": true,
+            "aliases": null
+          }
+        }
+      },
+      "required": [
+        "movement_id",
+        "trip_id",
+        "movement_seq",
+        "user_id",
+        "origin_longitude",
+        "origin_latitude",
+        "destination_longitude",
+        "destination_latitude"
+      ],
+      "semantic_rules": null
+    },
+    "schema_effective": {
+      "dtype_effective": {
+        "movement_id": "string",
+        "trip_id": "string",
+        "movement_seq": "int",
+        "user_id": "string",
+        "origin_longitude": "float",
+        "origin_latitude": "float",
+        "destination_longitude": "float",
+        "destination_latitude": "float",
+        "origin_time_utc": "datetime",
+        "destination_time_utc": "datetime",
+        "origin_h3_index": "string",
+        "destination_h3_index": "string",
+        "trip_weight": "float",
+        "ComunaOrigen": "categorical",
+        "ComunaDestino": "categorical",
+        "Proposito": "categorical",
+        "ModoAgregado": "categorical",
+        "TipoDia": "categorical",
+        "CodigoTiempo": "categorical",
+        "Sexo": "categorical",
+        "Actividad": "categorical",
+        "ModoMotor": "categorical"
+      },
+      "overrides": {
+        "ComunaOrigen": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3868.05,
+            "n_rows_non_null": 77361
+          }
+        },
+        "ComunaDestino": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3863.55,
+            "n_rows_non_null": 77271
+          }
+        },
+        "Proposito": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3940.6000000000004,
+            "n_rows_non_null": 78812
+          }
+        },
+        "ModoAgregado": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3941.0,
+            "n_rows_non_null": 78820
+          }
+        },
+        "CodigoTiempo": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3930.05,
+            "n_rows_non_null": 78601
+          }
+        },
+        "Actividad": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3676.4500000000003,
+            "n_rows_non_null": 73529
+          }
+        },
+        "ModoMotor": {
+          "reasons": [
+            "categorical_domain_inferred_from_observed_values"
+          ],
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3941.0,
+            "n_rows_non_null": 78820
+          }
+        }
+      },
+      "domains_effective": {
+        "ComunaOrigen": {
+          "base_values": [],
+          "observed_values": [
+            "BUIN",
+            "CALERA DE TANGO",
+            "CERRILLOS",
+            "CERRO NAVIA",
+            "COLINA",
+            "CONCHALÍ",
+            "EL BOSQUE",
+            "EL MONTE",
+            "ESTACIÓN CENTRAL",
+            "HUECHURABA",
+            "INDEPENDENCIA",
+            "ISLA DE MAIPO",
+            "LA CISTERNA",
+            "LA FLORIDA",
+            "LA GRANJA",
+            "LA PINTANA",
+            "LA REINA",
+            "LAMPA",
+            "LAS CONDES",
+            "LO BARNECHEA",
+            "LO ESPEJO",
+            "LO PRADO",
+            "MACUL",
+            "MAIPÚ",
+            "MELIPILLA",
+            "PADRE HURTADO",
+            "PEDRO AGUIRRE CERDA",
+            "PEÑAFLOR",
+            "PEÑALOLÉN",
+            "PIRQUE",
+            "PROVIDENCIA",
+            "PUDAHUEL",
+            "PUENTE ALTO",
+            "QUILICURA",
+            "QUINTA NORMAL",
+            "RECOLETA",
+            "RENCA",
+            "SAN BERNARDO",
+            "SAN JOAQUÍN",
+            "SAN MIGUEL",
+            "SAN RAMON",
+            "SANTIAGO",
+            "TALAGANTE",
+            "VITACURA",
+            "ÑUÑOA"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 45,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "BUIN",
+            "CALERA DE TANGO",
+            "CERRILLOS",
+            "CERRO NAVIA",
+            "COLINA",
+            "CONCHALÍ",
+            "EL BOSQUE",
+            "EL MONTE",
+            "ESTACIÓN CENTRAL",
+            "HUECHURABA",
+            "INDEPENDENCIA",
+            "ISLA DE MAIPO",
+            "LA CISTERNA",
+            "LA FLORIDA",
+            "LA GRANJA",
+            "LA PINTANA",
+            "LA REINA",
+            "LAMPA",
+            "LAS CONDES",
+            "LO BARNECHEA",
+            "LO ESPEJO",
+            "LO PRADO",
+            "MACUL",
+            "MAIPÚ",
+            "MELIPILLA",
+            "PADRE HURTADO",
+            "PEDRO AGUIRRE CERDA",
+            "PEÑAFLOR",
+            "PEÑALOLÉN",
+            "PIRQUE",
+            "PROVIDENCIA",
+            "PUDAHUEL",
+            "PUENTE ALTO",
+            "QUILICURA",
+            "QUINTA NORMAL",
+            "RECOLETA",
+            "RENCA",
+            "SAN BERNARDO",
+            "SAN JOAQUÍN",
+            "SAN MIGUEL",
+            "SAN RAMON",
+            "SANTIAGO",
+            "TALAGANTE",
+            "VITACURA",
+            "ÑUÑOA"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3868.05,
+            "n_rows_non_null": 77361
+          }
+        },
+        "ComunaDestino": {
+          "base_values": [],
+          "observed_values": [
+            "BUIN",
+            "CALERA DE TANGO",
+            "CERRILLOS",
+            "CERRO NAVIA",
+            "COLINA",
+            "CONCHALÍ",
+            "EL BOSQUE",
+            "EL MONTE",
+            "ESTACIÓN CENTRAL",
+            "HUECHURABA",
+            "INDEPENDENCIA",
+            "ISLA DE MAIPO",
+            "LA CISTERNA",
+            "LA FLORIDA",
+            "LA GRANJA",
+            "LA PINTANA",
+            "LA REINA",
+            "LAMPA",
+            "LAS CONDES",
+            "LO BARNECHEA",
+            "LO ESPEJO",
+            "LO PRADO",
+            "MACUL",
+            "MAIPÚ",
+            "MELIPILLA",
+            "PADRE HURTADO",
+            "PEDRO AGUIRRE CERDA",
+            "PEÑAFLOR",
+            "PEÑALOLÉN",
+            "PIRQUE",
+            "PROVIDENCIA",
+            "PUDAHUEL",
+            "PUENTE ALTO",
+            "QUILICURA",
+            "QUINTA NORMAL",
+            "RECOLETA",
+            "RENCA",
+            "SAN BERNARDO",
+            "SAN JOAQUÍN",
+            "SAN MIGUEL",
+            "SAN RAMON",
+            "SANTIAGO",
+            "TALAGANTE",
+            "VITACURA",
+            "ÑUÑOA"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 45,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "BUIN",
+            "CALERA DE TANGO",
+            "CERRILLOS",
+            "CERRO NAVIA",
+            "COLINA",
+            "CONCHALÍ",
+            "EL BOSQUE",
+            "EL MONTE",
+            "ESTACIÓN CENTRAL",
+            "HUECHURABA",
+            "INDEPENDENCIA",
+            "ISLA DE MAIPO",
+            "LA CISTERNA",
+            "LA FLORIDA",
+            "LA GRANJA",
+            "LA PINTANA",
+            "LA REINA",
+            "LAMPA",
+            "LAS CONDES",
+            "LO BARNECHEA",
+            "LO ESPEJO",
+            "LO PRADO",
+            "MACUL",
+            "MAIPÚ",
+            "MELIPILLA",
+            "PADRE HURTADO",
+            "PEDRO AGUIRRE CERDA",
+            "PEÑAFLOR",
+            "PEÑALOLÉN",
+            "PIRQUE",
+            "PROVIDENCIA",
+            "PUDAHUEL",
+            "PUENTE ALTO",
+            "QUILICURA",
+            "QUINTA NORMAL",
+            "RECOLETA",
+            "RENCA",
+            "SAN BERNARDO",
+            "SAN JOAQUÍN",
+            "SAN MIGUEL",
+            "SAN RAMON",
+            "SANTIAGO",
+            "TALAGANTE",
+            "VITACURA",
+            "ÑUÑOA"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3863.55,
+            "n_rows_non_null": 77271
+          }
+        },
+        "Proposito": {
+          "values": [
+            "A casa",
+            "Buscar o Dejar a alguien",
+            "Buscar o dejar algo",
+            "Entretención",
+            "Estudio",
+            "Otro",
+            "Salud",
+            "Trabajo",
+            "Trámites",
+            "Visitar a alguien"
+          ],
+          "extended": true,
+          "added_values": [
+            "A casa",
+            "Buscar o Dejar a alguien",
+            "Buscar o dejar algo",
+            "Entretención",
+            "Estudio",
+            "Otro",
+            "Salud",
+            "Trabajo",
+            "Trámites",
+            "Visitar a alguien"
+          ],
+          "strict_applied": false
+        },
+        "ModoAgregado": {
+          "base_values": [],
+          "observed_values": [
+            "Auto",
+            "Auto - Metro",
+            "Bicicleta",
+            "Bus TS",
+            "Bus TS - Bus no TS",
+            "Bus TS - Metro",
+            "Bus no TS",
+            "Bus no TS - Metro",
+            "Caminata",
+            "Metro",
+            "Otros",
+            "Otros - Bus TS",
+            "Otros - Bus TS - Metro",
+            "Otros - Metro",
+            "Taxi",
+            "Taxi - Metro",
+            "Taxi Colectivo",
+            "Taxi Colectivo - Metro"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 18,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "Auto",
+            "Auto - Metro",
+            "Bicicleta",
+            "Bus TS",
+            "Bus TS - Bus no TS",
+            "Bus TS - Metro",
+            "Bus no TS",
+            "Bus no TS - Metro",
+            "Caminata",
+            "Metro",
+            "Otros",
+            "Otros - Bus TS",
+            "Otros - Bus TS - Metro",
+            "Otros - Metro",
+            "Taxi",
+            "Taxi - Metro",
+            "Taxi Colectivo",
+            "Taxi Colectivo - Metro"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3941.0,
+            "n_rows_non_null": 78820
+          }
+        },
+        "TipoDia": {
+          "base_values": [
+            "Día festivo",
+            "Día habil"
+          ],
+          "observed_values": [
+            "Día habil"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": false,
+          "unknown_value": "unknown",
+          "n_unique_observed": 1,
+          "n_added": 0,
+          "value_correspondence_applied": {
+            "Laboral": "Día habil"
+          },
+          "values": [
+            "Día festivo",
+            "Día habil",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "CodigoTiempo": {
+          "base_values": [],
+          "observed_values": [
+            "Inconsistencia en reporte de horas",
+            "Tiempo con distancia = 0",
+            "Tiempo de viaje correcto",
+            "Tiempo sin coordenadas geográficas",
+            "Viaje hacia (o desde) zona externa",
+            "Viaje motorizado corto (200 m o menos)"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 6,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "Inconsistencia en reporte de horas",
+            "Tiempo con distancia = 0",
+            "Tiempo de viaje correcto",
+            "Tiempo sin coordenadas geográficas",
+            "Viaje hacia (o desde) zona externa",
+            "Viaje motorizado corto (200 m o menos)"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3930.05,
+            "n_rows_non_null": 78601
+          }
+        },
+        "Sexo": {
+          "base_values": [
+            "Hombre",
+            "Mujer"
+          ],
+          "observed_values": [
+            "Hombre",
+            "Mujer"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 2,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "Hombre",
+            "Mujer",
+            "unknown"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false
+        },
+        "Actividad": {
+          "base_values": [],
+          "observed_values": [
+            "Busca trabajo por primera vez",
+            "Desempleado",
+            "Dueña(o) de casa",
+            "Estudia",
+            "Jubilado(a)",
+            "Otro (especifique)",
+            "Trabaja"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 7,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "Busca trabajo por primera vez",
+            "Desempleado",
+            "Dueña(o) de casa",
+            "Estudia",
+            "Jubilado(a)",
+            "Otro (especifique)",
+            "Trabaja"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3676.4500000000003,
+            "n_rows_non_null": 73529
+          }
+        },
+        "ModoMotor": {
+          "base_values": [],
+          "observed_values": [
+            "Motorizado",
+            "No Motorizado",
+            "Otro"
+          ],
+          "extended_values": [],
+          "unknown_values": [],
+          "extendable": true,
+          "unknown_value": "unknown",
+          "n_unique_observed": 3,
+          "n_added": 0,
+          "value_correspondence_applied": {},
+          "values": [
+            "Motorizado",
+            "No Motorizado",
+            "Otro"
+          ],
+          "extended": false,
+          "added_values": [],
+          "strict_applied": false,
+          "inference_applied": true,
+          "inference_policy": {
+            "mode": "declared_categorical_empty_domain",
+            "alpha": 0.05,
+            "k_max": 10000,
+            "cardinality_limit": 3941.0,
+            "n_rows_non_null": 78820
+          }
+        }
+      },
+      "temporal": {},
+      "fields_effective": [
+        "movement_id",
+        "trip_id",
+        "movement_seq",
+        "user_id",
+        "origin_time_utc",
+        "destination_time_utc",
+        "origin_longitude",
+        "origin_latitude",
+        "destination_longitude",
+        "destination_latitude",
+        "ComunaOrigen",
+        "ComunaDestino",
+        "Proposito",
+        "ModoAgregado",
+        "TipoDia",
+        "CodigoTiempo",
+        "Sexo",
+        "Actividad",
+        "ModoMotor",
+        "trip_weight",
+        "origin_h3_index",
+        "destination_h3_index"
+      ]
+    },
+    "mappings": {
+      "field_correspondence": {
+        "movement_id": "Viaje",
+        "user_id": "Persona",
+        "origin_time_utc": "inicio_viaje_dt",
+        "destination_time_utc": "fin_viaje_dt",
+        "trip_weight": "PesoLaboral",
+        "CodigoTiempo": "CodigoTiempo_nombre",
+        "TipoDia": "TipoDia_nombre",
+        "ModoAgregado": "ModoAgregado_nombre",
+        "Proposito": "Proposito_nombre",
+        "ComunaDestino": "ComunaDestino_nombre",
+        "ComunaOrigen": "ComunaOrigen_nombre",
+        "Sexo": "Sexo_nombre",
+        "Actividad": "Actividad_nombre",
+        "ModoMotor": "ModoMotor_nombre"
+      },
+      "value_correspondence": {
+        "TipoDia": {
+          "Laboral": "Día habil"
+        },
+        "Proposito": {
+          "Al estudio": "Estudio",
+          "Por estudio": "Estudio",
+          "Al trabajo": "Trabajo",
+          "Por trabajo": "Trabajo",
+          "volver a casa": "A casa",
+          "De salud": "Salud",
+          "Comer o Tomar algo": "Entretención",
+          "De compras": "Entretención",
+          "Recreación": "Entretención",
+          "Otra actividad (especifique)": "Otro"
+        }
+      }
+    },
+    "domains_effective": {
+      "ComunaOrigen": {
+        "base_values": [],
+        "observed_values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 45,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3868.05,
+          "n_rows_non_null": 77361
+        }
+      },
+      "ComunaDestino": {
+        "base_values": [],
+        "observed_values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 45,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "BUIN",
+          "CALERA DE TANGO",
+          "CERRILLOS",
+          "CERRO NAVIA",
+          "COLINA",
+          "CONCHALÍ",
+          "EL BOSQUE",
+          "EL MONTE",
+          "ESTACIÓN CENTRAL",
+          "HUECHURABA",
+          "INDEPENDENCIA",
+          "ISLA DE MAIPO",
+          "LA CISTERNA",
+          "LA FLORIDA",
+          "LA GRANJA",
+          "LA PINTANA",
+          "LA REINA",
+          "LAMPA",
+          "LAS CONDES",
+          "LO BARNECHEA",
+          "LO ESPEJO",
+          "LO PRADO",
+          "MACUL",
+          "MAIPÚ",
+          "MELIPILLA",
+          "PADRE HURTADO",
+          "PEDRO AGUIRRE CERDA",
+          "PEÑAFLOR",
+          "PEÑALOLÉN",
+          "PIRQUE",
+          "PROVIDENCIA",
+          "PUDAHUEL",
+          "PUENTE ALTO",
+          "QUILICURA",
+          "QUINTA NORMAL",
+          "RECOLETA",
+          "RENCA",
+          "SAN BERNARDO",
+          "SAN JOAQUÍN",
+          "SAN MIGUEL",
+          "SAN RAMON",
+          "SANTIAGO",
+          "TALAGANTE",
+          "VITACURA",
+          "ÑUÑOA"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3863.55,
+          "n_rows_non_null": 77271
+        }
+      },
+      "Proposito": {
+        "values": [
+          "A casa",
+          "Buscar o Dejar a alguien",
+          "Buscar o dejar algo",
+          "Entretención",
+          "Estudio",
+          "Otro",
+          "Salud",
+          "Trabajo",
+          "Trámites",
+          "Visitar a alguien"
+        ],
+        "extended": true,
+        "added_values": [
+          "A casa",
+          "Buscar o Dejar a alguien",
+          "Buscar o dejar algo",
+          "Entretención",
+          "Estudio",
+          "Otro",
+          "Salud",
+          "Trabajo",
+          "Trámites",
+          "Visitar a alguien"
+        ],
+        "strict_applied": false
+      },
+      "ModoAgregado": {
+        "base_values": [],
+        "observed_values": [
+          "Auto",
+          "Auto - Metro",
+          "Bicicleta",
+          "Bus TS",
+          "Bus TS - Bus no TS",
+          "Bus TS - Metro",
+          "Bus no TS",
+          "Bus no TS - Metro",
+          "Caminata",
+          "Metro",
+          "Otros",
+          "Otros - Bus TS",
+          "Otros - Bus TS - Metro",
+          "Otros - Metro",
+          "Taxi",
+          "Taxi - Metro",
+          "Taxi Colectivo",
+          "Taxi Colectivo - Metro"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 18,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Auto",
+          "Auto - Metro",
+          "Bicicleta",
+          "Bus TS",
+          "Bus TS - Bus no TS",
+          "Bus TS - Metro",
+          "Bus no TS",
+          "Bus no TS - Metro",
+          "Caminata",
+          "Metro",
+          "Otros",
+          "Otros - Bus TS",
+          "Otros - Bus TS - Metro",
+          "Otros - Metro",
+          "Taxi",
+          "Taxi - Metro",
+          "Taxi Colectivo",
+          "Taxi Colectivo - Metro"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      },
+      "TipoDia": {
+        "base_values": [
+          "Día festivo",
+          "Día habil"
+        ],
+        "observed_values": [
+          "Día habil"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": false,
+        "unknown_value": "unknown",
+        "n_unique_observed": 1,
+        "n_added": 0,
+        "value_correspondence_applied": {
+          "Laboral": "Día habil"
+        },
+        "values": [
+          "Día festivo",
+          "Día habil",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "CodigoTiempo": {
+        "base_values": [],
+        "observed_values": [
+          "Inconsistencia en reporte de horas",
+          "Tiempo con distancia = 0",
+          "Tiempo de viaje correcto",
+          "Tiempo sin coordenadas geográficas",
+          "Viaje hacia (o desde) zona externa",
+          "Viaje motorizado corto (200 m o menos)"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 6,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Inconsistencia en reporte de horas",
+          "Tiempo con distancia = 0",
+          "Tiempo de viaje correcto",
+          "Tiempo sin coordenadas geográficas",
+          "Viaje hacia (o desde) zona externa",
+          "Viaje motorizado corto (200 m o menos)"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3930.05,
+          "n_rows_non_null": 78601
+        }
+      },
+      "Sexo": {
+        "base_values": [
+          "Hombre",
+          "Mujer"
+        ],
+        "observed_values": [
+          "Hombre",
+          "Mujer"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 2,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Hombre",
+          "Mujer",
+          "unknown"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false
+      },
+      "Actividad": {
+        "base_values": [],
+        "observed_values": [
+          "Busca trabajo por primera vez",
+          "Desempleado",
+          "Dueña(o) de casa",
+          "Estudia",
+          "Jubilado(a)",
+          "Otro (especifique)",
+          "Trabaja"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 7,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Busca trabajo por primera vez",
+          "Desempleado",
+          "Dueña(o) de casa",
+          "Estudia",
+          "Jubilado(a)",
+          "Otro (especifique)",
+          "Trabaja"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3676.4500000000003,
+          "n_rows_non_null": 73529
+        }
+      },
+      "ModoMotor": {
+        "base_values": [],
+        "observed_values": [
+          "Motorizado",
+          "No Motorizado",
+          "Otro"
+        ],
+        "extended_values": [],
+        "unknown_values": [],
+        "extendable": true,
+        "unknown_value": "unknown",
+        "n_unique_observed": 3,
+        "n_added": 0,
+        "value_correspondence_applied": {},
+        "values": [
+          "Motorizado",
+          "No Motorizado",
+          "Otro"
+        ],
+        "extended": false,
+        "added_values": [],
+        "strict_applied": false,
+        "inference_applied": true,
+        "inference_policy": {
+          "mode": "declared_categorical_empty_domain",
+          "alpha": 0.05,
+          "k_max": 10000,
+          "cardinality_limit": 3941.0,
+          "n_rows_non_null": 78820
+        }
+      }
+    },
+    "domains_extended": [],
+    "extra_fields_kept": [
+      "Ocupacion_nombre",
+      "LicenciaConducir_nombre",
+      "PaseEscolar_nombre",
+      "Ingreso",
+      "MinutosDespues",
+      "CuadrasDespues"
+    ],
+    "events": [
+      {
+        "op": "import_trips",
+        "ts_utc": "2026-04-24T07:32:51.868284+00:00",
+        "parameters": {
+          "keep_extra_fields": true,
+          "selected_fields": null,
+          "strict": false,
+          "strict_domains": false,
+          "single_stage": true,
+          "h3_resolution": 10,
+          "source_name": "EOD",
+          "source_timezone": "America/Santiago"
+        },
+        "summary": {
+          "input_rows": 78820,
+          "output_rows": 78820,
+          "rows_dropped": 0,
+          "n_fields_mapped": 14,
+          "n_domain_mappings_applied": 1,
+          "columns_added": [
+            "origin_h3_index",
+            "destination_h3_index",
+            "trip_id",
+            "movement_seq"
+          ],
+          "columns_deleted": [],
+          "domains_extended_count": 0,
+          "temporal_tier": "tier_1",
+          "temporal_notes": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 16,
+            "warning": 2
+          },
+          "by_code": {
+            "SCH.DOMAIN.EMPTY_VALUES": 7,
+            "DOM.INFERENCE.APPLIED": 7,
+            "IMP.H3.PARTIAL_DERIVATION": 2,
+            "IMP.ID.TRIP_ID_CREATED": 1,
+            "IMP.ID.MOVEMENT_SEQ_CREATED": 1
+          }
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T07:32:58Z",
+        "parameters": {
+          "strict": false,
+          "max_issues": 300,
+          "sample_rows_per_issue": 5,
+          "validate_required_fields": true,
+          "validate_types_and_formats": true,
+          "validate_constraints": true,
+          "validate_domains": "sample",
+          "domains_sample_frac": 0.02,
+          "domains_min_in_domain_ratio": 0.95,
+          "validate_temporal_consistency": true,
+          "validate_duplicates": true,
+          "duplicates_subset": [
+            "movement_id"
+          ],
+          "allow_partial_od_spatial": true
+        },
+        "summary": {
+          "ok": false,
+          "n_rows": 78820,
+          "n_issues": 1,
+          "n_errors": 1,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 1,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {
+            "VAL.CORE.OD_SPATIAL_BOTH_MISSING": 1
+          },
+          "checked_fields": [
+            "Actividad",
+            "CodigoTiempo",
+            "ComunaDestino",
+            "ComunaOrigen",
+            "ModoAgregado",
+            "ModoMotor",
+            "Proposito",
+            "Sexo",
+            "TipoDia",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "trip_id",
+            "trip_weight",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "eod-trips-b1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {
+              "ComunaOrigen": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1548,
+                "n_in_domain": 1548
+              },
+              "ComunaDestino": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1546,
+                "n_in_domain": 1546
+              },
+              "Proposito": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "ModoAgregado": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "TipoDia": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "CodigoTiempo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1573,
+                "n_in_domain": 1573
+              },
+              "Sexo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "Actividad": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1471,
+                "n_in_domain": 1471
+              },
+              "ModoMotor": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 78596,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 1,
+            "n_issues_detected_total": 1
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 1
+          },
+          "top_codes": [
+            {
+              "code": "VAL.CORE.OD_SPATIAL_BOTH_MISSING",
+              "count": 1
+            }
+          ]
+        }
+      },
+      {
+        "op": "fix_trips_correspondence",
+        "ts_utc": "2026-04-24T07:34:21.512829+00:00",
+        "parameters": {
+          "field_corrections": null,
+          "value_corrections": {
+            "Proposito": {
+              "Al estudio": "Estudio",
+              "Por estudio": "Estudio",
+              "Al trabajo": "Trabajo",
+              "Por trabajo": "Trabajo",
+              "volver a casa": "A casa",
+              "De salud": "Salud",
+              "Comer o Tomar algo": "Entretención",
+              "De compras": "Entretención",
+              "Recreación": "Entretención",
+              "Otra actividad (especifique)": "Otro"
+            }
+          },
+          "strict": false,
+          "max_issues": 200,
+          "sample_rows_per_issue": 20
+        },
+        "summary": {
+          "n_rows": 78820,
+          "n_field_corrections_requested": 0,
+          "n_field_corrections_applied": 0,
+          "n_value_corrections_fields_requested": 1,
+          "n_value_corrections_fields_applied": 1,
+          "n_value_replacements_applied": 70399,
+          "domains_effective_updated_fields": [
+            "Proposito"
+          ],
+          "noop": false,
+          "limits": {
+            "max_issues": 200,
+            "issues_truncated": false,
+            "n_issues_emitted": 2,
+            "n_issues_detected_total": 2
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 2
+          },
+          "by_code": {
+            "FIX.DOMAINS.UPDATED": 1,
+            "FIX.INFO.VALUE_CORRECTIONS_APPLIED": 1
+          }
+        },
+        "context": {
+          "reason": "unificación de propósitos equivalentes para baseline de estudio",
+          "scope": "B1 EOD viajes",
+          "source": "EOD_STGO"
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T07:34:29Z",
+        "parameters": {
+          "strict": false,
+          "max_issues": 300,
+          "sample_rows_per_issue": 5,
+          "validate_required_fields": true,
+          "validate_types_and_formats": true,
+          "validate_constraints": true,
+          "validate_domains": "sample",
+          "domains_sample_frac": 0.02,
+          "domains_min_in_domain_ratio": 0.95,
+          "validate_temporal_consistency": true,
+          "validate_duplicates": true,
+          "duplicates_subset": [
+            "movement_id"
+          ],
+          "allow_partial_od_spatial": true
+        },
+        "summary": {
+          "ok": false,
+          "n_rows": 78820,
+          "n_issues": 1,
+          "n_errors": 1,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 1,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {
+            "VAL.CORE.OD_SPATIAL_BOTH_MISSING": 1
+          },
+          "checked_fields": [
+            "Actividad",
+            "CodigoTiempo",
+            "ComunaDestino",
+            "ComunaOrigen",
+            "ModoAgregado",
+            "ModoMotor",
+            "Proposito",
+            "Sexo",
+            "TipoDia",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "trip_id",
+            "trip_weight",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "eod-trips-b1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {
+              "ComunaOrigen": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1548,
+                "n_in_domain": 1548
+              },
+              "ComunaDestino": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1546,
+                "n_in_domain": 1546
+              },
+              "Proposito": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "ModoAgregado": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "TipoDia": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "CodigoTiempo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1573,
+                "n_in_domain": 1573
+              },
+              "Sexo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              },
+              "Actividad": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1471,
+                "n_in_domain": 1471
+              },
+              "ModoMotor": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1577,
+                "n_in_domain": 1577
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 78596,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 1,
+            "n_issues_detected_total": 1
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 1
+          },
+          "top_codes": [
+            {
+              "code": "VAL.CORE.OD_SPATIAL_BOTH_MISSING",
+              "count": 1
+            }
+          ]
+        }
+      },
+      {
+        "op": "clean_trips",
+        "ts_utc": "2026-04-24T07:34:41.150782+00:00",
+        "parameters": {
+          "drop_rows_with_nulls_in_required_fields": true,
+          "drop_rows_with_nulls_in_fields": null,
+          "drop_rows_with_invalid_latlon": true,
+          "drop_rows_with_invalid_h3": true,
+          "drop_rows_with_origin_after_destination": true,
+          "drop_duplicates": true,
+          "duplicates_subset": [
+            "movement_id"
+          ],
+          "duplicates_subset_effective": [
+            "movement_id"
+          ],
+          "drop_rows_by_categorical_values": null
+        },
+        "summary": {
+          "rows_in": 78820,
+          "rows_out": 65699,
+          "dropped_total": 13121,
+          "dropped_by_rule": {
+            "nulls_required": 13121,
+            "nulls_fields": 0,
+            "invalid_latlon": 0,
+            "invalid_h3": 0,
+            "origin_after_destination": 0,
+            "duplicates": 0,
+            "categorical_values": 0
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "validate_trips",
+        "ts_utc": "2026-04-24T07:34:52Z",
+        "parameters": {
+          "strict": false,
+          "max_issues": 300,
+          "sample_rows_per_issue": 5,
+          "validate_required_fields": true,
+          "validate_types_and_formats": true,
+          "validate_constraints": true,
+          "validate_domains": "sample",
+          "domains_sample_frac": 0.02,
+          "domains_min_in_domain_ratio": 0.95,
+          "validate_temporal_consistency": true,
+          "validate_duplicates": true,
+          "duplicates_subset": [
+            "movement_id"
+          ],
+          "allow_partial_od_spatial": true
+        },
+        "summary": {
+          "ok": true,
+          "n_rows": 65699,
+          "n_issues": 0,
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 0,
+          "counts_by_level": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "counts_by_code": {},
+          "checked_fields": [
+            "Actividad",
+            "CodigoTiempo",
+            "ComunaDestino",
+            "ComunaOrigen",
+            "ModoAgregado",
+            "ModoMotor",
+            "Proposito",
+            "Sexo",
+            "TipoDia",
+            "destination_h3_index",
+            "destination_latitude",
+            "destination_longitude",
+            "destination_time_utc",
+            "movement_id",
+            "movement_seq",
+            "origin_h3_index",
+            "origin_latitude",
+            "origin_longitude",
+            "origin_time_utc",
+            "trip_id",
+            "trip_weight",
+            "user_id"
+          ],
+          "checks_executed": {
+            "required_fields": true,
+            "types_and_formats": true,
+            "constraints": true,
+            "domains": true,
+            "temporal_consistency": true,
+            "duplicates": true
+          },
+          "schema_version": "eod-trips-b1",
+          "domains": {
+            "mode": "sample",
+            "min_required_ratio": 0.95,
+            "fields": {
+              "ComunaOrigen": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1285,
+                "n_in_domain": 1285
+              },
+              "ComunaDestino": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1283,
+                "n_in_domain": 1283
+              },
+              "Proposito": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1314,
+                "n_in_domain": 1314
+              },
+              "ModoAgregado": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1314,
+                "n_in_domain": 1314
+              },
+              "TipoDia": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1314,
+                "n_in_domain": 1314
+              },
+              "CodigoTiempo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1310,
+                "n_in_domain": 1310
+              },
+              "Sexo": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1314,
+                "n_in_domain": 1314
+              },
+              "Actividad": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1230,
+                "n_in_domain": 1230
+              },
+              "ModoMotor": {
+                "mode": "sample",
+                "ratio_in_domain": 1.0,
+                "min_required_ratio": 0.95,
+                "n_checked_non_null": 1314,
+                "n_in_domain": 1314
+              }
+            }
+          },
+          "duplicates": {
+            "evaluated": true,
+            "duplicates_subset": [
+              "movement_id"
+            ],
+            "n_duplicate_rows": 0
+          },
+          "temporal": {
+            "evaluated": true,
+            "tier": "tier_1",
+            "n_checked": 65475,
+            "n_violations": 0,
+            "origin_field": "origin_time_utc",
+            "destination_field": "destination_time_utc"
+          },
+          "limits": {
+            "max_issues": 300,
+            "issues_truncated": false,
+            "n_issues_emitted": 0,
+            "n_issues_detected_total": 0
+          }
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_trips",
+        "ts_utc": "2026-04-24T07:34:56Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\demo_outputs\\demo_3_eod_trips\\b1_eod_trips_laboral.golondrina",
+          "mode": "overwrite",
+          "require_validated": true,
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true
+        },
+        "summary": {
+          "n_rows": 65699,
+          "files_written": [
+            "trips.feather",
+            "trips.metadata.json"
+          ],
+          "path": "C:\\projects\\pylondrina\\data\\demo_outputs\\demo_3_eod_trips\\b1_eod_trips_laboral.golondrina",
+          "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+          "artifact_id": "art_c207f9dc-d8df-4537-ac53-61394f5abfcb",
+          "dataset_id_status": "preserved",
+          "storage_format": "feather"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "provenance": {
+      "source": {
+        "name": "EOD",
+        "entity": "trips",
+        "version": "EOD_STGO_laboral"
+      },
+      "notes": [
+        "viajes resumidos EOD",
+        "join relacional viajes-personas-hogares",
+        "peso final laboral ya construido en preprocess"
+      ]
+    },
+    "temporal": {
+      "tier": "tier_1",
+      "fields_present": [
+        "origin_time_utc",
+        "destination_time_utc"
+      ],
+      "normalization": {
+        "origin_time_utc": {
+          "status": "naive_localized_to_utc",
+          "tz_kind": "iana",
+          "n_nat": 108
+        },
+        "destination_time_utc": {
+          "status": "naive_localized_to_utc",
+          "tz_kind": "iana",
+          "n_nat": 120
+        }
+      },
+      "source_timezone_used": "America/Santiago"
+    },
+    "h3": {
+      "resolution": 10,
+      "source_fields": [
+        [
+          "origin_latitude",
+          "origin_longitude"
+        ],
+        [
+          "destination_latitude",
+          "destination_longitude"
+        ]
+      ],
+      "derived_fields": [
+        "origin_h3_index",
+        "destination_h3_index"
+      ]
+    },
+    "artifact_id": "art_c207f9dc-d8df-4537-ac53-61394f5abfcb"
+  }
+}

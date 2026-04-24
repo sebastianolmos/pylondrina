@@ -1,0 +1,432 @@
+Residential:
+- Home (private)
+- Housing Development
+- Neighborhood
+- Residence
+- Residential Building (Apartment / Condo)
+Work_Professional:
+- Bank
+- Building
+- Campaign Office
+- Car Wash
+- Conference Room
+- Coworking Space
+- Credit Union
+- Dance Studio
+- Design Studio
+- Factory
+- Financial or Legal Service
+- Gym and Studio
+- Laboratory
+- Laundry Service
+- Meeting Room
+- Non-Profit
+- Office
+- Pet Service
+- Photography Lab
+- Professional & Other Places
+- Radio Station
+- Real Estate Office
+- Recycling Facility
+- Storage Facility
+- Tech Startup
+- Yoga Studio
+Education_Civic_Institutional:
+- Animal Shelter
+- Capitol Building
+- Church
+- City Hall
+- College Academic Building
+- College Administrative Building
+- College Arts Building
+- College Auditorium
+- College Basketball Court
+- College Bookstore
+- College Cafeteria
+- College Classroom
+- College Communications Building
+- College Cricket Pitch
+- College Engineering Building
+- College Football Field
+- College Gym
+- College History Building
+- College Hockey Rink
+- College Lab
+- College Library
+- College Math Building
+- College Quad
+- College Rec Center
+- College Residence Hall
+- College Science Building
+- College Soccer Field
+- College Stadium
+- College Technology Building
+- College Tennis Court
+- College Theater
+- College Track
+- College and University
+- Community College
+- Courthouse
+- Daycare
+- Elementary School
+- Embassy / Consulate
+- Fire Station
+- Fraternity House
+- Funeral Home
+- General College & University
+- Government Building
+- High School
+- Law School
+- Library
+- Medical School
+- Middle School
+- Military Base
+- Mosque
+- Music School
+- Nursery School
+- Police Station
+- Post Office
+- School
+- Shrine
+- Sorority House
+- Spiritual Center
+- Student Center
+- Synagogue
+- Temple
+- Trade School
+- University
+- Voting Booth
+Food_and_Drink:
+- Afghan Restaurant
+- African Restaurant
+- American Restaurant
+- Arepa Restaurant
+- Argentinian Restaurant
+- Asian Restaurant
+- BBQ Joint
+- Bagel Shop
+- Bakery
+- Bar
+- Beer Garden
+- Brazilian Restaurant
+- Breakfast Spot
+- Brewery
+- Burger Joint
+- Butcher
+- Cafeteria
+- Café
+- Cajun / Creole Restaurant
+- Candy Store
+- Caribbean Restaurant
+- Chinese Restaurant
+- Cocktail Bar
+- Coffee Shop
+- Cuban Restaurant
+- Cupcake Shop
+- Deli / Bodega
+- Dessert Shop
+- Dim Sum Restaurant
+- Diner
+- Distillery
+- Dive Bar
+- Donut Shop
+- Dumpling Restaurant
+- Eastern European Restaurant
+- Ethiopian Restaurant
+- Falafel Restaurant
+- Fast Food Restaurant
+- Fish & Chips Shop
+- Fish Market
+- Food
+- Food & Drink Shop
+- Food Court
+- Food Truck
+- French Restaurant
+- Fried Chicken Joint
+- Gastropub
+- German Restaurant
+- Gourmet Shop
+- Greek Restaurant
+- Health Food Store
+- Hookah Bar
+- Hot Dog Joint
+- Hotel Bar
+- Ice Cream Shop
+- Indian Restaurant
+- Italian Restaurant
+- Japanese Restaurant
+- Juice Bar
+- Korean Restaurant
+- Latin American Restaurant
+- Lounge
+- Mac & Cheese Joint
+- Malaysian Restaurant
+- Mediterranean Restaurant
+- Mexican Restaurant
+- Middle Eastern Restaurant
+- Molecular Gastronomy Restaurant
+- Mongolian Restaurant
+- New American Restaurant
+- Paella Restaurant
+- Peruvian Restaurant
+- Pizza Place
+- Pub
+- Restaurant
+- Sake Bar
+- Salad Place
+- Sandwich Place
+- Scandinavian Restaurant
+- Seafood Restaurant
+- Snack Place
+- South American Restaurant
+- Southern / Soul Food Restaurant
+- Spanish Restaurant
+- Speakeasy
+- Sports Bar
+- Sushi Restaurant
+- Swiss Restaurant
+- Taco Place
+- Tapas Restaurant
+- Tea Room
+- Thai Restaurant
+- Turkish Restaurant
+- Vegetarian / Vegan Restaurant
+- Vietnamese Restaurant
+- Whisky Bar
+- Wine Bar
+- Winery
+Retail_and_Consumer_Services:
+- Accessories Store
+- Antique Shop
+- Arts & Crafts Store
+- Automotive Shop
+- Bike Shop
+- Board Shop
+- Bookstore
+- Boutique
+- Bridal Shop
+- Camera Store
+- Car Dealership
+- Cheese Shop
+- Clothing Store
+- Convenience Store
+- Cosmetics Shop
+- Department Store
+- Electronics Store
+- Farmers Market
+- Flea Market
+- Flower Shop
+- Furniture / Home Store
+- Garden Center
+- Gift Shop
+- Grocery Store
+- Hardware Store
+- Hobby Shop
+- Jewelry Store
+- Kids Store
+- Lingerie Store
+- Liquor Store
+- Mall
+- Market
+- Men's Store
+- Miscellaneous Shop
+- Mobile Phone Shop
+- Motorcycle Shop
+- Music Store
+- Newsstand
+- Paper / Office Supplies Store
+- Pet Store
+- Record Shop
+- Shoe Store
+- Shop & Service
+- Smoke Shop
+- Sporting Goods Shop
+- Tailor Shop
+- Thrift / Vintage Store
+- Toy / Game Store
+- Video Game Store
+- Video Store
+- Wine Shop
+- Women's Store
+Health_and_Care:
+- Assisted Living
+- Dentist
+- Doctor's Office
+- Drugstore / Pharmacy
+- Emergency Room
+- Eye Doctor
+- Hospital
+- Medical Center
+- Optical Shop
+- Salon / Barbershop
+- Spa / Massage
+- Veterinarian
+Transport_and_Travel:
+- Airport
+- Airport Food Court
+- Airport Gate
+- Airport Lounge
+- Airport Terminal
+- Airport Tram
+- Bed & Breakfast
+- Boarding House
+- Boat or Ferry
+- Bus Line
+- Bus Station
+- Electric Vehicle Charging Station
+- Ferry
+- General Travel
+- Harbor or Marina
+- Hostel
+- Hotel
+- Hotel Pool
+- Light Rail
+- Motel
+- Moving Target
+- Parking
+- Pier
+- Plane
+- Platform
+- Rental Car Location
+- Resort
+- Rest Area
+- Road
+- Subway
+- Taxi
+- Tourist Information Center
+- Train
+- Train Station
+- Travel & Transport
+- Travel Agency
+- Travel Lounge
+Arts_Entertainment_Nightlife:
+- Aquarium
+- Arcade
+- Art Gallery
+- Art Museum
+- Arts & Entertainment
+- Auditorium
+- Casino
+- Comedy Club
+- Concert Hall
+- Gaming Cafe
+- Gay Bar
+- General Entertainment
+- History Museum
+- Indie Movie Theater
+- Indie Theater
+- Jazz Club
+- Karaoke Bar
+- Movie Theater
+- Multiplex
+- Museum
+- Music Venue
+- Night Club
+- Nightlife Spot
+- Opera House
+- Other Nightlife
+- Performing Arts Venue
+- Piano Bar
+- Planetarium
+- Pool Hall
+- Public Art
+- Rock Club
+- Strip Club
+- Theater
+- Theme Park
+- Theme Park Ride / Attraction
+- Zoo
+Outdoors_Recreation_Sports:
+- Athletic & Sport
+- Athletics & Sports
+- Baseball Field
+- Basketball Court
+- Basketball Stadium
+- Beach
+- Bowling Alley
+- Bridge
+- Campground
+- Castle
+- Climbing Gym
+- Dog Run
+- Field
+- Football Stadium
+- Garden
+- Golf Course
+- Gym Pool
+- Hiking Trail
+- Historic Site
+- Hockey Arena
+- Hockey Field
+- Hot Spring
+- Island
+- Lake
+- Lighthouse
+- Martial Arts Dojo
+- Monument / Landmark
+- Mountain
+- Other Great Outdoors
+- Outdoors & Recreation
+- Paintball Field
+- Park
+- Playground
+- Plaza
+- Pool
+- Racetrack
+- River
+- Rock Climbing Spot
+- Scenic Lookout
+- Sculpture Garden
+- Skate Park
+- Skating Rink
+- Ski Area
+- Ski Chairlift
+- Ski Chalet
+- Ski Lodge
+- Ski Trail
+- Soccer Field
+- Soccer Stadium
+- Stable
+- Stables
+- Stadium
+- Surf Spot
+- Tennis
+- Tennis Court
+- Track
+- Track Stadium
+- Volcano
+- Volcanoes
+- Water Park
+- Well
+Event_Other_Unknown:
+- Adult Boutique
+- Apres Ski Bar
+- Bike Rental / Bike Share
+- Burrito Place
+- Cemetery
+- City
+- Conference
+- Convention
+- Convention Center
+- Event Space
+- Fair
+- Farm
+- Festival
+- Gas Station / Garage
+- Gym
+- Hunting Supply
+- Internet Cafe
+- Nail Salon
+- Other Event
+- Other Events
+- Ramen /  Noodle House
+- Roof Deck
+- Science Museum
+- Soup Place
+- Steakhouse
+- Street Fair
+- Tanning Salon
+- Tattoo Parlor
+- Vineyard
+- Volleyball Court
+- Wings Joint

@@ -1,0 +1,156 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_0dd9210c2593",
+  "created_at_utc": "2026-04-24T08:33:12.203178Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_1ba4b35798e2",
+    "aggregation_spec": {
+      "h3_resolution": 7,
+      "group_by": [
+        "Sexo"
+      ],
+      "time_aggregation": "none",
+      "time_basis": "origin",
+      "min_trips_per_flow": 3,
+      "keep_flow_to_trips": false,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index",
+        "Sexo"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "flows",
+          "dataset_id": "flows_1ba4b35798e2",
+          "artifact_id": null,
+          "n_rows": 783
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T08:32:36.838223Z"
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_1ba4b35798e2",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T08:32:36.838223Z",
+          "parameters": {
+            "h3_resolution": 7,
+            "group_by": [
+              "Sexo"
+            ],
+            "time_aggregation": "none",
+            "time_basis": "origin",
+            "min_trips_per_flow": 3,
+            "keep_flow_to_trips": false,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 7486,
+            "n_trips_eligible": 7486,
+            "n_trips_dropped": 0,
+            "n_flows_out": 783,
+            "n_flow_to_trips_rows": null
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        },
+        {
+          "op": "filter_flows",
+          "ts_utc": "2026-04-24T08:32:55.234866Z",
+          "parameters": {
+            "where": {
+              "Sexo": "Mujer"
+            },
+            "h3_cells": null,
+            "spatial_predicate": "origin",
+            "keep_flow_to_trips": false,
+            "keep_metadata": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "rows_in": 783,
+            "rows_out": 383,
+            "dropped_total": 400,
+            "dropped_by_filter": {
+              "where": 400,
+              "h3_cells": 0
+            },
+            "filters_requested": [
+              "where"
+            ],
+            "filters_applied": [
+              "where"
+            ],
+            "filters_omitted": [],
+            "flow_to_trips_status": "not_requested"
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 1,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": [
+              {
+                "code": "FLT_FLOW.WHERE.APPLIED",
+                "count": 1
+              }
+            ]
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 7
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "C:\\projects\\pylondrina\\data\\flows\\demo_3_eod_viajes",
+      "export_dir": "C:\\projects\\pylondrina\\data\\flows\\demo_3_eod_viajes\\b1_mujer_estudio",
+      "format": "flowmap_blue",
+      "mode": "overwrite",
+      "folder_name": "b1_mujer_estudio",
+      "extra_flow_fields": null
+    },
+    "summary": {
+      "n_flows": 383,
+      "n_locations": 177,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}

@@ -1,0 +1,809 @@
+{
+  "artifact_type": "flow_export",
+  "format": "flowmap_blue",
+  "layout_version": "1.1",
+  "artifact_id": "flow_export_e38e3492dadd",
+  "created_at_utc": "2026-04-24T08:33:12.158585Z",
+  "files": {
+    "flows": "flows.csv",
+    "locations": "locations.csv",
+    "metadata": "metadata.json"
+  },
+  "flow_dataset_ref": {
+    "dataset_id": "flows_e4bf97b83fa7",
+    "aggregation_spec": {
+      "h3_resolution": 7,
+      "group_by": [],
+      "time_aggregation": "none",
+      "time_basis": "origin",
+      "min_trips_per_flow": 3,
+      "keep_flow_to_trips": true,
+      "require_validated": true,
+      "strict": false,
+      "max_issues": 1000,
+      "effective_flow_keys": [
+        "origin_h3_index",
+        "destination_h3_index"
+      ]
+    },
+    "provenance": {
+      "derived_from": [
+        {
+          "source_type": "trips",
+          "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+          "schema_version": "eod-trips-b1",
+          "n_rows": 7486
+        }
+      ],
+      "prior_events_summary": [
+        {
+          "op": "import_trips",
+          "ts_utc": "2026-04-24T07:32:51.868284+00:00",
+          "summary": {
+            "input_rows": 78820,
+            "output_rows": 78820,
+            "rows_dropped": 0,
+            "n_fields_mapped": 14,
+            "n_domain_mappings_applied": 1,
+            "columns_added": [
+              "origin_h3_index",
+              "destination_h3_index",
+              "trip_id",
+              "movement_seq"
+            ],
+            "columns_deleted": [],
+            "domains_extended_count": 0,
+            "temporal_tier": "tier_1",
+            "temporal_notes": null
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T07:32:58Z",
+          "summary": {
+            "ok": false,
+            "n_rows": 78820,
+            "n_issues": 1,
+            "n_errors": 1,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 1,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {
+              "VAL.CORE.OD_SPATIAL_BOTH_MISSING": 1
+            },
+            "checked_fields": [
+              "Actividad",
+              "CodigoTiempo",
+              "ComunaDestino",
+              "ComunaOrigen",
+              "ModoAgregado",
+              "ModoMotor",
+              "Proposito",
+              "Sexo",
+              "TipoDia",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "eod-trips-b1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "ComunaOrigen": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1548,
+                  "n_in_domain": 1548
+                },
+                "ComunaDestino": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1546,
+                  "n_in_domain": 1546
+                },
+                "Proposito": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "ModoAgregado": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "TipoDia": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "CodigoTiempo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1573,
+                  "n_in_domain": 1573
+                },
+                "Sexo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "Actividad": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1471,
+                  "n_in_domain": 1471
+                },
+                "ModoMotor": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 78596,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 1,
+              "n_issues_detected_total": 1
+            }
+          }
+        },
+        {
+          "op": "fix_trips_correspondence",
+          "ts_utc": "2026-04-24T07:34:21.512829+00:00",
+          "summary": {
+            "n_rows": 78820,
+            "n_field_corrections_requested": 0,
+            "n_field_corrections_applied": 0,
+            "n_value_corrections_fields_requested": 1,
+            "n_value_corrections_fields_applied": 1,
+            "n_value_replacements_applied": 70399,
+            "domains_effective_updated_fields": [
+              "Proposito"
+            ],
+            "noop": false,
+            "limits": {
+              "max_issues": 200,
+              "issues_truncated": false,
+              "n_issues_emitted": 2,
+              "n_issues_detected_total": 2
+            }
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T07:34:29Z",
+          "summary": {
+            "ok": false,
+            "n_rows": 78820,
+            "n_issues": 1,
+            "n_errors": 1,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 1,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {
+              "VAL.CORE.OD_SPATIAL_BOTH_MISSING": 1
+            },
+            "checked_fields": [
+              "Actividad",
+              "CodigoTiempo",
+              "ComunaDestino",
+              "ComunaOrigen",
+              "ModoAgregado",
+              "ModoMotor",
+              "Proposito",
+              "Sexo",
+              "TipoDia",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "eod-trips-b1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "ComunaOrigen": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1548,
+                  "n_in_domain": 1548
+                },
+                "ComunaDestino": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1546,
+                  "n_in_domain": 1546
+                },
+                "Proposito": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "ModoAgregado": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "TipoDia": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "CodigoTiempo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1573,
+                  "n_in_domain": 1573
+                },
+                "Sexo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                },
+                "Actividad": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1471,
+                  "n_in_domain": 1471
+                },
+                "ModoMotor": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1577,
+                  "n_in_domain": 1577
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 78596,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 1,
+              "n_issues_detected_total": 1
+            }
+          }
+        },
+        {
+          "op": "clean_trips",
+          "ts_utc": "2026-04-24T07:34:41.150782+00:00",
+          "summary": {
+            "rows_in": 78820,
+            "rows_out": 65699,
+            "dropped_total": 13121,
+            "dropped_by_rule": {
+              "nulls_required": 13121,
+              "nulls_fields": 0,
+              "invalid_latlon": 0,
+              "invalid_h3": 0,
+              "origin_after_destination": 0,
+              "duplicates": 0,
+              "categorical_values": 0
+            }
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T07:34:52Z",
+          "summary": {
+            "ok": true,
+            "n_rows": 65699,
+            "n_issues": 0,
+            "n_errors": 0,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 0,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {},
+            "checked_fields": [
+              "Actividad",
+              "CodigoTiempo",
+              "ComunaDestino",
+              "ComunaOrigen",
+              "ModoAgregado",
+              "ModoMotor",
+              "Proposito",
+              "Sexo",
+              "TipoDia",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "eod-trips-b1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "ComunaOrigen": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1285,
+                  "n_in_domain": 1285
+                },
+                "ComunaDestino": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1283,
+                  "n_in_domain": 1283
+                },
+                "Proposito": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "ModoAgregado": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "TipoDia": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "CodigoTiempo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1310,
+                  "n_in_domain": 1310
+                },
+                "Sexo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "Actividad": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1230,
+                  "n_in_domain": 1230
+                },
+                "ModoMotor": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 65475,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 0,
+              "n_issues_detected_total": 0
+            }
+          }
+        },
+        {
+          "op": "write_trips",
+          "ts_utc": "2026-04-24T07:34:56Z",
+          "summary": {
+            "n_rows": 65699,
+            "files_written": [
+              "trips.feather",
+              "trips.metadata.json"
+            ],
+            "path": "C:\\projects\\pylondrina\\data\\demo_outputs\\demo_3_eod_trips\\b1_eod_trips_laboral.golondrina",
+            "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+            "artifact_id": "art_c207f9dc-d8df-4537-ac53-61394f5abfcb",
+            "dataset_id_status": "preserved",
+            "storage_format": "feather"
+          }
+        },
+        {
+          "op": "read_trips",
+          "ts_utc": "2026-04-24T07:35:04Z",
+          "summary": {
+            "n_rows": 65699,
+            "n_columns": 28,
+            "path": "C:\\projects\\pylondrina\\data\\demo_outputs\\demo_3_eod_trips\\b1_eod_trips_laboral.golondrina",
+            "storage_format": "feather",
+            "schema_source": "metadata",
+            "schema_mismatch": false,
+            "dataset_id": "tripds_830fbf00a1f14b5498751a796ac02eb1",
+            "dataset_id_status": "loaded",
+            "artifact_id": "art_c207f9dc-d8df-4537-ac53-61394f5abfcb",
+            "artifact_id_status": "loaded"
+          }
+        },
+        {
+          "op": "validate_trips",
+          "ts_utc": "2026-04-24T07:35:11Z",
+          "summary": {
+            "ok": true,
+            "n_rows": 65699,
+            "n_issues": 0,
+            "n_errors": 0,
+            "n_warnings": 0,
+            "n_info": 0,
+            "counts_by_level": {
+              "error": 0,
+              "warning": 0,
+              "info": 0
+            },
+            "counts_by_code": {},
+            "checked_fields": [
+              "Actividad",
+              "CodigoTiempo",
+              "ComunaDestino",
+              "ComunaOrigen",
+              "ModoAgregado",
+              "ModoMotor",
+              "Proposito",
+              "Sexo",
+              "TipoDia",
+              "destination_h3_index",
+              "destination_latitude",
+              "destination_longitude",
+              "destination_time_utc",
+              "movement_id",
+              "movement_seq",
+              "origin_h3_index",
+              "origin_latitude",
+              "origin_longitude",
+              "origin_time_utc",
+              "trip_id",
+              "trip_weight",
+              "user_id"
+            ],
+            "checks_executed": {
+              "required_fields": true,
+              "types_and_formats": true,
+              "constraints": true,
+              "domains": true,
+              "temporal_consistency": true,
+              "duplicates": true
+            },
+            "schema_version": "eod-trips-b1",
+            "domains": {
+              "mode": "sample",
+              "min_required_ratio": 0.95,
+              "fields": {
+                "ComunaOrigen": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1285,
+                  "n_in_domain": 1285
+                },
+                "ComunaDestino": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1283,
+                  "n_in_domain": 1283
+                },
+                "Proposito": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "ModoAgregado": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "TipoDia": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "CodigoTiempo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1310,
+                  "n_in_domain": 1310
+                },
+                "Sexo": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                },
+                "Actividad": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1230,
+                  "n_in_domain": 1230
+                },
+                "ModoMotor": {
+                  "mode": "sample",
+                  "ratio_in_domain": 1.0,
+                  "min_required_ratio": 0.95,
+                  "n_checked_non_null": 1314,
+                  "n_in_domain": 1314
+                }
+              }
+            },
+            "duplicates": {
+              "evaluated": true,
+              "duplicates_subset": [
+                "movement_id"
+              ],
+              "n_duplicate_rows": 0
+            },
+            "temporal": {
+              "evaluated": true,
+              "tier": "tier_1",
+              "n_checked": 65475,
+              "n_violations": 0,
+              "origin_field": "origin_time_utc",
+              "destination_field": "destination_time_utc"
+            },
+            "limits": {
+              "max_issues": 300,
+              "issues_truncated": false,
+              "n_issues_emitted": 0,
+              "n_issues_detected_total": 0
+            }
+          }
+        },
+        {
+          "op": "filter_trips",
+          "ts_utc": "2026-04-24T08:26:52.386480Z",
+          "summary": {
+            "rows_in": 65699,
+            "rows_out": 62923,
+            "dropped_total": 2776,
+            "dropped_by_filter": {
+              "where": 2776,
+              "time": 0,
+              "bbox": 0,
+              "polygon": 0,
+              "h3_cells": 0
+            },
+            "filters_requested": [
+              "where"
+            ],
+            "filters_applied": [
+              "where"
+            ],
+            "filters_omitted": []
+          }
+        },
+        {
+          "op": "filter_trips",
+          "ts_utc": "2026-04-24T08:27:51.916125Z",
+          "summary": {
+            "rows_in": 62923,
+            "rows_out": 7486,
+            "dropped_total": 55437,
+            "dropped_by_filter": {
+              "where": 55437,
+              "time": 0,
+              "bbox": 0,
+              "polygon": 0,
+              "h3_cells": 0
+            },
+            "filters_requested": [
+              "where"
+            ],
+            "filters_applied": [
+              "where"
+            ],
+            "filters_omitted": []
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "dataset_id": "flows_e4bf97b83fa7",
+      "artifact_id": null,
+      "is_validated": false,
+      "events": [
+        {
+          "op": "build_flows",
+          "ts_utc": "2026-04-24T08:32:36.735345Z",
+          "parameters": {
+            "h3_resolution": 7,
+            "group_by": null,
+            "time_aggregation": "none",
+            "time_basis": "origin",
+            "min_trips_per_flow": 3,
+            "keep_flow_to_trips": true,
+            "require_validated": true,
+            "strict": false,
+            "max_issues": 1000
+          },
+          "summary": {
+            "n_trips_in": 7486,
+            "n_trips_eligible": 7486,
+            "n_trips_dropped": 0,
+            "n_flows_out": 804,
+            "n_flow_to_trips_rows": 5000
+          },
+          "issues_summary": {
+            "counts": {
+              "info": 0,
+              "warning": 0,
+              "error": 0
+            },
+            "top_codes": []
+          }
+        }
+      ],
+      "h3": {
+        "resolution": 7
+      }
+    }
+  },
+  "export": {
+    "parameters": {
+      "output_root": "C:\\projects\\pylondrina\\data\\flows\\demo_3_eod_viajes",
+      "export_dir": "C:\\projects\\pylondrina\\data\\flows\\demo_3_eod_viajes\\b1_baseline_estudio",
+      "format": "flowmap_blue",
+      "mode": "overwrite",
+      "folder_name": "b1_baseline_estudio",
+      "extra_flow_fields": null
+    },
+    "summary": {
+      "n_flows": 804,
+      "n_locations": 217,
+      "files_written": [
+        "flows.csv",
+        "locations.csv",
+        "metadata.json"
+      ]
+    },
+    "count_source": "flow_value"
+  }
+}
