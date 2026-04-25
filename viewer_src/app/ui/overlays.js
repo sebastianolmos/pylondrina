@@ -1,7 +1,7 @@
 import { PickingType } from "@flowmap.gl/layers";
 import { DATASET_FORMAT_LABELS, INFO_PANEL_DESCRIPTION, INFO_PANEL_TITLE } from "../config.js";
 import { state } from "../state.js";
-import { escapeHtml, formatRoundedInt, getTripMetric } from "../utils/format.js";
+import { escapeHtml, formatRoundedInt, getDemandMetric } from "../utils/format.js";
 
 // Referencia al tooltip principal del mapa, usado para hover sobre flujos y locations.
 const tooltipEl = document.getElementById("tooltip");
@@ -55,16 +55,16 @@ function getTooltipHtml(info) {
   switch (object.type) {
     case PickingType.LOCATION:
       return `
-        <div class="tooltip-title">${object.name ?? object.id}</div>
-        <div class="tooltip-row">Incoming trips: <span class="tooltip-value">${object.totals?.incomingCount ?? 0}</span></div>
-        <div class="tooltip-row">Outgoing trips: <span class="tooltip-value">${object.totals?.outgoingCount ?? 0}</span></div>
-        <div class="tooltip-row">Internal/round trips: <span class="tooltip-value">${object.totals?.internalCount ?? 0}</span></div>
+        <div class="tooltip-title">${escapeHtml(object.name ?? object.id)}</div>
+        <div class="tooltip-row">Demanda entrante: <span class="tooltip-value">${formatRoundedInt(object.totals?.incomingCount ?? 0)}</span></div>
+        <div class="tooltip-row">Demanda saliente: <span class="tooltip-value">${formatRoundedInt(object.totals?.outgoingCount ?? 0)}</span></div>
+        <div class="tooltip-row">Demanda intracelda: <span class="tooltip-value">${formatRoundedInt(object.totals?.internalCount ?? 0)}</span></div>
       `;
 
     case PickingType.FLOW:
       return `
-        <div class="tooltip-title">${object.origin?.id ?? "-"} → ${object.dest?.id ?? "-"}</div>
-        <div class="tooltip-row">Trips: <span class="tooltip-value">${object.count ?? 0}</span></div>
+        <div class="tooltip-title">${escapeHtml(object.origin?.id ?? "-")} → ${escapeHtml(object.dest?.id ?? "-")}</div>
+        <div class="tooltip-row">Demanda OD: <span class="tooltip-value">${formatRoundedInt(getDemandMetric(object))}</span></div>
       `;
 
     default:
@@ -117,16 +117,16 @@ export function updateFocusModeBanner() {
 /** Calcula el resumen global del dataset cargado para el panel informativo. */
 function getDatasetSummary() {
   if (!state.flowmapData) {
-    return { totalTrips: 0, totalFlows: 0 };
+    return { totalDemand: 0, totalFlows: 0 };
   }
 
-  const totalTrips = state.flowmapData.flows.reduce(
-    (accumulator, flow) => accumulator + getTripMetric(flow),
+  const totalDemand = state.flowmapData.flows.reduce(
+    (accumulator, flow) => accumulator + getDemandMetric(flow),
     0
   );
 
   return {
-    totalTrips,
+    totalDemand,
     totalFlows: state.flowmapData.flows.length,
   };
 }
@@ -143,28 +143,28 @@ function getSelectedLocationSummary() {
   const outgoingFlows = relatedFlows.filter((flow) => flow.origin === selectedId);
   const incomingFlows = relatedFlows.filter((flow) => flow.dest === selectedId);
 
-  const totalTrips = relatedFlows.reduce(
-    (accumulator, flow) => accumulator + getTripMetric(flow),
+  const totalDemand = relatedFlows.reduce(
+    (accumulator, flow) => accumulator + getDemandMetric(flow),
     0
   );
 
-  const outgoingTrips = outgoingFlows.reduce(
-    (accumulator, flow) => accumulator + getTripMetric(flow),
+  const outgoingDemand = outgoingFlows.reduce(
+    (accumulator, flow) => accumulator + getDemandMetric(flow),
     0
   );
 
-  const incomingTrips = incomingFlows.reduce(
-    (accumulator, flow) => accumulator + getTripMetric(flow),
+  const incomingDemand = incomingFlows.reduce(
+    (accumulator, flow) => accumulator + getDemandMetric(flow),
     0
   );
 
   return {
     id: state.selectedLocation.id,
     name: state.selectedLocation.name ?? state.selectedLocation.id,
-    totalTrips,
+    totalDemand,
     totalFlows: relatedFlows.length,
-    incomingTrips,
-    outgoingTrips,
+    incomingDemand,
+    outgoingDemand,
     incomingFlows: incomingFlows.length,
     outgoingFlows: outgoingFlows.length,
   };
@@ -223,16 +223,24 @@ export function updateDatasetInfoPanel() {
           <span class="viewer-panel__muted">(${escapeHtml(selectedSummary.id)})</span>
         </div>
 
-        <div><strong>Viajes relacionados:</strong> ${formatRoundedInt(selectedSummary.totalTrips)}</div>
-        <div><strong>Flujos relacionados:</strong> ${formatRoundedInt(selectedSummary.totalFlows)}</div>
+        <div><strong>Demanda relacionada:</strong> ${formatRoundedInt(selectedSummary.totalDemand)}</div>
+        <div><strong>Flujos OD relacionados:</strong> ${formatRoundedInt(selectedSummary.totalFlows)}</div>
 
-        <div class="viewer-panel__subsection-spacer"><strong>Viajes de entrada:</strong> ${formatRoundedInt(selectedSummary.incomingTrips)}</div>
-        <div><strong>Viajes de salida:</strong> ${formatRoundedInt(selectedSummary.outgoingTrips)}</div>
-        <div><strong>Flujos de entrada:</strong> ${formatRoundedInt(selectedSummary.incomingFlows)}</div>
-        <div><strong>Flujos de salida:</strong> ${formatRoundedInt(selectedSummary.outgoingFlows)}</div>
+        <div class="viewer-panel__subsection-spacer"><strong>Demanda entrante:</strong> ${formatRoundedInt(selectedSummary.incomingDemand)}</div>
+        <div><strong>Demanda saliente:</strong> ${formatRoundedInt(selectedSummary.outgoingDemand)}</div>
+        <div><strong>Flujos OD entrantes:</strong> ${formatRoundedInt(selectedSummary.incomingFlows)}</div>
+        <div><strong>Flujos OD salientes:</strong> ${formatRoundedInt(selectedSummary.outgoingFlows)}</div>
       </section>
     `
     : "";
+
+  const demandNoteHtml = `
+    <section class="viewer-panel__section">
+      <div class="viewer-panel__muted">
+        <strong>Nota:</strong> Demanda = suma de <code>flow_value</code>. En datasets ponderados, equivale a viajes expandidos estimados.
+      </div>
+    </section>
+  `;
 
   const segmentedWarningHtml =
     state.flowmapData.hasSegmentedFlows && state.segmentedWarningAccepted
@@ -255,8 +263,9 @@ export function updateDatasetInfoPanel() {
   datasetInfoPanelBodyEl.innerHTML = `
     <div class="viewer-panel__description">${escapeHtml(INFO_PANEL_DESCRIPTION)}</div>
     ${datasetNameHtml}
-    <div><strong>Viajes totales:</strong> ${formatRoundedInt(summary.totalTrips)}</div>
-    <div><strong>Flujos totales:</strong> ${formatRoundedInt(summary.totalFlows)}</div>
+    <div><strong>Demanda total:</strong> ${formatRoundedInt(summary.totalDemand)}</div>
+    <div><strong>Flujos OD totales:</strong> ${formatRoundedInt(summary.totalFlows)}</div>
+    ${demandNoteHtml}
     ${selectedSectionHtml}
     ${segmentedWarningHtml}
   `;

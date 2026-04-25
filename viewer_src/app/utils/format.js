@@ -12,16 +12,27 @@ export function escapeHtml(value) {
 }
 
 /**
- * Obtiene la métrica de viajes asociada a un flujo, priorizando `flow_count`
- * cuando existe y usando `count` como fallback compatible con Flowmap layout.
+ * Obtiene la magnitud principal de demanda asociada a un flujo.
+ *
+ * Prioriza `count`, porque en el viewer esa es la magnitud usada para dibujar
+ * el mapa. Si no existe, cae a `flow_value` y finalmente a `flow_count` como
+ * último fallback compatible.
  */
-export function getTripMetric(flow) {
-  const explicitFlowCount = Number(flow.flow_count);
-  if (Number.isFinite(explicitFlowCount)) return explicitFlowCount;
+export function getDemandMetric(flow) {
+  const count = Number(flow?.count);
+  if (Number.isFinite(count)) return count;
 
-  const count = Number(flow.count);
-  return Number.isFinite(count) ? count : 0;
+  const flowValue = Number(flow?.flow_value);
+  if (Number.isFinite(flowValue)) return flowValue;
+
+  const flowCount = Number(flow?.flow_count);
+  return Number.isFinite(flowCount) ? flowCount : 0;
 }
+
+/**
+ * Alias de compatibilidad con el nombre anterior usado por partes del viewer.
+ */
+export const getTripMetric = getDemandMetric;
 
 /**
  * Redondea un valor numérico y lo formatea como entero localizado para mostrar

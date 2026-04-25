@@ -122,7 +122,7 @@ function ensureDatasetSelectorOverlay() {
   helpSectionEl.appendChild(legendEl);
 
   const browserSectionEl = document.createElement("section");
-  browserSectionEl.className = "dataset-selector-panel__section";
+  browserSectionEl.className = "dataset-selector-panel__section dataset-selector-panel__section--browser";
 
   const browserHeaderEl = document.createElement("div");
   browserHeaderEl.className = "dataset-selector-browser__header";

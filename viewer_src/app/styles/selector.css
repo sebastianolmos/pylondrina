@@ -11,12 +11,14 @@
   box-sizing: border-box;
 }
 
-/* Panel central del selector, con un tamaño más amplio que el warning previo. */
+/* Panel central del selector, con alto controlado y scroll interno solo para la lista. */
 .dataset-selector-panel {
   width: min(860px, 100%);
-  min-height: min(620px, calc(100vh - 48px));
+  height: min(620px, calc(100vh - 48px));
   max-height: calc(100vh - 48px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 24px 26px;
   border-radius: 12px;
   background: rgba(20, 20, 20, 0.98);
@@ -42,6 +44,14 @@
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* La sección del explorador ocupa el espacio restante del panel. */
+.dataset-selector-panel__section--browser {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .dataset-selector-panel__section-title {
@@ -95,9 +105,15 @@
 }
 
 .dataset-selector-directory-list {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #5c5c5c #242424;
 }
 
 .dataset-selector-item {
@@ -184,4 +200,24 @@
   color: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
   font-weight: 700;
+}
+
+/* Scrollbar oscuro del listado interno de datasets. */
+.dataset-selector-directory-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dataset-selector-directory-list::-webkit-scrollbar-track {
+  background: #242424;
+  border-radius: 999px;
+}
+
+.dataset-selector-directory-list::-webkit-scrollbar-thumb {
+  background: #5c5c5c;
+  border-radius: 999px;
+  border: 2px solid #242424;
+}
+
+.dataset-selector-directory-list::-webkit-scrollbar-thumb:hover {
+  background: #737373;
 }
