@@ -1,0 +1,251 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flows_c868b2e4572b",
+  "artifact_id": "art_d75e474c-41c2-4723-8e63-4fee07d7f92e",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 7,
+    "group_by": [
+      "user_gender"
+    ],
+    "time_aggregation": "none",
+    "time_basis": "origin",
+    "min_trips_per_flow": 3,
+    "keep_flow_to_trips": false,
+    "require_validated": true,
+    "strict": false,
+    "max_issues": 1000,
+    "effective_flow_keys": [
+      "origin_h3_index",
+      "destination_h3_index",
+      "user_gender"
+    ]
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "flows",
+        "dataset_id": "flows_c868b2e4572b",
+        "artifact_id": null,
+        "n_rows": 1022
+      }
+    ],
+    "prior_events_summary": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-25T22:57:19.588075Z"
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "flows_c868b2e4572b",
+    "artifact_id": "art_d75e474c-41c2-4723-8e63-4fee07d7f92e",
+    "is_validated": false,
+    "events": [
+      {
+        "op": "build_flows",
+        "ts_utc": "2026-04-25T22:57:19.588075Z",
+        "parameters": {
+          "h3_resolution": 7,
+          "group_by": [
+            "user_gender"
+          ],
+          "time_aggregation": "none",
+          "time_basis": "origin",
+          "min_trips_per_flow": 3,
+          "keep_flow_to_trips": false,
+          "require_validated": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "n_trips_in": 13138,
+          "n_trips_eligible": 13138,
+          "n_trips_dropped": 0,
+          "n_flows_out": 1022,
+          "n_flow_to_trips_rows": null
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "filter_flows",
+        "ts_utc": "2026-04-25T23:05:52.860943Z",
+        "parameters": {
+          "where": {
+            "user_gender": "Mujer"
+          },
+          "h3_cells": null,
+          "spatial_predicate": "origin",
+          "keep_flow_to_trips": false,
+          "keep_metadata": true,
+          "strict": false,
+          "max_issues": 1000
+        },
+        "summary": {
+          "rows_in": 1022,
+          "rows_out": 364,
+          "dropped_total": 658,
+          "dropped_by_filter": {
+            "where": 658,
+            "h3_cells": 0
+          },
+          "filters_requested": [
+            "where"
+          ],
+          "filters_applied": [
+            "where"
+          ],
+          "filters_omitted": [],
+          "flow_to_trips_status": "not_requested"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 1,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": [
+            {
+              "code": "FLT_FLOW.WHERE.APPLIED",
+              "count": 1
+            }
+          ]
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-25T23:10:03Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\case_study_outputs\\eod_gender_work_trips\\flows\\work_all_day_mujer.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 364,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\case_study_outputs\\eod_gender_work_trips\\flows\\work_all_day_mujer.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_c868b2e4572b",
+          "artifact_id": "art_1e895b35-b533-45d4-88c9-047f6445792a"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-25T23:39:52Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\case_study_gender_work\\work_all_day_mujer.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 364,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\case_study_gender_work\\work_all_day_mujer.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_c868b2e4572b",
+          "artifact_id": "art_ecaaa674-4cc0-4bb2-ad9f-fd7b6799b6d0"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      },
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-04-25T23:40:05Z",
+        "parameters": {
+          "path": "C:\\projects\\pylondrina\\data\\flows\\case_study_gender_work\\work_all_day_mujer.golondrina",
+          "mode": "overwrite",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 364,
+          "n_flow_to_trips": null,
+          "path": "C:\\projects\\pylondrina\\data\\flows\\case_study_gender_work\\work_all_day_mujer.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flows_c868b2e4572b",
+          "artifact_id": "art_d75e474c-41c2-4723-8e63-4fee07d7f92e"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "h3": {
+      "resolution": 7
+    }
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 364,
+      "n_cols": 6,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "user_gender",
+        "flow_count",
+        "flow_value"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}

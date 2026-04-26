@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at_utc": "2026-04-24T15:58:36Z",
+  "generated_at_utc": "2026-04-25T23:40:40Z",
   "root_label": "flows",
   "root_path": "/data/flows",
   "max_scan_depth": 10,
@@ -9,6 +9,85 @@
     "name": "flows",
     "path": "/data/flows",
     "children": [
+      {
+        "type": "directory",
+        "name": "case_study_gender_work",
+        "path": "/data/flows/case_study_gender_work",
+        "children": [
+          {
+            "type": "directory",
+            "name": "work_all_day_hombre.golondrina",
+            "path": "/data/flows/case_study_gender_work/work_all_day_hombre.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__case_study_gender_work__work_all_day_hombre.golondrina__flows",
+                "label": "work_all_day_hombre.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/case_study_gender_work/work_all_day_hombre.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "work_all_day_mujer.golondrina",
+            "path": "/data/flows/case_study_gender_work/work_all_day_mujer.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__case_study_gender_work__work_all_day_mujer.golondrina__flows",
+                "label": "work_all_day_mujer.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/case_study_gender_work/work_all_day_mujer.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "work_am_hombre.golondrina",
+            "path": "/data/flows/case_study_gender_work/work_am_hombre.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__case_study_gender_work__work_am_hombre.golondrina__flows",
+                "label": "work_am_hombre.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/case_study_gender_work/work_am_hombre.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "work_am_mujer.golondrina",
+            "path": "/data/flows/case_study_gender_work/work_am_mujer.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__case_study_gender_work__work_am_mujer.golondrina__flows",
+                "label": "work_am_mujer.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/case_study_gender_work/work_am_mujer.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
       {
         "type": "directory",
         "name": "demo_1_adatarap_viajes",
@@ -248,6 +327,127 @@
                 "label": "b1_peak_am_estudio",
                 "format": "flowmap_layout",
                 "dataset_path": "/data/flows/demo_3_eod_viajes/b1_peak_am_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "demo_3_eod_viajes_test",
+        "path": "/data/flows/demo_3_eod_viajes_test",
+        "children": [
+          {
+            "type": "directory",
+            "name": "b1_baseline_estudio",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_baseline_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes_test__b1_baseline_estudio",
+                "label": "b1_baseline_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_baseline_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_flows_baseline_estudio.golondrina",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_flows_baseline_estudio.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "feather__demo_3_eod_viajes_test__b1_flows_baseline_estudio.golondrina__flows",
+                "label": "b1_flows_baseline_estudio.golondrina",
+                "format": "golondrina_feather",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_flows_baseline_estudio.golondrina",
+                "files": {
+                  "flows": "flows.feather",
+                  "metadata": "flows.metadata.json",
+                  "flow_to_trips": "flow_to_trips.feather"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_flows_baseline_parquet.golondrina",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_flows_baseline_parquet.golondrina",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "parquet__demo_3_eod_viajes_test__b1_flows_baseline_parquet.golondrina__flows",
+                "label": "b1_flows_baseline_parquet.golondrina",
+                "format": "golondrina_parquet",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_flows_baseline_parquet.golondrina",
+                "files": {
+                  "flows": "flows.parquet",
+                  "metadata": "flows.metadata.json",
+                  "flow_to_trips": "flow_to_trips.parquet"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_hombre_estudio",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_hombre_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes_test__b1_hombre_estudio",
+                "label": "b1_hombre_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_hombre_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_mujer_estudio",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_mujer_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes_test__b1_mujer_estudio",
+                "label": "b1_mujer_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_mujer_estudio",
+                "files": {
+                  "flows": "flows.csv",
+                  "locations": "locations.csv",
+                  "metadata": "metadata.json"
+                }
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "b1_peak_am_estudio",
+            "path": "/data/flows/demo_3_eod_viajes_test/b1_peak_am_estudio",
+            "children": [
+              {
+                "type": "dataset",
+                "id": "flowmap__demo_3_eod_viajes_test__b1_peak_am_estudio",
+                "label": "b1_peak_am_estudio",
+                "format": "flowmap_layout",
+                "dataset_path": "/data/flows/demo_3_eod_viajes_test/b1_peak_am_estudio",
                 "files": {
                   "flows": "flows.csv",
                   "locations": "locations.csv",
