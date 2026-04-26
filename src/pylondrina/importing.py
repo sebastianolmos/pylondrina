@@ -67,6 +67,8 @@ CATEGORICAL_INFERENCE_K_MAX = 10_000
 CATEGORICAL_INFERENCE_ALPHA_DECLARED = 0.05
 
 _HHMM_RE = re.compile(r"^(?P<h>\d{2}):(?P<m>\d{2})$")
+DATETIME_LOCALIZE_NONEXISTENT = "shift_forward"
+DATETIME_LOCALIZE_AMBIGUOUS = "NaT"
 
 @dataclass(frozen=True)
 class ImportOptions:
@@ -2033,6 +2035,38 @@ def _is_already_correct_dtype(s: pd.Series, expected: str) -> bool:
         return str(dt) == "string"
     return False
 
+def _localize_naive_datetime_series_to_utc(s: pd.Series, tz_norm: str) -> pd.Series:
+    """
+    Localiza datetimes naive a la zona de origen y los convierte a UTC.
+
+    Se manejan explícitamente bordes de DST:
+    - nonexistent: horarios locales que no existen por salto horario.
+    - ambiguous: horarios locales repetidos por cambio horario inverso.
+    """
+    return (
+        s.dt.tz_localize(
+            tz_norm,
+            nonexistent=DATETIME_LOCALIZE_NONEXISTENT,
+            ambiguous=DATETIME_LOCALIZE_AMBIGUOUS,
+        )
+        .dt.tz_convert("UTC")
+    )
+
+
+def _localize_naive_timestamp_to_utc(ts: pd.Timestamp, tz_norm: str) -> pd.Timestamp:
+    """
+    Localiza un Timestamp naive a la zona de origen y lo convierte a UTC,
+    usando la misma política DST que la normalización vectorizada.
+    """
+    return (
+        ts.tz_localize(
+            tz_norm,
+            nonexistent=DATETIME_LOCALIZE_NONEXISTENT,
+            ambiguous=DATETIME_LOCALIZE_AMBIGUOUS,
+        )
+        .tz_convert("UTC")
+    )
+
 def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) -> tuple[pd.Series, Dict[str, Any]]:
     tz_norm, tz_kind = _normalize_source_timezone(source_timezone)
 
@@ -2056,7 +2090,7 @@ def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) 
         if tz_norm is None:
             return s, {"status": "naive_unconverted", "tz_kind": tz_kind, "n_nat": int(s.isna().sum())}
 
-        localized = s.dt.tz_localize(tz_norm).dt.tz_convert("UTC")
+        localized = _localize_naive_datetime_series_to_utc(s, tz_norm)
         return localized, {
             "status": "naive_localized_to_utc",
             "tz_kind": tz_kind,
@@ -2089,7 +2123,7 @@ def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) 
                 "n_nat": int(parsed.isna().sum()),
             }
 
-        localized = parsed.dt.tz_localize(tz_norm).dt.tz_convert("UTC")
+        localized = _localize_naive_datetime_series_to_utc(parsed, tz_norm)
         return localized, {
             "status": "string_naive_localized_to_utc",
             "tz_kind": tz_kind,
@@ -2117,7 +2151,7 @@ def _normalize_datetime_column(s: pd.Series, *, source_timezone: Optional[str]) 
                         # Se conserva naive si no se declaró source_timezone
                         out_values.append(ts)
                     else:
-                        out_values.append(ts.tz_localize(tz_norm).tz_convert("UTC"))
+                        out_values.append(_localize_naive_timestamp_to_utc(ts, tz_norm))
                 continue
 
             # Cualquier otro caso raro se marca como NaT
