@@ -1,0 +1,65 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "parquet",
+    "options": {
+      "compression": "snappy"
+    }
+  },
+  "dataset_id": "dset_sidecar",
+  "artifact_id": "art_sidecar",
+  "files": {
+    "data": "flows.parquet",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": "flow_to_trips.parquet"
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [
+      "mode"
+    ],
+    "time_aggregation": "hour",
+    "time_basis": "origin",
+    "min_trips_per_flow": 1
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "type": "trips",
+        "dataset_id": "trip_dset_001"
+      }
+    ]
+  },
+  "metadata": {
+    "dataset_id": "dset_sidecar",
+    "artifact_id": "art_sidecar",
+    "is_validated": true,
+    "events": []
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 3,
+      "n_cols": 8,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value",
+        "mode",
+        "window_start_utc",
+        "window_end_utc"
+      ]
+    },
+    "flow_to_trips": {
+      "n_rows": 3,
+      "n_cols": 2,
+      "columns": [
+        "flow_id",
+        "movement_id"
+      ]
+    }
+  }
+}

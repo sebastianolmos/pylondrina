@@ -1,0 +1,98 @@
+{
+  "dataset_type": "flows",
+  "format": "golondrina",
+  "layout_version": "1.1",
+  "storage": {
+    "format": "feather",
+    "options": {
+      "compression": "lz4",
+      "version": 2
+    }
+  },
+  "dataset_id": "flow-dset-smoke-001",
+  "artifact_id": "art_7004cbe4-469b-4946-818d-c54ae72294fd",
+  "files": {
+    "data": "flows.feather",
+    "metadata": "flows.metadata.json",
+    "flow_to_trips": null
+  },
+  "aggregation_spec": {
+    "h3_resolution": 8,
+    "group_by": [
+      "mode"
+    ],
+    "time_aggregation": "hour",
+    "time_basis": "origin",
+    "min_trips_per_flow": 1
+  },
+  "provenance": {
+    "derived_from": [
+      {
+        "source_type": "trips",
+        "dataset_id": "trip-dset-origin-001"
+      }
+    ],
+    "prior_events_summary": {
+      "n_events": 2
+    }
+  },
+  "metadata": {
+    "dataset_id": "flow-dset-smoke-001",
+    "is_validated": true,
+    "events": [
+      {
+        "op": "write_flows",
+        "ts_utc": "2026-05-20T05:16:48Z",
+        "parameters": {
+          "path": "tmp_smoke_write_flows\\case_01_write_happy_default_feather\\artifact_write_happy.golondrina",
+          "mode": "error_if_exists",
+          "storage_format": "feather",
+          "parquet_compression": "snappy",
+          "feather_compression": "lz4",
+          "normalize_artifact_dir": true,
+          "write_flow_to_trips": false
+        },
+        "summary": {
+          "n_flows": 3,
+          "n_flow_to_trips": null,
+          "path": "tmp_smoke_write_flows\\case_01_write_happy_default_feather\\artifact_write_happy.golondrina",
+          "files_written": [
+            "flows.feather",
+            "flows.metadata.json"
+          ],
+          "dataset_id": "flow-dset-smoke-001",
+          "artifact_id": "art_7004cbe4-469b-4946-818d-c54ae72294fd"
+        },
+        "issues_summary": {
+          "counts": {
+            "info": 0,
+            "warning": 0,
+            "error": 0
+          },
+          "top_codes": []
+        }
+      }
+    ],
+    "notes": {
+      "smoke_case": true
+    },
+    "artifact_id": "art_7004cbe4-469b-4946-818d-c54ae72294fd"
+  },
+  "tables": {
+    "flows": {
+      "n_rows": 3,
+      "n_cols": 8,
+      "columns": [
+        "flow_id",
+        "origin_h3_index",
+        "destination_h3_index",
+        "flow_count",
+        "flow_value",
+        "mode",
+        "window_start_utc",
+        "window_end_utc"
+      ]
+    },
+    "flow_to_trips": null
+  }
+}
