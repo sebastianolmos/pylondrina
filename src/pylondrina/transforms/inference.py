@@ -34,6 +34,27 @@ CATEGORICAL_INFERENCE_K_MAX = 10_000
 CATEGORICAL_INFERENCE_ALPHA_DECLARED = 0.05
 
 TRACE_MIN_FIELDS = ("point_id", "user_id", "time_utc", "latitude", "longitude")
+"""
+Campos mínimos requeridos en `TraceDataset.data` para inferir trips.
+
+Estos campos forman la precondición tabular de OP-16. La operación no puede
+construir viajes OD si no dispone de identidad de punto, usuario, tiempo y
+coordenadas del punto observado.
+
+Valores
+-------
+("point_id", "user_id", "time_utc", "latitude", "longitude")
+
+Notes
+-----
+La operación trabaja sobre trazas discretas ya estructuradas. Si alguno de estos
+campos falta, `infer_trips_from_traces` aborta con
+`INF.INPUT.MISSING_MIN_TRACE_FIELDS`.
+
+`time_utc` debe ser interpretable como datetime, y `latitude` / `longitude`
+deben permitir construir extremos OD y derivar H3 posteriormente.
+"""
+
 TRIP_MIN_FIELDS = (
     "movement_id",
     "user_id",
@@ -48,6 +69,20 @@ TRIP_MIN_FIELDS = (
     "trip_id",
     "movement_seq",
 )
+"""
+Campos mínimos materializados en el `TripDataset` inferido.
+
+Estos campos definen el núcleo de salida que OP-16 debe producir para que el
+resultado pueda interoperar con el pipeline de trips y flows.
+
+Notes
+-----
+Por convención de v1.1, cada movimiento inferido se materializa como viaje de
+una sola etapa: `trip_id = movement_id` y `movement_seq = 0`.
+
+`origin_h3_index` y `destination_h3_index` se derivan durante el enriquecimiento
+del output con la resolución definida por `InferTripsOptions.h3_resolution`.
+"""
 
 _RESERVED_OUTPUT_FIELDS = set(TRIP_MIN_FIELDS)
 _ALLOWED_INFER_MODES = ("consecutive_points", "consecutive_clusters")
@@ -57,34 +92,54 @@ _ALLOWED_PROPAGATION_MODES = {"origin", "destination", "both"}
 @dataclass(frozen=True)
 class InferTripsOptions:
     """
-    Opciones efectivas para inferir viajes a partir de trazas discretas.
+    Opciones para inferir trips desde trazas discretas.
+
+    Controla el modo de inferencia, precondiciones de validación, thresholds
+    temporales y espaciales, derivación H3, política de dominios y propagación
+    explícita de campos desde puntos de traza hacia extremos OD.
 
     Attributes
     ----------
     infer_mode : {"consecutive_points", "consecutive_clusters"}, default="consecutive_points"
-        Estrategia de inferencia a usar sobre las trazas ya ordenadas por usuario-tiempo.
+        Estrategia de inferencia. `"consecutive_points"` construye viajes entre
+        puntos consecutivos del mismo usuario. `"consecutive_clusters"` agrupa
+        secuencialmente puntos cercanos y construye viajes entre clusters
+        consecutivos usando puntos frontera reales.
     strict : bool, default=False
-        Si True, errores operacionales no fatales escalan a excepción después de construir evidencia.
+        Si es True, errores operacionales de nivel error escalan a
+        `InferenceError` después de construir el dataset derivado, el reporte y el
+        evento.
     strict_domains : bool, default=False
-        Si True, errores de dominios/categóricos del output escalan después de construir evidencia.
+        Si es True, errores de dominios categóricos del output escalan a
+        `InferenceError` después de construir evidencia.
     require_validated_traces : bool, default=True
-        Si True, exige traces.metadata["is_validated"] == True antes de inferir.
+        Si es True, exige `traces.metadata["is_validated"] is True` antes de inferir.
+        Si es False, permite bypass explícito y lo registra en issues, parámetros y
+        evento.
     drop_invalid : bool, default=True
-        Si True, candidatos estructuralmente inválidos se excluyen del output y se reportan.
+        Controla la evidencia asociada a candidatos estructuralmente inválidos. Los
+        candidatos inválidos no se materializan en el output final.
     h3_resolution : int, default=8
-        Resolución H3 usada para derivar origin_h3_index y destination_h3_index.
+        Resolución H3 usada para derivar `origin_h3_index` y
+        `destination_h3_index`.
     max_time_delta_s : float, optional
-        Umbral máximo de separación temporal permitido entre extremos del viaje.
+        Máxima separación temporal permitida entre origen y destino del candidato.
     min_time_delta_s : float, optional
-        Umbral mínimo de separación temporal permitido entre extremos del viaje.
+        Mínima separación temporal permitida entre origen y destino del candidato.
     min_distance_m : float, optional
-        Umbral mínimo de separación espacial permitido entre extremos del viaje.
+        Mínima distancia espacial permitida entre origen y destino del candidato.
     cluster_radius_m : float, optional
-        Radio máximo entre puntos consecutivos para absorberlos en un mismo cluster secuencial.
+        Radio máximo entre puntos consecutivos para mantenerlos dentro del mismo
+        cluster secuencial. Es obligatorio y positivo cuando
+        `infer_mode="consecutive_clusters"`.
     cluster_max_time_gap_s : float, optional
-        Gap máximo entre puntos consecutivos para absorberlos en un mismo cluster secuencial.
+        Gap temporal máximo entre puntos consecutivos para mantenerlos dentro del
+        mismo cluster secuencial. Es obligatorio y positivo cuando
+        `infer_mode="consecutive_clusters"`.
     propagate_trace_fields : mapping, optional
-        Mapeo campo_traza -> {'origin','destination','both'} para propagar atributos frontera.
+        Mapping `campo_traza -> {"origin", "destination", "both"}`. Permite crear
+        columnas `origin_<campo>` y/o `destination_<campo>` en el `TripDataset`
+        inferido.
     """
 
     infer_mode: Literal["consecutive_points", "consecutive_clusters"] = "consecutive_points"
@@ -109,10 +164,77 @@ def infer_trips_from_traces(
     provenance: dict[str, Any] | None = None,
 ) -> Tuple[TripDataset, InferenceReport]:
     """
-    Infiere un TripDataset simple a partir de un TraceDataset discreto.
+    Infiere un `TripDataset` desde un `TraceDataset` de puntos discretos.
 
-    La operación no muta el TraceDataset de entrada, no escribe en disco y
-    construye un nuevo TripDataset con metadata/evento/provenance propios.
+    La operación construye viajes OD simples desde trazas espacio-temporales ya
+    estructuradas. Soporta dos estrategias: `consecutive_points`, que forma viajes
+    entre puntos consecutivos del mismo usuario, y `consecutive_clusters`, que
+    colapsa puntos cercanos en espacio-tiempo antes de construir viajes entre
+    clusters consecutivos.
+
+    No importa fuentes externas, no valida formalmente el output, no reconstruye
+    trayectorias continuas, no escribe artefactos en disco y no muta el
+    `TraceDataset` de entrada. El resultado es un nuevo `TripDataset` con metadata,
+    provenance, `schema_effective`, evento `infer_trips` e `InferenceReport`
+    propios.
+
+    Parameters
+    ----------
+    traces : TraceDataset
+        Dataset de trazas discretas. `traces.data` debe contener `point_id`,
+        `user_id`, `time_utc`, `latitude` y `longitude`. Por defecto, debe estar
+        validado mediante `traces.metadata["is_validated"] is True`.
+    trip_schema : TripSchema
+        Schema usado para el `TripDataset` resultante. La operación construye un
+        `schema_effective` con temporalidad Tier 1, campos materializados, dtypes
+        efectivos y dominios efectivos cuando aplica.
+    options : InferTripsOptions, optional
+        Opciones de inferencia. Si es None, se usa `InferTripsOptions()`.
+    value_correspondence : mapping, optional
+        Mapping de normalización para campos categóricos materializados en el output.
+        Se aplica sobre campos del `TripDataset` resultante, por ejemplo
+        `origin_category` o `destination_category`.
+    provenance : dict, optional
+        Provenance adicional del proceso de inferencia. Si se entrega, queda
+        registrado como `user_provenance` dentro del provenance del `TripDataset`
+        derivado.
+
+    Returns
+    -------
+    tuple[TripDataset, InferenceReport]
+        Dataset de trips inferido y reporte estructurado. El dataset queda con
+        `metadata["is_validated"] = False`, H3 OD derivados, evento `infer_trips`,
+        `schema_effective` y provenance derivado desde traces. El reporte incluye
+        `ok`, `issues`, `summary` y `parameters`.
+
+    Raises
+    ------
+    InferenceError
+        Si el input o la configuración impiden ejecutar la inferencia, por ejemplo
+        traces no validadas cuando `require_validated_traces=True`, campos mínimos
+        faltantes, modo desconocido, resolución H3 inválida, thresholds inválidos,
+        `propagate_trace_fields` no interpretable, campos a propagar inexistentes,
+        clusters subconfigurados, provenance no serializable o errores operacionales
+        escalados por `strict` o `strict_domains`.
+    SchemaError
+        Si `trip_schema` no es un `TripSchema` usable o declara una versión no
+        interpretable.
+
+    Notes
+    -----
+    El modo `consecutive_points` ordena los puntos por `user_id`, `time_utc` y
+    `point_id`, y usa cada par consecutivo como candidato OD.
+
+    El modo `consecutive_clusters` construye clusters secuenciales por usuario. Los
+    viajes se forman entre clusters consecutivos usando el último punto del cluster
+    origen y el primer punto del cluster destino; no se usan centroides ni puntos
+    sintéticos.
+
+    Los candidatos pueden descartarse por `max_time_delta_s`, `min_time_delta_s`,
+    `min_distance_m`, por compartir `location_ref` cuando ese campo existe, o por
+    problemas estructurales. Si no queda ningún candidato materializable, la
+    operación puede retornar un `TripDataset` vacío con columnas mínimas y evidencia
+    en el reporte.
     """
     issues: List[Issue] = []
 

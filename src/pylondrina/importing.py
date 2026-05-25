@@ -73,29 +73,43 @@ DATETIME_LOCALIZE_AMBIGUOUS = "NaT"
 @dataclass(frozen=True)
 class ImportOptions:
     """
-    Opciones de importación/estandarización para construir un TripDataset.
+    Opciones para construir un `TripDataset` desde una tabla fuente.
+
+    Controla la selección de campos, la preservación de extensiones, la
+    política de dominios categóricos, la interpretación de viajes de una sola
+    etapa y la zona horaria usada para normalizar datetimes sin zona explícita.
 
     Attributes
     ----------
     keep_extra_fields : bool, default=True
-        Si True, conserva columnas que no están en el esquema como campos extendidos del dataset.
+        Si es True, conserva columnas de la fuente que no pertenecen al
+        `TripSchema` como extensiones compatibles del `TripDataset`. Si es
+        False, conserva solo campos del schema que sobreviven a la selección
+        efectiva.
     selected_fields : sequence of str, optional
-        Lista de campos estándar (Golondrina) que el usuario desea conservar explícitamente además de los obligatorios.
-        Si None, se conservan todos los campos del esquema que existan en la fuente.
+        Campos del `TripSchema` que se desea conservar además de los campos
+        requeridos. Si es None, se conservan todos los campos del schema que
+        existan o puedan materializarse. Si es una secuencia vacía, la selección
+        efectiva queda restringida a los campos requeridos.
     strict : bool, default=False
-        Si True, inconsistencias relevantes detienen el proceso (excepción) en vez de sólo reportarse.
+        Si es True, ciertos problemas recuperables de importación se escalan a
+        excepción. Los errores estructurales que impiden construir el dataset
+        pueden abortar independientemente de este valor.
     strict_domains : bool, default=False
-        Si True, valores categóricos fuera del dominio base se consideran error.
-        Si False, se permite extensión controlada del dominio a nivel de dataset (si el DomainSpec lo permite).
+        Si es True, bloquea valores categóricos que requieran extender dominios.
+        Si es False, permite extensión controlada cuando el `DomainSpec` del
+        campo lo admite, o aplica la política definida para dominios no
+        extendibles.
     single_stage : bool, default=False
-        Si True, cada fila representa un viaje individual (no se repite trip_id y movement_seq=0).
-        Útil para fuentes ya "tripificadas" donde no hay etapas múltiples por viaje.
+        Si es True, interpreta cada fila como un viaje de una sola etapa. En
+        ese modo, la importación puede derivar `trip_id` desde `movement_id` y
+        fijar `movement_seq = 0` cuando esos campos faltan.
     source_timezone : str, optional
-        Zona horaria de origen para datetimes naive (solo aplicable cuando se alcanza Tier 1).
-        Formatos aceptados por contrato de diseño:
-        - IANA: "Area/City" (ej: "America/Santiago")
-        - Offset fijo: "±HH:MM" (ej: "-03:00")
-        - "UTC" o "Z"
+        Zona horaria usada para interpretar datetimes naive cuando la fuente
+        alcanza temporalidad Tier 1. Acepta nombres IANA, como
+        ``"America/Santiago"``, offsets fijos ``"±HH:MM"``, ``"UTC"`` o
+        ``"Z"``. Si no se entrega, los datetimes se interpretan según la
+        información temporal disponible en la fuente.
     """
     keep_extra_fields: bool = True
     selected_fields: Optional[Sequence[str]] = None
@@ -117,43 +131,76 @@ def import_trips_from_dataframe(
     h3_resolution: int = 8,
 ) -> Tuple[TripDataset, ImportReport]:
     """
-    Importa (convierte) un DataFrame de viajes desde un formato externo al formato Golondrina.
+    Construye un `TripDataset` Golondrina desde un `pandas.DataFrame`.
 
-    Este proceso realiza la **estandarización** de:
-    - nombres de campos (según correspondencias),
-    - valores categóricos (según dominios del esquema y/o correspondencias),
-    - tipos y formatos básicos (según FieldSpec),
-    y genera un TripDataset con trazabilidad (metadatos + reportes).
+    La operación alinea columnas de una fuente externa con los campos canónicos
+    definidos por un `TripSchema`, aplica correspondencias de valores
+    categóricos, realiza coerciones mínimas de tipo, detecta el tier temporal,
+    normaliza temporalidad cuando corresponde, deriva índices H3 cuando existen
+    coordenadas OD suficientes y garantiza identificadores mínimos como
+    `movement_id`. Si `options.single_stage=True`, también puede derivar
+    `trip_id` y `movement_seq`.
+
+    Esta operación construye un dataset operable, pero no certifica conformidad
+    formal. El `TripDataset` resultante queda siempre con
+    `metadata["is_validated"] = False`.
 
     Parameters
     ----------
     df : pandas.DataFrame
-        DataFrame fuente con viajes en el formato original.
+        Tabla fuente con registros de viajes o movements OD. Puede usar nombres
+        y codificaciones propias de la fuente si se entregan correspondencias.
     schema : TripSchema
-        Esquema del formato Golondrina a aplicar.
+        Contrato de trips que define campos, tipos, requeridos, dominios y
+        restricciones esperadas para el dataset resultante.
     source_name : str, optional
-        Nombre de la fuente (p. ej., "EOD", "XDR", "ADATRAP"). Se registra en metadatos.
+        Nombre breve de la fuente. Se registra en parámetros efectivos,
+        metadata y provenance generado por defecto.
     options : ImportOptions, optional
-        Opciones de importación y política de errores.
+        Opciones de importación. Si no se entrega, se usa `ImportOptions()`.
     field_correspondence : mapping, optional
-        Correspondencia: campo estándar Golondrina -> columna en el DataFrame fuente.
-        Si None, se asume que el DataFrame ya usa nombres estándar (o se delega a perfiles de fuente).
+        Mapping desde campo canónico Golondrina hacia columna de la fuente.
+        Por ejemplo, ``{"user_id": "id_persona"}``.
     value_correspondence : mapping, optional
-        Correspondencia de valores categóricos por campo: campo -> (valor_fuente -> valor_canónico).
+        Mapping de valores categóricos por campo, con forma
+        ``{campo: {valor_fuente: valor_canonico}}``.
     provenance : dict, optional
-        Metadatos de procedencia adicionales (periodo, zona, versión del dataset, etc.).
-        Debe ser JSON-serializable.
+        Información de procedencia definida por el usuario. Debe ser
+        serializable a JSON si se desea persistir posteriormente.
     h3_resolution : int, default=8
-        Resolución H3 a utilizar para derivar índices de celdas (origen/destino) cuando sea aplicable.
-        Debe estar en el rango permitido por H3 (típicamente 0..15). Esta resolución se registra en
-        los metadatos del dataset para reproducibilidad.
+        Resolución H3 usada para derivar `origin_h3_index` y
+        `destination_h3_index` cuando existan coordenadas OD utilizables. Debe
+        estar entre 0 y 15.
 
     Returns
     -------
-    dataset : TripDataset
-        Conjunto de viajes en formato Golondrina.
-    report : ImportReport
-        Reporte de importación con hallazgos y trazabilidad.
+    tuple[TripDataset, ImportReport]
+        Dataset importado y reporte de importación. El reporte incluye issues,
+        parámetros efectivos, correspondencias aplicadas, versión de schema,
+        metadata y un summary compacto con `rows_in`, `rows_out`,
+        `n_fields_mapped` y `n_domain_mappings_applied`.
+
+    Raises
+    ------
+    SchemaError
+        Si el `TripSchema` es estructuralmente inválido, por ejemplo por versión
+        vacía, campos requeridos inexistentes o configuración de schema no
+        interpretable.
+    pylondrina.errors.ImportError
+        Si la fuente no permite materializar el dataset, por ejemplo por campos
+        requeridos no derivables, correspondencias inválidas, `movement_id`
+        duplicado, dominios bloqueados por `strict_domains`, H3 requerido no
+        derivable o escalamiento de problemas recuperables bajo `strict=True`.
+
+    Notes
+    -----
+    `field_correspondence` no se guarda dentro de `event["parameters"]`.
+    Las correspondencias efectivas quedan disponibles en el `TripDataset`, en
+    el `ImportReport` y en `metadata["mappings"]`.
+
+    Los dominios efectivos no son un atributo independiente de `TripDataset`;
+    quedan registrados en `metadata["domains_effective"]` y en
+    `schema_effective.domains_effective`.
     """
     # Se toman snapshots mínimos del input y se prepara una copia de trabajo.
     rows_in = len(df)

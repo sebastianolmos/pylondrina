@@ -29,21 +29,43 @@ EXCEPTION_MAP_BUILD = {
 
 TimeAggregation = Literal["none", "hour", "day", "week"]
 """
-Granularidad temporal para construir flujos.
+Granularidad temporal usada al construir flows.
 
-- "none": no particiona temporalmente (un flujo por OD y segmentación).
-- "hour"/"day"/"week": agrega además por “bin” temporal según `time_basis`.
+Valores permitidos
+------------------
+"none"
+    No agrega dimensión temporal. Los flows se agregan solo por OD H3 y por las
+    columnas indicadas en `group_by`, si existen.
+"hour"
+    Agrega por ventanas horarias UTC.
+"day"
+    Agrega por ventanas diarias UTC.
+"week"
+    Agrega por ventanas semanales UTC.
+
+Notes
+-----
+Cuando el valor es distinto de `"none"`, el dataset de entrada debe tener
+temporalidad Tier 1 y columnas `origin_time_utc` y `destination_time_utc`.
+La ventana resultante se materializa en `FlowDataset.flows` como
+`window_start_utc` y `window_end_utc`.
 """
 
 TimeBasis = Literal["origin", "destination"]
 """
-Campo temporal base para ubicar el viaje en el bin cuando `time_aggregation != "none"`.
+Campo temporal usado para asignar cada movement a una ventana temporal.
 
-- "origin": usa `origin_time_utc` para asignar el viaje al bin.
-- "destination": usa `destination_time_utc` para asignar el viaje al bin.
+Valores permitidos
+------------------
+"origin"
+    Usa `origin_time_utc` como instante base de agregación.
+"destination"
+    Usa `destination_time_utc` como instante base de agregación.
+
+Notes
+-----
+Solo se utiliza cuando `FlowBuildOptions.time_aggregation != "none"`.
 """
-
-
 
 _REQUIRED_OD_H3_FIELDS = ("origin_h3_index", "destination_h3_index")
 _REQUIRED_TIER1_FIELDS = ("origin_time_utc", "destination_time_utc")
@@ -52,29 +74,41 @@ _REQUIRED_TIER1_FIELDS = ("origin_time_utc", "destination_time_utc")
 @dataclass(frozen=True)
 class FlowBuildOptions:
     """
-    Opciones para construir un FlowDataset a partir de un TripDataset.
+    Opciones para construir un `FlowDataset` desde un `TripDataset`.
 
-    Parameters
+    Controla la resolución H3 objetivo, la segmentación categórica, la agregación
+    temporal, el umbral mínimo de conservación de flows, la construcción opcional
+    de backlinks `flow_to_trips` y las precondiciones de validación.
+
+    Attributes
     ----------
     h3_resolution : int, default=8
-        Resolución H3 objetivo de agregación.
+        Resolución H3 objetivo de agregación. Debe estar entre 0 y 15. Si es más
+        gruesa que la resolución observada en el input, la operación hace roll-up.
+        Si es más fina, la operación aborta.
     group_by : sequence of str, optional
-        Campos adicionales por los que se segmenta el flujo (p. ej. `mode`, `purpose`, etc.).
-        Si es None, se agregan flujos solo por OD (y por tiempo si aplica).
+        Campos adicionales de `trips.data` usados para segmentar flows. Si es None,
+        los flows se agregan solo por OD H3 y por ventana temporal cuando aplica.
     time_aggregation : {"none", "hour", "day", "week"}, default="none"
-        Granularidad temporal de agregación. Si es None, no se agrega dimensión temporal.
+        Granularidad temporal de agregación. Si es distinta de `"none"`, el input
+        debe tener temporalidad Tier 1.
     time_basis : {"origin", "destination"}, default="origin"
-        Campo temporal base para construir la ventana temporal del flujo.
+        Campo temporal usado para ubicar cada movement en la ventana temporal.
     min_trips_per_flow : int, default=1
-        Umbral mínimo de movements para conservar un flujo.
+        Cantidad mínima de movements agregados requerida para conservar un flow.
     keep_flow_to_trips : bool, default=False
-        Si True, construye la tabla auxiliar `flow_to_trips`.
+        Si es True, construye la tabla auxiliar `flow_to_trips` con columnas
+        `flow_id` y `movement_id`.
     require_validated : bool, default=True
-        Si True, exige `trips.metadata["is_validated"] is True`.
+        Si es True, exige `trips.metadata["is_validated"] is True` antes de
+        construir flows.
     strict : bool, default=False
-        Reserva de política para degradaciones recuperables explícitas.
+        Política reservada para el contrato de opciones y reporte. En v1.1, los
+        bordes principales de OP-08 se resuelven mayoritariamente como abortos
+        fatales o issues agregados cerrados por el pipeline.
     max_issues : int, default=1000
-        Guardarraíl del tamaño del reporte.
+        Número máximo de issues retenidos en el `FlowBuildReport`. Si se detectan
+        más issues, el summary agrega un bloque `limits`.
     """
 
     h3_resolution: int = 8
@@ -98,19 +132,62 @@ def build_flows(
     options: Optional[FlowBuildOptions] = None,
 ) -> Tuple[FlowDataset, FlowBuildReport]:
     """
-    Construye un FlowDataset mínimo, estable y exportable desde un TripDataset.
+    Construye un `FlowDataset` agregando movements OD desde un `TripDataset`.
+
+    La operación agrupa registros de `trips.data` por `origin_h3_index`,
+    `destination_h3_index`, columnas opcionales de `group_by` y, cuando se solicita,
+    ventanas temporales. El resultado usa el contrato interno canónico de flows:
+    `flow_id`, `origin_h3_index`, `destination_h3_index`, `flow_count` y
+    `flow_value`.
+
+    `flow_count` corresponde al número de movements agregados. `flow_value`
+    corresponde a la suma de `trip_weight` si esa columna existe; si no existe, cae
+    al valor de `flow_count`.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset de trips en formato Golondrina.
+        Dataset de trips usado como fuente. Debe contener `trips.data` como
+        `pandas.DataFrame` y los campos canónicos `origin_h3_index` y
+        `destination_h3_index`. Por defecto, debe estar validado mediante
+        `metadata["is_validated"] is True`.
     options : FlowBuildOptions, optional
-        Opciones efectivas de agregación. Si es None, se usan defaults.
+        Opciones de construcción. Si es None, se usa `FlowBuildOptions()`.
 
     Returns
     -------
     tuple[FlowDataset, FlowBuildReport]
-        Dataset de flujos derivado y reporte estructurado de la operación.
+        Dataset de flows derivado y reporte estructurado de construcción. El
+        `FlowDataset` incluye `flows`, `flow_to_trips` cuando se solicita,
+        `aggregation_spec`, `metadata`, `provenance` y una referencia viva
+        `source_trips`. El reporte incluye `ok`, `issues`, `summary`,
+        `parameters` y `metadata`.
+
+    Raises
+    ------
+    ValidationError
+        Si el input no es buildable, por ejemplo cuando se exige validación previa y
+        el dataset no está validado, faltan H3 OD, no queda ningún movement con ambos
+        H3 OD, se solicita `flow_to_trips` sin `movement_id`, o se pide agregación
+        temporal sobre un dataset que no es Tier 1.
+    SchemaError
+        Si la configuración no es interpretable, por ejemplo una resolución H3 fuera
+        de rango, `group_by` con campos inexistentes, `time_aggregation` o
+        `time_basis` inválidos, `min_trips_per_flow <= 0` o `max_issues <= 0`.
+
+    Notes
+    -----
+    La operación no muta el `TripDataset` de entrada. El `FlowDataset` resultante
+    queda con `metadata["is_validated"] = False` porque es un dataset derivado nuevo.
+
+    La resolución H3 de entrada se infiere desde las columnas H3 observadas. OP-08
+    permite mantener la misma resolución o hacer roll-up a una resolución más
+    gruesa, pero no permite refinar a una resolución más fina.
+
+    Si `keep_flow_to_trips=True`, se construye un auxiliar mínimo `flow_id` /
+    `movement_id` usando las mismas llaves efectivas de agregación. Este auxiliar es
+    útil para consultas posteriores de trazabilidad, pero puede aumentar el tamaño
+    del resultado.
     """
     issues: List[Issue] = []
 

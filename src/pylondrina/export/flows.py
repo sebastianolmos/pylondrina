@@ -55,20 +55,29 @@ class FlowExportResult:
 @dataclass(frozen=True)
 class ExportFlowsOptions:
     """
-    Opciones efectivas de exportación para `export_flows`.
+    Opciones para exportar un `FlowDataset` a un layout externo de flows.
 
-    Parameters
+    Controla el formato externo, la política frente a directorios existentes, el
+    nombre de la carpeta de exportación y las columnas adicionales que se preservan
+    en `flows.csv`.
+
+    Attributes
     ----------
     format : {"flowmap_blue"}, default="flowmap_blue"
-        Layout externo objetivo del export.
+        Formato externo objetivo. En v1.1 solo se soporta `"flowmap_blue"`.
     mode : {"error_if_exists", "overwrite"}, default="error_if_exists"
-        Política cuando el directorio de exportación ya existe.
+        Política cuando el directorio final de exportación ya existe. Con
+        `"error_if_exists"`, la operación aborta. Con `"overwrite"`, reemplaza el
+        directorio existente y registra evidencia.
     folder_name : str, optional
-        Nombre de la carpeta a crear bajo `output_root`.
+        Nombre de la carpeta que se creará dentro de `output_root`. Si es None, la
+        operación genera un nombre automáticamente. Si contiene caracteres no
+        operables, se sanea antes de resolver el destino final.
     extra_flow_fields : sequence of str, optional
-        Columnas extra de `FlowDataset.flows` que se desean preservar en `flows.csv`.
+        Columnas adicionales de `FlowDataset.flows` que se preservarán en
+        `flows.csv`. Deben existir, no pueden usar los nombres reservados
+        `origin`, `dest` o `count`, y deben ser serializables de forma segura a CSV.
     """
-
     format: ExportFormat = "flowmap_blue"
     mode: WriteMode = "error_if_exists"
     folder_name: Optional[str] = None
@@ -86,21 +95,59 @@ def export_flows(
     options: Optional[ExportFlowsOptions] = None,
 ) -> Tuple[FlowExportResult, OperationReport]:
     """
-    Exporta un FlowDataset a un layout externo orientado a flowmap.blue.
+    Exporta un `FlowDataset` a un layout externo compatible con flowmap.
+
+    La operación transforma el contrato interno de `FlowDataset.flows` al layout
+    `flowmap_blue`, materializando `flows.csv`, `locations.csv` y `metadata.json`.
+    No reconstruye flujos, no recalcula agregaciones, no valida formalmente el
+    dataset, no escribe persistencia interna `.golondrina` y no exporta
+    `flow_to_trips` como archivo separado.
 
     Parameters
     ----------
     flows : FlowDataset
-        Dataset de flujos en memoria.
-    output_root : PathLike
-        Directorio raíz donde se creará el directorio del export.
+        Dataset de flows a exportar. Debe exponer `flows.flows` como
+        `pandas.DataFrame` con los campos internos `origin_h3_index`,
+        `destination_h3_index` y `flow_value`.
+    output_root : str or pathlib.Path
+        Directorio raíz donde se creará la carpeta del export. La carpeta final se
+        resuelve combinando `output_root` y `options.folder_name`, o un nombre
+        generado automáticamente si `folder_name` es None.
     options : ExportFlowsOptions, optional
-        Opciones efectivas del export. Si es None, se usan defaults.
+        Opciones de exportación. Si es None, se usa `ExportFlowsOptions()`.
 
     Returns
     -------
     tuple[FlowExportResult, OperationReport]
-        Resultado materializado y reporte estructurado del export.
+        Resultado materializado y reporte estructurado. `FlowExportResult` contiene
+        `export_dir` y un mapping `artifacts` con las rutas de `flows`,
+        `locations` y `metadata`. El reporte incluye `ok`, `issues`, `summary` y
+        `parameters`.
+
+    Raises
+    ------
+    ExportError
+        Si el request o el dataset no son exportables, por ejemplo formato no
+        soportado, modo desconocido, `output_root` inválido, directorio existente
+        con `mode="error_if_exists"`, campos mínimos faltantes, H3 OD nulos,
+        `flow_value` no numérico, extras inexistentes o reservados, falla de
+        centroides H3, metadata no serializable o errores de escritura.
+
+    Notes
+    -----
+    El mapping externo es fijo: `origin = origin_h3_index`,
+    `dest = destination_h3_index` y `count = flow_value`. En v1.1,
+    `count_source` queda fijado a `"flow_value"` y se registra en `metadata.json`.
+
+    `locations.csv` se construye desde los centroides H3 de todos los valores únicos
+    usados en origen o destino. El sidecar `metadata.json` conserva una referencia
+    al `FlowDataset` de origen mediante `flow_dataset_ref` y registra parámetros,
+    summary y `count_source`.
+
+    Si la materialización se completa, la operación intenta agregar un evento
+    `export_flows` a `flows.metadata["events"]`. Si ese append falla después de
+    haber escrito los artefactos, el export no se revierte; se agrega un warning al
+    reporte.
     """
     issues: List[Issue] = []
 

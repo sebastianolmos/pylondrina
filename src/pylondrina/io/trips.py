@@ -57,23 +57,34 @@ _SUPPORTED_FEATHER_COMPRESSIONS = {"lz4", "zstd", "uncompressed", None}
 @dataclass(frozen=True)
 class WriteTripsOptions:
     """
-    Opciones efectivas para persistir un TripDataset de trips.
+    Opciones para persistir un `TripDataset` como artefacto formal de trips.
 
-    Parameters
+    Controla la política frente a destinos existentes, la exigencia de validación
+    previa, el backend físico de almacenamiento y la normalización del directorio
+    bundle `.golondrina`.
+
+    Attributes
     ----------
     mode : {"error_if_exists", "overwrite"}, default="error_if_exists"
-        Política cuando el directorio destino ya existe.
+        Política cuando el directorio destino ya existe. Con `"error_if_exists"`,
+        la operación aborta sin modificar el destino. Con `"overwrite"`, reemplaza
+        el artefacto existente por una nueva materialización.
     require_validated : bool, default=True
-        Si True, exige `metadata["is_validated"] is True` antes de escribir.
+        Si es True, exige que `trips.metadata["is_validated"] is True` antes de
+        escribir. Si es False, permite persistir datasets no validados y conserva
+        ese estado en la metadata persistida.
     storage_format : {"parquet", "feather"}, default="parquet"
-        Backend de persistencia tabular soportado por el artefacto formal.
+        Backend tabular usado dentro del bundle. `"parquet"` escribe
+        `trips.parquet`; `"feather"` escribe `trips.feather`.
     parquet_compression : {"snappy", "gzip", "zstd", "brotli", "none", None}, default="snappy"
-        Compresión efectiva usada al escribir `trips.parquet` cuando corresponde.
+        Compresión usada al escribir Parquet. Solo aplica cuando
+        `storage_format="parquet"`.
     feather_compression : {"lz4", "zstd", "uncompressed", None}, default="lz4"
-        Compresión efectiva usada al escribir `trips.feather` cuando corresponde.
+        Compresión usada al escribir Feather v2. Solo aplica cuando
+        `storage_format="feather"`.
     normalize_artifact_dir : bool, default=True
-        Si True, normaliza el directorio root del artefacto para que termine en
-        `.golondrina`. Si False, usa el path entregado tal cual.
+        Si es True, normaliza el directorio destino para que termine en
+        `.golondrina`. Si es False, usa el path entregado sin agregar sufijo.
     """
 
     mode: WriteMode = "error_if_exists"
@@ -87,17 +98,26 @@ class WriteTripsOptions:
 @dataclass(frozen=True)
 class ReadTripsOptions:
     """
-    Opciones efectivas para reconstruir un TripDataset desde persistencia formal.
+    Opciones para reconstruir un `TripDataset` desde persistencia formal.
 
-    Parameters
+    Controla la fuente del schema, la política de recuperación ante inconsistencias
+    del sidecar y la incorporación del evento de lectura en la metadata reconstruida.
+
+    Attributes
     ----------
     schema : TripSchema, optional
-        Esquema a usar al reconstruir el dataset. Si se entrega, tiene precedencia
-        sobre el snapshot persistido en el sidecar.
+        Schema explícito a usar durante la reconstrucción. Si se entrega, tiene
+        precedencia sobre el snapshot `schema` persistido en el sidecar. Si difiere
+        del schema persistido, la operación registra `schema_mismatch=True`.
     strict : bool, default=False
-        Si True, inconsistencias recuperables del sidecar/layout se tratan como fatales.
+        Si es True, inconsistencias recuperables del sidecar, schema o layout se
+        tratan como fatales. Si es False, algunas inconsistencias pueden degradar
+        con issues explícitos, por ejemplo `schema_effective` faltante o
+        `artifact_id` no recuperable.
     keep_metadata : bool, default=True
-        Si True, agrega un evento `read_trips` en `metadata["events"]`.
+        Si es True, agrega un evento `read_trips` a `metadata["events"]` del dataset
+        reconstruido. Si es False, conserva la metadata cargada desde el sidecar sin
+        agregar un nuevo evento de lectura.
     """
 
     schema: Optional[TripSchema] = None
@@ -161,23 +181,58 @@ def write_trips(
     options: Optional[WriteTripsOptions] = None,
 ) -> OperationReport:
     """
-    Persiste un TripDataset como artefacto formal de trips (v1.1).
+    Persiste un `TripDataset` como bundle formal de trips.
+
+    Materializa el dataset en un directorio de artefacto con un archivo tabular
+    (`trips.parquet` o `trips.feather`) y un sidecar obligatorio
+    `trips.metadata.json`. La operación no transforma los datos, no valida
+    semánticamente el dataset y no retorna un nuevo `TripDataset`.
+
+    Si la escritura termina correctamente, alinea `trips.metadata` con el artefacto
+    persistido: preserva o crea `dataset_id`, genera un nuevo `artifact_id` y agrega
+    un evento `write_trips`. `trips.data` no se modifica.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset de trips a persistir.
-    path : PathLike
-        Directorio destino del artefacto formal. Si
-        `options.normalize_artifact_dir=True` y el nombre no termina en
-        `.golondrina`, se normaliza automáticamente al sufijo canónico.
+        Dataset de trips a persistir. Debe ser un `TripDataset` usable con
+        `trips.data` como `pandas.DataFrame`.
+    path : str or pathlib.Path
+        Directorio destino del artefacto. Si
+        `options.normalize_artifact_dir=True` y el path no termina en
+        `.golondrina`, la operación normaliza el destino al sufijo canónico.
     options : WriteTripsOptions, optional
-        Opciones efectivas de escritura. Si None, se usan defaults.
+        Opciones de escritura. Si es None, se usa `WriteTripsOptions()`.
 
     Returns
     -------
     OperationReport
-        Reporte estructurado de la operación.
+        Reporte estructurado de escritura. Incluye `ok`, `issues`, `summary` y
+        `parameters`. El `summary` contiene `n_rows`, `files_written`, `path`,
+        `dataset_id`, `artifact_id`, `dataset_id_status` y `storage_format`.
+
+    Raises
+    ------
+    ValidationError
+        Si `options.require_validated=True` y
+        `trips.metadata["is_validated"]` no es True.
+    ExportError
+        Si el contrato de escritura o el destino no son válidos, por ejemplo modo
+        desconocido, backend no soportado, compresión incompatible, destino existente
+        bajo `mode="error_if_exists"` o falla al materializar el artefacto.
+
+    Notes
+    -----
+    El bundle escrito contiene siempre `trips.metadata.json` y exactamente un
+    archivo tabular principal: `trips.parquet` cuando `storage_format="parquet"` o
+    `trips.feather` cuando `storage_format="feather"`.
+
+    `dataset_id` identifica el dataset lógico y se preserva cuando existe. 
+    `artifact_id` identifica la materialización concreta y se genera nuevamente en
+    cada escritura exitosa.
+
+    La operación usa staging antes del commit final para evitar dejar artefactos
+    parciales como destino definitivo.
     """
     # Se inicializa el acumulador de evidencia y se fijan las options efectivas.
     issues: List[Issue] = []
@@ -282,21 +337,57 @@ def read_trips(
     options: Optional[ReadTripsOptions] = None,
 ) -> Tuple[TripDataset, OperationReport]:
     """
-    Reconstruye un TripDataset desde un artefacto formal de trips (v1.1).
+    Reconstruye un `TripDataset` desde un bundle formal de trips.
+
+    Lee un artefacto persistido por `write_trips`, usando `trips.metadata.json`
+    como sidecar obligatorio y como fuente de verdad del layout. El backend tabular
+    no se solicita al usuario: se resuelve desde `sidecar["storage"]["format"]` y
+    se valida contra `sidecar["files"]["data"]`.
+
+    La operación reconstruye `data`, `schema`, `schema_effective`, `provenance`,
+    `field_correspondence`, `value_correspondence` y `metadata`. No importa una
+    fuente externa, no valida conformidad formal y no transforma semánticamente los
+    datos.
 
     Parameters
     ----------
-    path : PathLike
-        Directorio del artefacto formal persistido. Si el path exacto no existe
-        y no termina en `.golondrina`, la operación intenta automáticamente con
-        el sufijo canónico antes de fallar.
+    path : str or pathlib.Path
+        Directorio del artefacto formal. Si el path exacto no existe y no termina en
+        `.golondrina`, la operación intenta automáticamente con el sufijo canónico.
     options : ReadTripsOptions, optional
-        Opciones efectivas de lectura. Si None, se usan defaults.
+        Opciones de lectura. Si es None, se usa `ReadTripsOptions()`.
 
     Returns
     -------
     tuple[TripDataset, OperationReport]
-        Dataset reconstruido y reporte estructurado de la lectura.
+        Dataset reconstruido y reporte estructurado de lectura. El reporte incluye
+        `ok`, `issues`, `summary` y `parameters`. El `summary` contiene cantidad de
+        filas y columnas, path efectivo, backend detectado, fuente del schema,
+        estado de mismatch de schema, `dataset_id` y `artifact_id`.
+
+    Raises
+    ------
+    ExportError
+        Si el artefacto no puede leerse formalmente, por ejemplo root inexistente,
+        sidecar `trips.metadata.json` ausente, sidecar legacy `metadata.json`,
+        sidecar ilegible, backend no soportado, incoherencia entre `storage.format`
+        y `files.data`, archivo tabular faltante, schema no recuperable o
+        `schema_effective` inválido bajo `strict=True`.
+
+    Notes
+    -----
+    La lectura formal no equivale a validación. La operación fuerza siempre
+    `metadata["is_validated"] = False` en el dataset reconstruido y registra el issue
+    `READ.METADATA.VALIDATED_FORCED_FALSE`.
+
+    La precedencia del schema es: `options.schema` primero, snapshot `schema` del
+    sidecar después. `schema_effective` se reconstruye desde el sidecar; bajo
+    `strict=False`, puede degradar a `TripSchemaEffective()` con evidencia explícita
+    si el snapshot no está disponible.
+
+    Si `options.keep_metadata=True`, se agrega un evento `read_trips` a la metadata
+    reconstruida. Si es False, la metadata del sidecar se conserva sin agregar ese
+    evento.
     """
     # Se inicializa evidencia y se fijan las options efectivas de lectura.
     issues: List[Issue] = []

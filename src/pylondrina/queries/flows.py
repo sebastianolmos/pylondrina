@@ -39,30 +39,68 @@ def get_trips_from_flows(
     max_issues: int = 1000,
 ) -> Tuple[pd.DataFrame, OperationReport]:
     """
-    Obtiene una tabla de correspondencia flujo-viajes desde un FlowDataset.
+    Recupera la correspondencia flow -> movement desde un `FlowDataset`.
+
+    `get_trips_from_flows` es una query pura de inspección: no crea datasets
+    derivados, no escribe artefactos, no registra eventos y no muta `flows` ni
+    `trips`. Su salida principal es una tabla que permite explicar qué movements
+    sustentan uno o más flows ya construidos.
+
+    La operación usa una prioridad fija de fuentes:
+
+    1. `flows.flow_to_trips`, si existe y contiene `flow_id` y `movement_id`;
+    2. `trips`, si se entrega explícitamente;
+    3. `flows.source_trips`, si sigue disponible como referencia viva en memoria.
+
+    Cuando usa `flow_to_trips`, la salida contiene solo `flow_id` y `movement_id`.
+    Cuando reconstruye desde un `TripDataset`, también incluye `trip_id` si esa
+    columna existe en `trips.data`.
 
     Parameters
     ----------
     flows : FlowDataset
-        Dataset de flujos Golondrina. Debe exponer `flows.flows` como DataFrame
-        e incluir la columna `flow_id`.
+        Dataset de flows a inspeccionar. Debe exponer `flows.flows` como
+        `pandas.DataFrame` y contener la columna contractual `flow_id`.
     trips : TripDataset, optional
-        Dataset de trips para reconstrucción cuando `flows.flow_to_trips` no es
-        usable. Si es None, se intenta usar `flows.source_trips`.
+        Dataset de trips usado para reconstruir la correspondencia cuando
+        `flows.flow_to_trips` no existe o no es usable. Si es None, la operación
+        intenta usar `flows.source_trips`.
     max_issues : int, default=1000
-        Guardarraíl del tamaño del reporte.
+        Número máximo de issues retenidos en el `OperationReport`. Si se detectan
+        más issues, el reporte agrega
+        `GET_TRIPS_FROM_FLOWS.REPORT.ISSUES_TRUNCATED` y un bloque
+        `summary["limits"]`.
 
     Returns
     -------
-    tuple[pd.DataFrame, OperationReport]
-        Tabla de correspondencia flujo-viajes y reporte estructurado.
+    tuple[pandas.DataFrame, OperationReport]
+        Tabla de correspondencia y reporte estructurado. La tabla contiene al menos
+        `flow_id` y `movement_id`; puede incluir `trip_id` cuando la correspondencia
+        se reconstruye desde trips. El reporte incluye `ok`, `issues`, `summary` y
+        `parameters`.
+
+    Raises
+    ------
+    PylondrinaError
+        Si la consulta no es interpretable, por ejemplo `flows` no es un
+        `FlowDataset` usable, `flows.flows` no es un `pandas.DataFrame`, falta
+        `flow_id`, `max_issues <= 0`, no existe ninguna fuente usable, faltan
+        columnas necesarias para reconstrucción, `aggregation_spec` no permite
+        recuperar las llaves efectivas, hay mezcla de resoluciones H3, se solicita
+        una resolución H3 más fina que la disponible o las llaves de flow son
+        ambiguas.
 
     Notes
     -----
-    - OP-13 es una query pura: no modifica metadata, no registra eventos y no
-      muta los datasets de entrada.
-    - La prioridad de fuentes es: `flows.flow_to_trips` -> `trips` -> `flows.source_trips`.
-    - La unidad contractual mínima de salida es `flow_id + movement_id`.
+    La reconstrucción desde trips es exacta y no heurística. La operación reproduce
+    las llaves efectivas de agregación registradas en `flows.aggregation_spec`,
+    incluyendo OD H3, `group_by`, ventanas temporales y `effective_flow_keys` cuando
+    existen.
+
+    `flows.source_trips` solo sirve como fallback cuando el `FlowDataset` conserva
+    esa referencia viva en memoria. Un `FlowDataset` leído desde persistencia formal
+    normalmente no puede depender de ese fallback, por lo que debe entregarse
+    `trips` explícitamente o conservarse `flow_to_trips`.
     """
     issues_all: List[Issue] = []
 

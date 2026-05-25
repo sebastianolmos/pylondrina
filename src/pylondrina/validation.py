@@ -34,6 +34,18 @@ EXCEPTION_MAP_VALIDATE = {
     "validate": ValidationError,
 }
 
+# Parámetros permitidos por constraint declarativo en validate_trips.
+#
+# Esta tabla se usa durante el precheck del schema para distinguir entre:
+# - constraints conocidos y bien parametrizados, que pueden ejecutarse;
+# - constraints conocidos con parámetros incompletos o inválidos, que se
+#   omiten con warning;
+# - constraints desconocidos o no permitidos para el dtype declarado, que
+#   abortan como error de schema/configuración.
+#
+# Los nombres de parámetros aquí definidos forman parte del contrato de
+# validación de OP-02, porque determinan qué payload se considera interpretable
+# para cada constraint soportado por Pylondrina v1.1.
 CONSTRAINT_ALLOWED_PARAMS = {
     "nullable": ["value"],
     "range": ["min", "max"],
@@ -55,92 +67,72 @@ OD_COORDINATE_FIELDS = (
 @dataclass(frozen=True)
 class ValidationOptions:
     """
-    Opciones de ejecución para `validate_trips`.
+    Opciones de ejecución para :func:`validate_trips`.
+
+    Controla qué checks se ejecutan sobre un ``TripDataset`` y cómo se
+    construye la evidencia de validación. Estas opciones no transforman el
+    dataframe ni corrigen valores: solo configuran la certificación formal de
+    conformidad.
 
     Attributes
     ----------
     strict : bool, default=False
-        Si es `True`, la operación lanza `ValidationError` cuando el reporte
-        contiene al menos un issue de nivel `"error"`. Antes de lanzar, igual
-        construye el `ValidationReport`, registra el evento `validate_trips`
-        y actualiza `metadata["is_validated"]`.
-
-        Si es `False`, la operación retorna normalmente un `ValidationReport`,
-        aunque `report.ok` sea `False`.
-
+        Si es ``True``, la operación lanza ``ValidationError`` cuando el
+        reporte final contiene al menos un issue de nivel ``"error"``. Antes
+        de lanzar, la operación construye el ``ValidationReport``, registra
+        el evento ``validate_trips`` y actualiza
+        ``metadata["is_validated"]``.
     max_issues : int, default=500
-        Máximo de issues que se emiten en el reporte final. Si se supera este
-        límite, el reporte se trunca y se agrega el issue especial de
-        truncamiento correspondiente.
-
+        Número máximo de issues emitidos en el reporte final. Si se supera
+        el límite, los issues se truncan y se agrega un issue de
+        truncamiento junto con el bloque ``summary["limits"]``.
     sample_rows_per_issue : int, default=5
-        Cantidad máxima de ejemplos por issue que se guardan en
-        `Issue.details`, por ejemplo índices de fila o valores de muestra.
-
+        Cantidad máxima de ejemplos de filas o valores que se guardan en
+        ``Issue.details`` para cada issue.
     validate_required_fields : bool, default=True
-        Si es `True`, verifica la presencia de columnas requeridas según
-        `trips.schema.required`.
-
+        Activa la verificación de columnas requeridas declaradas en
+        ``trips.schema.required``.
     validate_types_and_formats : bool, default=True
-        Si es `True`, verifica tipos y formatos básicos según el `dtype`
-        declarado en el schema, sin modificar el dataframe.
-
+        Activa la verificación de tipos y formatos básicos según el ``dtype``
+        declarado en el schema.
     validate_constraints : bool, default=True
-        Si es `True`, ejecuta constraints simples declarativas definidas en
-        el schema. Esto incluye:
-        - nullabilidad efectiva por campo,
-        - constraints como `range`, `pattern`, `length`, `datetime`, `h3`,
-          `unique`,
-        - y la regla especial de OD parcial si corresponde.
-
+        Activa constraints simples declarativas, incluyendo nullabilidad
+        efectiva, ``range``, ``datetime``, ``h3``, ``pattern``, ``length`` y
+        ``unique`` cuando corresponda.
     validate_domains : {"off", "full", "sample"}, default="off"
-        Modo de validación de dominios categóricos.
-
-        - `"off"`: no valida dominios.
-        - `"full"`: valida todos los valores no nulos.
-        - `"sample"`: valida una muestra de valores no nulos.
-
+        Modo de validación de dominios categóricos. ``"off"`` omite el
+        check, ``"full"`` revisa todos los valores no nulos y ``"sample"``
+        revisa una muestra.
     domains_sample_frac : float, default=0.01
-        Fracción de filas a usar cuando `validate_domains="sample"`.
-
+        Fracción usada cuando ``validate_domains="sample"``. Debe estar en
+        el intervalo ``(0, 1]``.
     domains_min_in_domain_ratio : float, default=1.0
-        Proporción mínima de valores no nulos que deben pertenecer al dominio
-        para considerar exitoso el check de dominio.
-
-        - Si el ratio observado es menor, se emite issue de nivel `"error"`.
-        - Si cumple el mínimo pero no alcanza cobertura total, se puede emitir
-          un `"warning"`.
-
+        Proporción mínima de valores no nulos que deben pertenecer al
+        dominio efectivo. Si el ratio observado queda bajo este umbral, se
+        emite un error; si cumple el umbral pero no alcanza cobertura total,
+        puede emitirse un warning de cobertura parcial.
     validate_temporal_consistency : bool, default=False
-        Si es `True`, ejecuta el check temporal v1.1 sobre datasets con
-        temporalidad Tier 1, verificando que `origin_time_utc <= destination_time_utc`
-        cuando ambos campos existen y son comparables.
-
+        Activa el check temporal mínimo de v1.1 para datasets Tier 1:
+        ``origin_time_utc <= destination_time_utc`` cuando ambos campos
+        existen y son comparables.
     validate_duplicates : bool, default=False
-        Si es `True`, ejecuta detección de duplicados usando el subconjunto
-        explícito definido en `duplicates_subset`.
-
+        Activa detección de duplicados usando ``duplicates_subset``.
     duplicates_subset : tuple[str, ...] | None, default=None
-        Subconjunto de columnas a usar para detectar duplicados.
-
-        En v1.1, este parámetro es obligatorio cuando
-        `validate_duplicates=True`. Si falta, está vacío o contiene columnas
-        inexistentes, la operación aborta por config inválida.
-
+        Subconjunto explícito de columnas usado para detectar duplicados.
+        En v1.1 es obligatorio cuando ``validate_duplicates=True``; si falta,
+        está vacío o contiene columnas inexistentes, la operación aborta por
+        configuración inválida.
     allow_partial_od_spatial : bool, default=True
-        Si es `True`, aplica la regla especial de OD parcial sobre las
-        coordenadas canónicas:
+        Permite filas con solo origen completo o solo destino completo en las
+        coordenadas OD canónicas. Si está activo, una fila es inválida solo
+        cuando faltan ambos extremos espaciales. Esta excepción no aplica a
+        campos H3.
 
-        - `origin_latitude`
-        - `origin_longitude`
-        - `destination_latitude`
-        - `destination_longitude`
-
-        Bajo esta regla, una fila es válida si tiene un origen completo
-        o un destino completo. Solo se considera inválida si faltan ambos
-        extremos espaciales.
-
-        Esta excepción aplica solo a coordenadas, no a H3.
+    Notes
+    -----
+    Los parámetros efectivos se serializan en el evento ``validate_trips``
+    registrado en ``trips.metadata["events"]``. Por ello, los defaults forman
+    parte del comportamiento observable de OP-02.
     """
 
     strict: bool = False
@@ -169,41 +161,55 @@ def validate_trips(
     options: Optional[ValidationOptions] = None,
 ) -> ValidationReport:
     """
-    Valida un `TripDataset` contra su `TripSchema` y reglas mínimas de conformidad.
+    Certifica la conformidad formal de un ``TripDataset``.
+
+    La operación ejecuta checks configurables sobre ``trips.data`` usando
+    ``trips.schema`` como contrato base, ``trips.schema_effective`` como
+    contexto complementario y ``trips.metadata`` como espacio de trazabilidad.
+    No corrige valores, no crea un nuevo ``TripDataset`` y no escribe en disco.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset en formato Golondrina.
+        Dataset de trips ya construido bajo el contrato Golondrina. La
+        operación valida ``trips.data`` por referencia y conserva el objeto
+        recibido.
     options : ValidationOptions, optional
-        Opciones de validación. Si es None, se usan los defaults vigentes.
+        Opciones de validación. Si es ``None``, se usan los defaults de
+        ``ValidationOptions``.
 
     Returns
     -------
     ValidationReport
-        Reporte estructurado de validación.
+        Reporte estructurado con ``ok``, ``issues`` y ``summary``. El
+        ``summary`` incluye conteos por severidad y código, campos revisados,
+        checks ejecutados y bloques opcionales para dominios, temporalidad,
+        duplicados o límites cuando esos checks fueron evaluados.
 
     Raises
     ------
     SchemaError
-        Si el schema es ausente, inconsistente o no interpretable para ejecutar
-        la validación.
-
+        Si el schema base es ausente, inconsistente o no interpretable para
+        ejecutar la validación.
     ValidationError
-        Si la configuración es inválida y la operación no puede ejecutarse,
-        o si `strict=True` y la validación detecta errores de nivel `"error"`.
+        Si la configuración es inválida y la operación no puede ejecutarse, o
+        si ``options.strict=True`` y el reporte final contiene errores.
 
     Notes
     -----
-    Reglas operativas relevantes de v1.1:
+    OP-02 implementa la frontera "Import construye; Validate certifica". La
+    operación no muta ``trips.data``, no regenera ``dataset_id`` ni
+    ``artifact_id`` y no reemplaza el dataset recibido.
 
-    - La operación no muta `trips.data`.
-    - No crea ni regenera `dataset_id` ni `artifact_id`.
-    - Registra un evento `validate_trips` en `trips.metadata["events"]`.
-    - Actualiza `trips.metadata["is_validated"]` según `report.ok`.
-    - Si `strict=True`, primero registra evidencia y luego lanza excepción.
-    - Los abortos de schema/config ocurren antes del pipeline normal y no
-      dependen de `strict`.
+    En una ejecución normal, la operación registra un evento
+    ``validate_trips`` en ``trips.metadata["events"]`` con parámetros
+    efectivos, summary e ``issues_summary``. Luego actualiza
+    ``trips.metadata["is_validated"]`` según ``report.ok``.
+
+    Cuando ``strict=True`` y existen errores de datos, la evidencia se
+    registra antes de lanzar ``ValidationError``. En cambio, los abortos
+    fatales de schema o configuración ocurren antes del pipeline normal y no
+    necesariamente registran evento.
     """
     issues: List[Issue] = []
     options_eff = options if options is not None else ValidationOptions()

@@ -53,22 +53,35 @@ _REQUIRED_SIDECAR_TOP_LEVEL = {
 @dataclass(frozen=True)
 class WriteFlowsOptions:
     """
-    Opciones efectivas para persistir un FlowDataset como artefacto formal.
+    Opciones para persistir un `FlowDataset` como bundle formal de flows.
 
-    Parameters
+    Controla la política frente a destinos existentes, el backend físico de
+    almacenamiento, la compresión tabular, la normalización del directorio
+    `.golondrina` y la persistencia opcional de `flow_to_trips`.
+
+    Attributes
     ----------
     mode : {"error_if_exists", "overwrite"}, default="error_if_exists"
-        Política cuando el directorio destino ya existe.
+        Política cuando el directorio destino ya existe. Con `"error_if_exists"`,
+        la operación aborta sin reemplazar el bundle. Con `"overwrite"`, reemplaza
+        el artefacto existente por una nueva materialización.
     storage_format : {"parquet", "feather"}, default="feather"
-        Backend tabular de persistencia soportado por el artefacto formal.
+        Backend tabular usado dentro del bundle. `"feather"` escribe
+        `flows.feather`; `"parquet"` escribe `flows.parquet`.
     parquet_compression : {"snappy", "gzip", "zstd", "brotli", "none", None}, default="snappy"
-        Compresión efectiva usada al escribir tablas Parquet cuando corresponde.
+        Compresión usada al escribir Parquet. Solo aplica cuando
+        `storage_format="parquet"`. El valor `"none"` se interpreta como escritura
+        sin compresión.
     feather_compression : {"lz4", "zstd", "uncompressed", None}, default="lz4"
-        Compresión efectiva usada al escribir tablas Feather cuando corresponde.
+        Compresión usada al escribir Feather v2. Solo aplica cuando
+        `storage_format="feather"`.
     normalize_artifact_dir : bool, default=True
-        Si True, normaliza el directorio root para que termine en `.golondrina`.
+        Si es True, normaliza el directorio destino para que termine en
+        `.golondrina`. Si es False, usa el path entregado sin agregar sufijo.
     write_flow_to_trips : bool, default=True
-        Si True, intenta persistir `flow_to_trips.parquet` cuando exista en memoria.
+        Si es True, persiste la tabla auxiliar `flow_to_trips` cuando existe como
+        `pandas.DataFrame`. Si la tabla no existe, el bundle se escribe sin auxiliar
+        y se registra evidencia.
     """
 
     mode: WriteMode = "error_if_exists"
@@ -82,16 +95,28 @@ class WriteFlowsOptions:
 @dataclass(frozen=True)
 class ReadFlowsOptions:
     """
-    Opciones efectivas para reconstruir un FlowDataset desde persistencia formal.
+    Opciones para reconstruir un `FlowDataset` desde persistencia formal.
 
-    Parameters
+    Controla la política de recuperación ante inconsistencias del sidecar o layout,
+    la incorporación del evento de lectura y la carga opcional de la tabla auxiliar
+    `flow_to_trips`.
+
+    Attributes
     ----------
     strict : bool, default=False
-        Si True, inconsistencias recuperables del sidecar/layout se tratan como fatales.
+        Si es True, inconsistencias recuperables del sidecar o del layout se tratan
+        como fatales. Si es False, algunas inconsistencias pueden degradar con issues
+        explícitos, por ejemplo `aggregation_spec` faltante, `artifact_id` no
+        recuperable o auxiliar `flow_to_trips` solicitado pero ausente.
     keep_metadata : bool, default=True
-        Si True, agrega un evento `read_flows` en `metadata["events"]`.
+        Si es True, agrega un evento `read_flows` a `metadata["events"]` del dataset
+        reconstruido. Si es False, conserva la metadata cargada desde el sidecar sin
+        agregar un nuevo evento de lectura.
     read_flow_to_trips : bool, default=True
-        Si True, intenta cargar `flow_to_trips.parquet` cuando exista.
+        Si es True, intenta cargar el auxiliar `flow_to_trips` cuando el sidecar lo
+        declara y el archivo existe. El nombre físico esperado depende del backend
+        declarado en `sidecar["storage"]["format"]`: `flow_to_trips.feather` o
+        `flow_to_trips.parquet`.
     """
 
     strict: bool = False
@@ -132,23 +157,65 @@ def write_flows(
     options: Optional[WriteFlowsOptions] = None,
 ) -> OperationReport:
     """
-    Persiste un FlowDataset como artefacto formal de flows (v1.1).
+    Persiste un `FlowDataset` como bundle formal de flows.
+
+    Materializa el dataset en un directorio de artefacto con una tabla principal
+    (`flows.feather` o `flows.parquet`), un sidecar obligatorio
+    `flows.metadata.json` y, opcionalmente, una tabla auxiliar `flow_to_trips` con
+    el mismo backend físico.
+
+    La operación no recalcula flows, no valida formalmente el dataset, no exporta
+    layouts externos de visualización y no retorna un nuevo `FlowDataset`. Si la
+    escritura termina correctamente, alinea `flows.metadata` con el artefacto
+    persistido: preserva o crea `dataset_id`, genera un nuevo `artifact_id` y agrega
+    un evento `write_flows`. `flows.flows` y `flows.source_trips` no se modifican.
 
     Parameters
     ----------
     flows : FlowDataset
-        Dataset de flows a persistir.
-    path : PathLike
-        Directorio destino del artefacto formal. Si
-        `options.normalize_artifact_dir=True` y el nombre no termina en
-        `.golondrina`, se normaliza automáticamente al sufijo canónico.
+        Dataset de flows a persistir. Debe exponer `flows.flows` como
+        `pandas.DataFrame`. `flows.aggregation_spec`, `flows.provenance` y
+        `flows.metadata` se congelan en el sidecar formal.
+    path : str or pathlib.Path
+        Directorio destino del artefacto. Si
+        `options.normalize_artifact_dir=True` y el path no termina en
+        `.golondrina`, la operación normaliza el destino al sufijo canónico.
     options : WriteFlowsOptions, optional
-        Opciones efectivas de escritura. Si None, se usan defaults.
+        Opciones de escritura. Si es None, se usa `WriteFlowsOptions()`.
 
     Returns
     -------
     OperationReport
-        Reporte estructurado de la operación.
+        Reporte estructurado de escritura. Incluye `ok`, `issues`, `summary` y
+        `parameters`. El `summary` contiene `n_flows`, `n_flow_to_trips`,
+        `files_written`, `dataset_id`, `artifact_id` y `path`.
+
+    Raises
+    ------
+    ExportError
+        Si el contrato de escritura o el destino no son válidos, por ejemplo input
+        que no es `FlowDataset`, ausencia de `flows.flows` como `DataFrame`, modo
+        desconocido, backend no soportado, compresión incompatible, destino existente
+        bajo `mode="error_if_exists"`, `aggregation_spec` no serializable, sidecar
+        inconsistente o falla de escritura, staging o commit.
+
+    Notes
+    -----
+    El bundle escrito contiene siempre `flows.metadata.json` y exactamente una tabla
+    principal: `flows.feather` cuando `storage_format="feather"` o `flows.parquet`
+    cuando `storage_format="parquet"`.
+
+    Si `write_flow_to_trips=True` y `flows.flow_to_trips` existe como
+    `pandas.DataFrame`, también se escribe `flow_to_trips.feather` o
+    `flow_to_trips.parquet`. Si se solicita el auxiliar pero no está disponible, la
+    operación continúa sin él y registra un warning.
+
+    `dataset_id` identifica el dataset lógico y se preserva cuando existe.
+    `artifact_id` identifica la materialización concreta y se genera nuevamente en
+    cada escritura exitosa.
+
+    La operación usa staging antes del commit final para evitar dejar bundles
+    parciales como destino definitivo.
     """
     # Se inicializa el acumulador de evidencia y se fijan las options efectivas.
     issues: List[Issue] = []
@@ -261,21 +328,58 @@ def read_flows(
     options: Optional[ReadFlowsOptions] = None,
 ) -> Tuple[FlowDataset, OperationReport]:
     """
-    Reconstruye un FlowDataset desde un artefacto formal de flows (v1.1).
+    Reconstruye un `FlowDataset` desde un bundle formal de flows.
+
+    Lee un artefacto persistido por `write_flows`, usando `flows.metadata.json`
+    como sidecar obligatorio y fuente de verdad del layout. El backend tabular no se
+    solicita al usuario: se resuelve desde `sidecar["storage"]["format"]` y se
+    valida contra los nombres declarados en `sidecar["files"]`.
+
+    La operación reconstruye `flows`, `flow_to_trips` cuando se solicita y está
+    disponible, `aggregation_spec`, `metadata` y `provenance`. No reconstruye el
+    pipeline completo ni referencias vivas como `source_trips`, por lo que el
+    dataset retornado queda con `source_trips=None`.
 
     Parameters
     ----------
-    path : PathLike
-        Directorio del artefacto formal persistido. Si el path exacto no existe
-        y no termina en `.golondrina`, la operación intenta automáticamente con
-        el sufijo canónico antes de fallar.
+    path : str or pathlib.Path
+        Directorio del artefacto formal. Si el path exacto no existe y no termina en
+        `.golondrina`, la operación intenta automáticamente con el sufijo canónico.
     options : ReadFlowsOptions, optional
-        Opciones efectivas de lectura. Si None, se usan defaults.
+        Opciones de lectura. Si es None, se usa `ReadFlowsOptions()`.
 
     Returns
     -------
     tuple[FlowDataset, OperationReport]
-        Dataset reconstruido y reporte estructurado de la lectura.
+        Dataset reconstruido y reporte estructurado de lectura. El reporte incluye
+        `ok`, `issues`, `summary` y `parameters`. El `summary` contiene `n_flows`,
+        `n_columns`, `flow_to_trips_loaded`, `n_flow_to_trips`, `files_read`,
+        `dataset_id` y `artifact_id`.
+
+    Raises
+    ------
+    ExportError
+        Si el artefacto no puede leerse formalmente, por ejemplo root inexistente,
+        sidecar `flows.metadata.json` ausente o inválido, backend no soportado,
+        incoherencia entre `storage.format` y `files.data`, archivo tabular faltante,
+        falla de lectura de tablas o inconsistencias recuperables ejecutadas con
+        `strict=True`.
+
+    Notes
+    -----
+    La lectura formal no equivale a validación. La operación fuerza siempre
+    `metadata["is_validated"] = False` en el dataset reconstruido y registra
+    `READ_FLOWS.METADATA.VALIDATED_FORCED_FALSE` cuando el artefacto persistido venía
+    marcado como validado.
+
+    Si `options.read_flow_to_trips=True`, el auxiliar se carga solo si está
+    disponible y es coherente con el backend declarado por el sidecar. Si falta, con
+    `strict=False` la operación continúa con `flow_to_trips=None`; con
+    `strict=True`, puede abortar.
+
+    Si `options.keep_metadata=True`, se agrega un evento `read_flows` a la metadata
+    reconstruida. Si es False, se conserva la metadata del sidecar sin agregar ese
+    evento.
     """
     # Se inicializa evidencia y se fijan las options efectivas de lectura.
     issues: List[Issue] = []

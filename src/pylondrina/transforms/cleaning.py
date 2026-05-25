@@ -100,25 +100,40 @@ class CleanOptions:
     """
     Opciones de limpieza drop-only para `clean_trips`.
 
+    Estas opciones activan reglas explícitas de eliminación de filas sobre
+    `TripDataset.data`. La operación no corrige valores, no recodifica categorías y
+    no valida formalmente el dataset; solo conserva o descarta filas según las
+    reglas habilitadas.
+
     Attributes
     ----------
     drop_rows_with_nulls_in_required_fields : bool, default=False
-        Si True, elimina filas con nulos en cualquier campo requerido del schema.
+        Si es True, elimina filas con nulos en cualquier campo requerido declarado
+        en `trips.schema.required` y presente en `trips.data`.
     drop_rows_with_nulls_in_fields : sequence of str, optional
-        Lista de campos para eliminar filas con nulos en cualquiera de ellos.
+        Campos adicionales donde cualquier valor nulo provoca el descarte de la
+        fila. Si es None o una secuencia vacía, esta regla queda inactiva.
     drop_rows_with_invalid_latlon : bool, default=False
-        Si True, elimina filas con geografía OD inválida según la semántica cerrada de OP-04.
+        Si es True, elimina filas con geografía OD inválida. La regla acepta OD
+        parcial, pero descarta extremos rotos, coordenadas fuera de rango y filas
+        sin origen ni destino espacial completo.
     drop_rows_with_invalid_h3 : bool, default=False
-        Si True, elimina filas con H3 faltante o inválido en origen/destino.
+        Si es True, elimina filas donde `origin_h3_index` o
+        `destination_h3_index` faltan o no son celdas H3 válidas.
     drop_rows_with_origin_after_destination : bool, default=False
-        Si True, elimina filas con origen posterior a destino cuando la regla es evaluable.
+        Si es True, elimina filas donde `origin_time_utc` es posterior a
+        `destination_time_utc`. La regla solo se evalúa cuando el dataset tiene
+        temporalidad Tier 1 y ambas columnas temporales están disponibles.
     drop_duplicates : bool, default=False
-        Si True, elimina filas duplicadas conservando la primera ocurrencia.
+        Si es True, elimina duplicados conservando la primera ocurrencia.
     duplicates_subset : sequence of str, optional
-        Subconjunto de columnas para detectar duplicados.
+        Columnas usadas para detectar duplicados. Si es None y
+        `drop_duplicates=True`, se usa la intersección entre `trips.schema.required`
+        y las columnas presentes en `trips.data`.
     drop_rows_by_categorical_values : mapping, optional
-        Mapeo campo -> lista de valores a eliminar. `None` dentro de la lista
-        significa eliminar también nulos/NaN en ese campo.
+        Mapping `campo -> valores_prohibidos` para eliminar filas según valores
+        categóricos no deseados. `None` dentro de una lista de valores se interpreta
+        como sentinel para eliminar también nulos/NaN de ese campo.
     """
 
     drop_rows_with_nulls_in_required_fields: bool = False
@@ -140,19 +155,56 @@ def clean_trips(
     options: Optional[CleanOptions] = None,
 ) -> tuple[TripDataset, OperationReport]:
     """
-    Limpia un `TripDataset` eliminando filas según reglas explícitas (solo drops).
+    Elimina filas de un `TripDataset` según reglas explícitas de limpieza.
+
+    `clean_trips` es una operación drop-only: no corrige valores, no recodifica
+    categorías, no valida conformidad formal y no escribe artefactos en disco. Su
+    efecto tabular consiste únicamente en retornar un nuevo `TripDataset` con las
+    filas sobrevivientes.
+
+    La operación preserva el contrato del dataset de entrada en rutas retornables:
+    mantiene `schema`, `schema_version`, `provenance`, correspondencias,
+    `schema_effective`, `dataset_id`, `metadata["domains_effective"]` y el estado
+    previo de `metadata["is_validated"]`. El input no se muta.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset de viajes en formato Golondrina.
+        Dataset de trips a limpiar. La operación trabaja sobre `trips.data`.
     options : CleanOptions, optional
-        Reglas de limpieza. Si es None, se usan defaults efectivos (sin reglas activas).
+        Reglas de limpieza a aplicar. Si es None, se usa `CleanOptions()` y no se
+        activa ninguna regla de descarte.
 
     Returns
     -------
     tuple[TripDataset, OperationReport]
-        Nuevo dataset derivado y reporte de la operación.
+        Nuevo `TripDataset` filtrado por las reglas de limpieza y reporte
+        estructurado de la operación. El reporte incluye `ok`, `issues`, `summary`
+        y `parameters`. El `summary` contiene `rows_in`, `rows_out`,
+        `dropped_total` y `dropped_by_rule`.
+
+    Raises
+    ------
+    TypeError
+        Si `trips` no es un `TripDataset` usable, si `trips.data` no es un
+        `pandas.DataFrame` o si `options` no es una instancia de `CleanOptions`.
+    ValueError
+        Si la configuración no es interpretable, por ejemplo un
+        `duplicates_subset` explícito con columnas inexistentes o estructuras
+        inválidas en las opciones de limpieza.
+
+    Notes
+    -----
+    Los conteos de `summary["dropped_by_rule"]` son incrementales: cada regla se
+    evalúa sobre el estado vigente tras las reglas anteriores. El orden efectivo es
+    `nulls_required`, `nulls_fields`, `invalid_latlon`, `invalid_h3`,
+    `origin_after_destination`, `duplicates` y `categorical_values`.
+
+    Si `drop_duplicates=True` y `duplicates_subset=None`, el subset efectivo se
+    deriva desde `trips.schema.required` intersectado con las columnas presentes en
+    `trips.data`. Ese valor queda registrado en
+    `report.parameters["duplicates_subset_effective"]` y en el evento
+    `clean_trips`.
     """
     issues: List[Issue] = []
 

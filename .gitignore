@@ -240,3 +240,7 @@ viewer_src/.vite/
 # Artefactos del experimento de formatos
 data/experiments/persistence_formats/artifacts_tmp/
 data/experiments/persistence_formats/artifacts/
+
+# mkdocs stuff
+site/
+.cache/

@@ -1,0 +1,122 @@
+site_name: Pylondrina
+site_description: Documentación de Golondrina y Pylondrina
+site_url: https://sebastianolmos.github.io/pylondrina/
+repo_url: https://github.com/sebastianolmos/pylondrina
+repo_name: sebastianolmos/pylondrina
+
+theme:
+  name: material
+  language: es
+  icon:
+    logo: material/bird
+  favicon: assets/favicon.svg
+
+  palette:
+    # Modo oscuro por defecto
+    - scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Cambiar a modo claro
+
+    # Modo claro
+    - scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Cambiar a modo oscuro
+
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+nav:
+  - Inicio: index.md
+  - Primeros pasos:
+      - Instalación: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+  - Golondrina:
+      - Visión general: golondrina/overview.md
+      - Trips / movements: golondrina/trips.md
+      - Traces / points: golondrina/traces.md
+      - Flows: golondrina/flows.md
+      - Bundles .golondrina: golondrina/bundles.md
+  - Operaciones:
+      - Índice general: operations/index.md
+      - Trips:
+          - Índice: operations/trips/index.md
+          - OP-01 Import trips: operations/trips/op01_import_trips.md
+          - OP-02 Validate trips: operations/trips/op02_validate_trips.md
+          - OP-03 Fix trips correspondence: operations/trips/op03_fix_trips_correspondence.md
+          - OP-04 Clean trips: operations/trips/op04_clean_trips.md
+          - OP-05 Filter trips: operations/trips/op05_filter_trips.md
+          - OP-06 Write trips: operations/trips/op06_write_trips.md
+          - OP-07 Read trips: operations/trips/op07_read_trips.md
+      - Trip → Flow:
+          - Índice: operations/flows/index.md
+          - OP-08 Build flows: operations/flows/op08_build_flows.md
+          - OP-09 Export flows: operations/flows/op09_export_flows.md
+          - OP-10 Write flows: operations/flows/op10_write_flows.md
+          - OP-11 Read flows: operations/flows/op11_read_flows.md
+          - OP-12 Filter flows: operations/flows/op12_filter_flows.md
+          - OP-13 Get trips from flows: operations/flows/op13_get_trips_from_flows.md
+      - Traces:
+          - Índice: operations/traces/index.md
+          - OP-14 Import traces: operations/traces/op14_import_traces.md
+          - OP-15 Validate traces: operations/traces/op15_validate_traces.md
+          - OP-16 Infer trips from traces: operations/traces/op16_infer_trips_from_traces.md
+  - Guía de usuario:
+      - Índice: user-guide/index.md
+      - Trips a flows: user-guide/trips-to-flows.md
+      - Traces a trips: user-guide/traces-to-trips.md
+      - Persistencia y visualización: user-guide/persistence-and-viewer.md
+      - Issues y reportes: user-guide/issues-and-reports.md
+  - Visualizador:
+    - Uso del visualizador: viewer/usage.md
+    - Registro de datasets: viewer/data-registry.md
+  - API:
+    - Índice: api/index.md
+    - Trips: api/trips.md
+    - Flows: api/flows.md
+    - Traces: api/traces.md
+    - Datasets y reportes: api/datasets-and-reports.md
+  - Repositorio:
+    - Estructura: repository/structure.md
+    - Datos y notebooks: repository/data-and-notebooks.md
+    - Scripts: repository/scripts.md
+  - Desarrollo:
+    - Tests: development/testing.md

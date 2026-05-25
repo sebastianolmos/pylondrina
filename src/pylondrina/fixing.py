@@ -44,16 +44,27 @@ _ALLOWED_CONTEXT_KEYS = ("reason", "author", "source", "scope", "notes")
 @dataclass(frozen=True)
 class FixCorrespondenceOptions:
     """
-    Opciones de control para la operación fix_trips_correspondence (API v1.1).
+    Opciones para controlar la corrección semántica post-import de trips.
+
+    Estas opciones regulan el modo estricto y el tamaño de la evidencia emitida
+    por `fix_trips_correspondence`. No definen las correcciones en sí mismas; las
+    correcciones se entregan mediante `field_corrections` y `value_corrections`.
 
     Attributes
     ----------
     strict : bool, default=False
-        Si True, Issues de nivel error pueden gatillar una excepción al finalizar la operación.
+        Si es True, los issues operacionales de nivel error se escalan a
+        `FixError` después de construir el reporte y el evento del dataset de
+        salida. Los errores fatales de input o configuración pueden abortar antes,
+        independientemente de este valor.
     max_issues : int, default=200
-        Límite máximo de issues a registrar en el reporte.
+        Número máximo de issues que se conservan en el `OperationReport`. Si se
+        detectan más issues que este límite, el reporte agrega evidencia de
+        truncamiento en `summary["limits"]`.
     sample_rows_per_issue : int, default=50
-        Tamaño máximo de muestra (filas/valores) a incluir en `Issue.details`.
+        Tamaño máximo de muestras incluidas en `Issue.details`, por ejemplo valores,
+        columnas o caminos de contexto descartados. Si se entrega un valor no
+        positivo, la implementación lo normaliza a 1.
     """
 
     strict: bool = False
@@ -70,30 +81,69 @@ def fix_trips_correspondence(
     correspondence_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[TripDataset, OperationReport]:
     """
-    Corrige correspondencias de un TripDataset Golondrina, soportando:
-    (1) correspondencia de campos (renombrado de columnas) y
-    (2) correspondencia de valores categóricos (recode por campo).
+    Corrige correspondencias de campos y valores categóricos en un `TripDataset`.
+
+    La operación aplica correcciones semánticas post-import sobre un dataset ya
+    construido. Primero resuelve y aplica `field_corrections`, renombrando columnas
+    actuales hacia campos canónicos del schema. Luego resuelve y aplica
+    `value_corrections`, recodificando valores observados hacia valores canónicos en
+    campos categóricos.
+
+    No reimporta datos, no valida conformidad formal, no escribe en disco y no muta
+    el dataset de entrada. Siempre que retorna normalmente, entrega un nuevo
+    `TripDataset` y un `OperationReport`.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset de viajes en formato Golondrina.
-    field_corrections : FieldCorrections, optional
-        Correcciones de nombres de columnas. Si es None, no se corrigen campos.
-    value_corrections : ValueCorrections, optional
-        Correcciones de valores categóricos por campo. Si es None, no se corrigen valores.
+        Dataset de trips ya construido. La operación trabaja sobre `trips.data` y
+        usa `trips.schema`, `trips.schema_effective`, correspondencias y metadata
+        como contexto de actualización.
+    field_corrections : mapping of str to str, optional
+        Correcciones de nombres de columnas, con forma
+        `{columna_actual: campo_canonico}`. Se usan para alinear columnas no
+        canónicas o extras hacia campos definidos en el `TripSchema`. No deben
+        sobrescribir campos canónicos ya presentes.
+    value_corrections : mapping of str to mapping, optional
+        Correcciones de valores categóricos por campo canónico, con forma
+        `{campo_canonico: {valor_observado: valor_canonico}}`. Se aplican después de
+        las correcciones de campos y solo sobre campos existentes, categóricos y
+        definidos en el schema.
     options : FixCorrespondenceOptions, optional
-        Opciones de ejecución (strict, límites de issues, muestreo de detalles).
+        Opciones de ejecución. Si no se entrega, se usa
+        `FixCorrespondenceOptions()`.
     correspondence_context : dict, optional
-        Metadatos adicionales para registrar en el evento de metadata.
+        Metadata contextual de la corrección. Puede incluir claves como `reason`,
+        `author`, `source`, `scope` y `notes`. El contexto se sanea antes de quedar
+        registrado en el evento.
 
     Returns
     -------
-    fixed : TripDataset
-        Nuevo TripDataset con correcciones aplicadas. Si hubo cambios efectivos,
-        el dataset resultante queda marcado como no validado.
-    report : OperationReport
-        Reporte de la operación (issues + summary + parameters).
+    tuple[TripDataset, OperationReport]
+        Nuevo dataset con las correcciones aplicadas y reporte de operación. El
+        reporte incluye issues, parámetros efectivos y un summary con conteos de
+        correcciones solicitadas, correcciones aplicadas, reemplazos de valores,
+        campos con dominios efectivos actualizados y estado `noop`.
+
+    Raises
+    ------
+    FixError
+        Si el input o la configuración no son interpretables, por ejemplo un objeto
+        `trips` inválido, ausencia de `trips.data` como `DataFrame`, estructura
+        inválida de correcciones, contexto con raíz inválida o targets ambiguos. Con
+        `options.strict=True`, también puede lanzarse después de construir evidencia
+        si existen issues operacionales de nivel error.
+
+    Notes
+    -----
+    Si hubo un cambio semántico real, el dataset resultante queda con
+    `metadata["is_validated"] = False`. Si no hubo cambios efectivos, se preserva el
+    estado previo de validación. Esta operación nunca marca un dataset como validado.
+
+    La salida actualiza `field_correspondence`, `value_correspondence`,
+    `metadata["mappings"]`, `metadata["domains_effective"]`,
+    `schema_effective.domains_effective`, `schema_effective.fields_effective` y
+    agrega un evento `fix_trips_correspondence` a `metadata["events"]`.
     """
     issues: List[Issue] = []
     options_eff, parameters_base = _normalize_fix_options(options)

@@ -26,8 +26,56 @@ EXCEPTION_MAP_VALIDATE_TRACE = {
 }
 
 TRACE_CORE_FIELDS = ("point_id", "user_id", "time_utc", "latitude", "longitude")
+"""
+Núcleo canónico mínimo de un `TraceDataset`.
+
+Estos campos deben estar presentes para que una traza discreta sea validable por
+OP-15. El conjunto se combina con `schema.required` para construir los campos
+requeridos efectivos de la validación.
+
+Valores
+-------
+("point_id", "user_id", "time_utc", "latitude", "longitude")
+
+Notes
+-----
+`validate_traces` no usa solo `TraceSchema.required`: siempre incorpora este
+núcleo fijo como mínimo operacional de traces v1.1.
+"""
+
 TRACE_ALLOWED_DTYPES = {"string", "int", "float", "datetime", "bool"}
+"""
+Dtypes soportados por `TraceSchema` en la validación de traces.
+
+Valores
+-------
+{"string", "int", "float", "datetime", "bool"}
+
+Notes
+-----
+El dtype `"categorical"` queda fuera del contrato de traces v1.1. Si un schema
+declara un campo categórico, `validate_traces` aborta durante el preflight con
+`VAL.SCHEMA.CATEGORICAL_NOT_ALLOWED`, antes de construir reporte o evento.
+"""
+
 TRACE_ALLOWED_CONSTRAINTS = {"nullable", "range", "datetime", "pattern", "length", "unique"}
+"""
+Constraints reconocidas por OP-15 en campos de `TraceSchema`.
+
+Valores
+-------
+{"nullable", "range", "datetime", "pattern", "length", "unique"}
+
+Notes
+-----
+Esta constante define el catálogo global de constraints conocidas. Una
+constraint fuera de este conjunto aborta como error de schema con
+`VAL.SCHEMA.UNKNOWN_CONSTRAINT`.
+
+La compatibilidad específica entre constraint y dtype se resuelve después
+mediante `TRACE_CONSTRAINTS_BY_DTYPE`.
+"""
+
 TRACE_CONSTRAINTS_BY_DTYPE = {
     "string": {"nullable", "pattern", "length", "unique"},
     "int": {"nullable", "range", "unique"},
@@ -35,6 +83,32 @@ TRACE_CONSTRAINTS_BY_DTYPE = {
     "datetime": {"nullable", "datetime", "unique"},
     "bool": {"nullable", "unique"},
 }
+"""
+Matriz de compatibilidad entre dtype de traces y constraints soportadas.
+
+Contenido
+---------
+"string"
+    {"nullable", "pattern", "length", "unique"}
+"int"
+    {"nullable", "range", "unique"}
+"float"
+    {"nullable", "range", "unique"}
+"datetime"
+    {"nullable", "datetime", "unique"}
+"bool"
+    {"nullable", "unique"}
+
+Notes
+-----
+Una constraint conocida globalmente, pero no permitida para el dtype declarado
+del campo, aborta como error de schema con
+`VAL.SCHEMA.CONSTRAINT_NOT_ALLOWED_FOR_DTYPE`.
+
+Las constraints conocidas y compatibles, pero con payload inválido, se marcan
+para `warning + skip` mediante `VAL.SCHEMA.CONSTRAINT_INVALID_FORMAT`.
+"""
+
 BOOL_TRUE = {True, 1, "1", "true", "t", "yes", "y"}
 BOOL_FALSE = {False, 0, "0", "false", "f", "no", "n"}
 
@@ -42,22 +116,34 @@ BOOL_FALSE = {False, 0, "0", "false", "f", "no", "n"}
 @dataclass(frozen=True)
 class TraceValidationOptions:
     """
-    Opciones de validación para `TraceDataset` según el contrato vigente de v1.1.
+    Opciones para validar un `TraceDataset`.
+
+    Controla qué bloques de validación se ejecutan, cuántas filas de ejemplo se
+    incluyen por issue y si los errores de datos deben escalar a excepción después
+    de registrar evidencia.
 
     Attributes
     ----------
     strict : bool, default=False
-        Si True, los errores de datos se escalan después de construir evidencia.
+        Si es True, los issues de nivel error producidos por los datos se escalan a
+        `ValidationError` después de construir el `ConsistencyReport`, actualizar
+        `metadata["is_validated"]` y registrar el evento `validate_traces`. No
+        gobierna abortos fatales de input, schema o configuración.
     sample_rows_per_issue : int, default=5
-        Máximo de filas ejemplo a guardar dentro de `Issue.details`.
+        Máximo de filas de ejemplo que se guardan en `Issue.details` para issues que
+        reportan violaciones por fila. Debe ser un entero positivo.
     validate_required_fields : bool, default=True
-        Verifica presencia y nulabilidad del núcleo mínimo de traces.
+        Verifica presencia y nulabilidad del núcleo canónico de traces más
+        `schema.required`.
     validate_types_and_formats : bool, default=True
-        Verifica parseabilidad de tiempos y numéricos básicos.
+        Verifica parseabilidad de campos no string según su dtype lógico, incluyendo
+        datetimes, numéricos y booleanos.
     validate_constraints : bool, default=True
-        Ejecuta constraints simples declarativas del TraceSchema.
+        Ejecuta constraints simples declaradas en `TraceSchema.fields`, respetando
+        la matriz de compatibilidad constraint-dtype.
     validate_monotonic_time_per_user : bool, default=True
-        Verifica que `time_utc` no decrezca dentro de cada `user_id`.
+        Verifica que `time_utc` no retroceda dentro de cada `user_id`, evaluando el
+        orden observado de `TraceDataset.data` sin reordenar el dataframe.
     """
 
     strict: bool = False
@@ -75,10 +161,59 @@ def validate_traces(
     options: Optional[TraceValidationOptions] = None,
 ) -> ConsistencyReport:
     """
-    Valida un TraceDataset contra su TraceSchema y el mínimo canónico de traces.
+    Valida un `TraceDataset` contra su `TraceSchema` y el núcleo canónico de traces.
 
-    La operación no muta `traces.data`, pero sí actualiza `traces.metadata`
-    con evento `validate_traces` e `is_validated` coherente con el resultado.
+    La operación certifica conformidad mínima de trazas discretas. Ejecuta checks de
+    campos requeridos, tipos y formatos, constraints simples y monotonicidad temporal
+    por usuario. No crea un dataset nuevo, no corrige valores, no reordena puntos,
+    no infiere viajes y no muta `traces.data`.
+
+    Los efectos permitidos se concentran en `traces.metadata`: la operación asegura
+    `metadata["events"]`, actualiza `metadata["is_validated"]` según la presencia de
+    errores y agrega un evento `validate_traces` con parámetros efectivos, summary e
+    `issues_summary`.
+
+    Parameters
+    ----------
+    traces : TraceDataset
+        Dataset de trazas a validar. Debe exponer `traces.data` como
+        `pandas.DataFrame` y `traces.schema` como `TraceSchema`.
+    options : TraceValidationOptions, optional
+        Opciones de validación. Si es None, se usa `TraceValidationOptions()`.
+
+    Returns
+    -------
+    ConsistencyReport
+        Reporte estructurado de validación. En OP-15, el estado semántico de éxito
+        se consulta en `report.summary["ok"]`. El summary contiene `n_rows`,
+        `n_issues`, `n_errors`, `n_warnings`, `n_info`, `counts_by_level`,
+        `counts_by_code`, `checked_fields`, `checks_executed` y `schema_version`.
+
+    Raises
+    ------
+    SchemaError
+        Si el schema no es interpretable o viola el contrato de traces, por ejemplo
+        `TraceSchema` ausente, required field inexistente, dtype desconocido, dtype
+        categórico, constraint desconocida o constraint no permitida para el dtype.
+    ValidationError
+        Si el input o las opciones son inválidos, por ejemplo `traces` no es un
+        `TraceDataset`, `traces.data` no es un `DataFrame`,
+        `sample_rows_per_issue <= 0` o alguna bandera de opciones no es booleana.
+        También se lanza cuando `options.strict=True` y existen issues de nivel
+        error en los datos, después de registrar reporte, metadata y evento.
+
+    Notes
+    -----
+    Los campos requeridos efectivos son `TRACE_CORE_FIELDS + schema.required`, con
+    deduplicación preservando orden. El núcleo canónico fijo es `point_id`,
+    `user_id`, `time_utc`, `latitude` y `longitude`.
+
+    La monotonicidad temporal por usuario se evalúa sobre el orden observado del
+    dataframe. Una violación de monotonicidad emite
+    `VAL.TEMPORAL.NON_MONOTONIC_TIME` como warning, no como error.
+
+    `ConsistencyReport` no debe tratarse como si tuviera necesariamente un atributo
+    top-level `ok`; la señal estable de la operación está en `report.summary["ok"]`.
     """
     issues: List[Issue] = []
 

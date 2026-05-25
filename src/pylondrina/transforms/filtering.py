@@ -33,36 +33,75 @@ Polygon = Sequence[LonLat]
 
 TimePredicate = Literal["starts_within", "ends_within", "contains", "overlaps"]
 """
-Predicado temporal entre el intervalo del viaje y el intervalo [start, end].
-El intervalo del viaje se define SIEMPRE como: [origin_time_utc, destination_time_utc]
+Predicado temporal usado por `TimeFilter`.
 
-- "starts_within": origin_time_utc cae dentro de [start, end].
-- "ends_within": destination_time_utc cae dentro de [start, end].
-- "contains": [origin_time_utc, destination_time_utc] contiene completamente [start, end].
-- "overlaps": los intervalos se intersectan.
+Define cómo se compara el intervalo de cada viaje
+`[origin_time_utc, destination_time_utc)` contra el intervalo solicitado
+`[start, end)`.
+
+Valores permitidos
+------------------
+"starts_within"
+    Conserva viajes cuyo `origin_time_utc` cae dentro del intervalo solicitado.
+"ends_within"
+    Conserva viajes cuyo `destination_time_utc` cae dentro del intervalo
+    solicitado.
+"contains"
+    Conserva viajes cuyo intervalo contiene completamente el intervalo
+    solicitado.
+"overlaps"
+    Conserva viajes cuyo intervalo se intersecta con el intervalo solicitado.
 """
 
 SpatialPredicate = Literal["origin", "destination", "both", "either"]
 """
-Predicado espacial para decidir sobre qué extremo(s) aplicar un filtro espacial.
+Predicado espacial usado por filtros `bbox`, `polygon` y `h3_cells`.
 
-- "origin": aplica el filtro espacial al punto de origen.
-- "destination": aplica el filtro espacial al punto de destino.
-- "both": requiere que origen Y destino cumplan el filtro (AND).
-- "either": requiere que origen O destino cumpla el filtro (OR).
+Define qué extremo del viaje debe cumplir el criterio espacial solicitado.
+
+Valores permitidos
+------------------
+"origin"
+    Evalúa solo el origen del viaje.
+"destination"
+    Evalúa solo el destino del viaje.
+"both"
+    Exige que origen y destino cumplan el filtro espacial.
+"either"
+    Exige que al menos uno de los dos extremos cumpla el filtro espacial.
 """
 
 WhereOp = Literal["eq", "in", "ne", "not_in", "is_null", "not_null", "gt", "gte", "lt", "lte", "between",]
 """
-Operadores soportados por `FilterOptions.where` (v1.1).
+Operadores soportados por `FilterOptions.where`.
 
-- eq / in: igualdad y pertenencia (también pueden expresarse implícitamente).
-- ne / not_in: desigualdad y no-pertenencia.
-- is_null / not_null: filtros por nulidad (aplican a cualquier campo).
-- gt / gte / lt / lte / between: comparaciones numéricas (int/float).
+Los operadores disponibles son:
+
+- `eq`, `ne`: igualdad y desigualdad.
+- `in`, `not_in`: pertenencia y no pertenencia.
+- `is_null`, `not_null`: nulidad.
+- `gt`, `gte`, `lt`, `lte`, `between`: comparaciones para campos
+  numéricos o temporales compatibles.
+
+La compatibilidad final depende del dtype lógico del campo, resuelto desde
+`schema_effective`, `schema` o el dtype observado en pandas.
 """
 
 WhereValue = Union[Any, Sequence[Any], Mapping[WhereOp, Any]]
+"""
+Valor aceptado para una cláusula de `FilterOptions.where`.
+
+Puede expresarse como:
+
+- escalar, interpretado como `{"eq": valor}`;
+- secuencia, interpretada como `{"in": valores}`;
+- mapping explícito `operador -> valor`, usando operadores de `WhereOp`.
+
+Durante la normalización del request, la operación convierte la cláusula a una
+forma serializable para `OperationReport.parameters` y para el evento
+`filter_trips`.
+"""
+
 WhereClause = Mapping[str, WhereValue]
 
 
@@ -147,17 +186,30 @@ EXCEPTION_MAP_FILTER = {
 @dataclass(frozen=True)
 class TimeFilter:
     """
-    Filtro temporal sobre viajes, comparando el intervalo [origin_time_utc, destination_time_utc]
-    contra el intervalo [start, end] usando un predicado.
+    Filtro temporal absoluto para `filter_trips`.
+
+    Compara el intervalo de cada viaje `[origin_time_utc, destination_time_utc)`
+    contra el intervalo `[start, end)` usando un `TimePredicate`. La API pública usa
+    strings ISO-8601; la operación parsea internamente esos valores a timestamps UTC
+    comparables.
 
     Attributes
     ----------
-    start:
-        Inicio del intervalo temporal (inclusive).
-    end:
-        Fin del intervalo temporal (inclusive).
-    predicate:
-        Relación entre intervalos (ver TimePredicate).
+    start : str
+        Inicio del intervalo temporal solicitado. Debe ser un timestamp ISO-8601
+        interpretable.
+    end : str
+        Fin del intervalo temporal solicitado. Debe ser un timestamp ISO-8601
+        interpretable y posterior a `start`.
+    predicate : TimePredicate, default="overlaps"
+        Relación temporal usada para comparar el viaje con el intervalo solicitado.
+
+    Notes
+    -----
+    El filtro temporal solo es evaluable cuando el dataset tiene temporalidad Tier 1
+    y dispone de `origin_time_utc` y `destination_time_utc`. En Tier 2 o Tier 3, la
+    regla se omite con issue recuperable, o escala a `FilterError` si
+    `FilterOptions.strict=True`.
     """
 
     start: str
@@ -168,43 +220,42 @@ class TimeFilter:
 @dataclass(frozen=True)
 class FilterOptions:
     """
-    Opciones para filtrar un TripDataset por criterios de atributos (`where`), tiempo y/o espacio.
+    Opciones declarativas para filtrar un `TripDataset`.
 
-    Reglas de combinación (v1.1)
-    ----------------------------
-    - Los criterios presentes se combinan como intersección (AND).
-    - Dentro de `where`, cada key también se combina por AND.
+    Permite combinar filtros por atributos (`where`), filtro temporal (`time`) y
+    filtros espaciales (`bbox`, `polygon`, `h3_cells`). Todos los criterios
+    presentes se combinan por AND global. Dentro de `where`, los campos y los
+    operadores de un mismo campo también se combinan por AND.
 
-    Parámetros / Atributos
-    ----------------------
-    where : Optional[WhereClause]
-        Filtros declarativos por campos. `where` es un diccionario `{campo -> condición}`.
-        La condición puede escribirse como:
-        - Escalar: equivale a `{"eq": valor}`
-        - Secuencia: equivale a `{"in": [..]}`
-        - Dict operador->valor: permite `eq, in, ne, not_in, is_null, not_null, gt, gte, lt, lte, between`.
-    time : Optional[TimeFilter]
-        Filtro temporal sobre el intervalo del viaje definido por [origin_time_utc, destination_time_utc]
-    bbox : Optional[BBox]
-        Filtro espacial por bounding box (min_lon, min_lat, max_lon, max_lat).
-    polygon : Optional[Polygon]
-        Filtro espacial por polígono lon/lat (secuencia de vértices).
-    h3_cells : Optional[Iterable[str]]
-        Filtro espacial por conjunto de celdas H3 permitidas.
-    spatial_predicate : SpatialPredicate
-        Sobre qué extremo(s) del viaje aplica el filtro espacial: "origin", "destination", "both", "either".
-    origin_h3_field : str
-        Nombre del campo H3 de origen (para filtros por H3).
-    destination_h3_field : str
-        Nombre del campo H3 de destino (para filtros por H3).
-    keep_metadata : bool
-        Si True, agrega un evento de filtrado en `TripDataset.metadata["events"]` del dataset resultante.
-    strict : bool
-        Si True, configuraciones inválidas pueden escalar; si False, se degradan a issues.
-
-    Emite
-    ------
-    No emite issues directamente; la emisión ocurre en la función pública y sus helpers.
+    Attributes
+    ----------
+    where : Mapping[str, WhereValue], optional
+        Filtros por columnas de `TripDataset.data`. Cada cláusula puede expresarse
+        como escalar (`eq` implícito), secuencia (`in` implícito) o mapping
+        explícito `operador -> valor`.
+    time : TimeFilter, optional
+        Filtro temporal absoluto sobre el intervalo
+        `[origin_time_utc, destination_time_utc)`.
+    bbox : tuple[float, float, float, float], optional
+        Bounding box `(min_lon, min_lat, max_lon, max_lat)` en coordenadas lon/lat.
+    polygon : sequence[tuple[float, float]], optional
+        Polígono como secuencia de vértices `(lon, lat)`.
+    h3_cells : iterable of str, optional
+        Conjunto de celdas H3 permitidas. La operación normaliza, deduplica y valida
+        las celdas antes de evaluar el filtro.
+    spatial_predicate : SpatialPredicate, default="origin"
+        Extremo espacial evaluado por `bbox`, `polygon` y `h3_cells`.
+    origin_h3_field : str, default="origin_h3_index"
+        Nombre del campo H3 de origen usado por `h3_cells`.
+    destination_h3_field : str, default="destination_h3_index"
+        Nombre del campo H3 de destino usado por `h3_cells`.
+    keep_metadata : bool, default=True
+        Si es True, copia metadata e incorpora un evento `filter_trips`. Si es
+        False, conserva solo metadata mínima operativa y no registra evento nuevo.
+    strict : bool, default=False
+        Si es True, los errores recuperables por eje se escalan a `FilterError`
+        después de construir evidencia. Los errores fatales de configuración abortan
+        independientemente de este valor.
     """
 
     where: Optional[WhereClause] = None
@@ -230,23 +281,63 @@ def filter_trips(
     sample_rows_per_issue: int = 20,
 ) -> Tuple[TripDataset, OperationReport]:
     """
-    Filtra un TripDataset combinando criterios por atributos, tiempo y/o espacio.
+    Filtra un `TripDataset` por atributos, tiempo y/o espacio.
+
+    `filter_trips` es una operación drop-only: retorna un nuevo `TripDataset` con
+    las filas que cumplen los filtros solicitados, sin corregir valores, sin validar
+    formalmente, sin escribir en disco y sin mutar el input. En rutas retornables,
+    preserva el estado previo de `metadata["is_validated"]`.
+
+    Los filtros presentes se combinan por AND global en el orden contractual:
+    `where`, `time`, `bbox`, `polygon` y `h3_cells`.
 
     Parameters
     ----------
     trips : TripDataset
-        Dataset de entrada en formato Golondrina.
+        Dataset de trips a filtrar. La operación trabaja sobre `trips.data`.
     options : FilterOptions, optional
-        Request declarativo del filtrado. Si es None, se usan defaults efectivos.
+        Request declarativo de filtrado. Si es None, se usa `FilterOptions()` y no
+        se solicita ningún filtro efectivo.
     max_issues : int, default=1000
-        Límite de issues retenidos en el reporte final.
+        Número máximo de issues retenidos en el `OperationReport`. Si se detectan
+        más issues, el reporte agrega `FLT.LIMIT.ISSUES_TRUNCATED` y un bloque
+        `summary["limits"]`.
     sample_rows_per_issue : int, default=20
-        Límite de muestra de filas descartadas guardadas en `Issue.details`.
+        Tamaño máximo de muestras incluidas en `Issue.details`.
 
     Returns
     -------
     tuple[TripDataset, OperationReport]
-        Nuevo dataset filtrado y reporte estructurado de la operación.
+        Nuevo dataset filtrado y reporte estructurado. El reporte incluye `ok`,
+        `issues`, `summary` y `parameters`. El `summary` contiene `rows_in`,
+        `rows_out`, `dropped_total`, `dropped_by_filter`, `filters_requested`,
+        `filters_applied` y `filters_omitted`.
+
+    Raises
+    ------
+    TypeError
+        Si `trips` no es un `TripDataset` usable, si `trips.data` no es un
+        `pandas.DataFrame` o si `options` no es una instancia de `FilterOptions`.
+    ValueError
+        Si la configuración no es interpretable, por ejemplo `max_issues <= 0`,
+        `sample_rows_per_issue <= 0`, `bbox` o `polygon` inválidos, timestamps
+        temporales ilegibles o `start >= end`.
+    FilterError
+        Si `options.strict=True` y la operación detecta errores recuperables por
+        eje, por ejemplo filtro temporal no evaluable por tier o columnas requeridas
+        ausentes.
+
+    Notes
+    -----
+    `OperationReport.parameters` contiene el request efectivo normalizado y
+    serializable. Por ejemplo, `time` queda como `{start, end, predicate}`, `bbox`
+    queda como lista, `h3_cells` queda normalizado y deduplicado, y `where` queda en
+    forma JSON-safe.
+
+    Si `keep_metadata=True`, el dataset resultante registra un evento
+    `filter_trips` con `parameters`, `summary` e `issues_summary`. Si
+    `keep_metadata=False`, la salida conserva metadata mínima operativa sin historial
+    de eventos.
     """
     issues_all: List[Issue] = []
 

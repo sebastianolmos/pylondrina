@@ -30,9 +30,63 @@ EXCEPTION_MAP_IMPORT_TRACE = {
 }
 
 TRACE_CORE_FIELDS = ("point_id", "user_id", "time_utc", "latitude", "longitude")
+
 TRACE_CORE_REQUIRED_INPUT = ("user_id", "time_utc", "latitude", "longitude")
+"""
+Campos canónicos que deben poder materializarse desde la fuente de traces.
+
+Estos campos forman el mínimo no generable requerido por OP-14 para construir un
+`TraceDataset` operable. `point_id` no aparece en esta constante porque puede
+ser generado técnicamente por `import_traces_from_dataframe` cuando falta.
+
+Valores
+-------
+("user_id", "time_utc", "latitude", "longitude")
+
+Notes
+-----
+Si alguno de estos campos no existe después de aplicar `field_correspondence` y
+la política de selección de columnas, la operación aborta con
+`IMP.CORE.MINIMUM_FIELDS_UNREACHABLE`.
+"""
+
 TRACE_ALLOWED_DTYPES = {"string", "int", "float", "datetime", "bool"}
+"""
+Dtypes soportados por `TraceSchema` en OP-14.
+
+El bloque de traces v1.1 usa un contrato deliberadamente austero. Por ello, solo
+se aceptan tipos simples necesarios para representar puntos discretos y campos
+extra básicos.
+
+Valores
+-------
+{"string", "int", "float", "datetime", "bool"}
+
+Notes
+-----
+El dtype `"categorical"` no está soportado en OP-14 v1.1. Si un `TraceSchema`
+declara un campo categórico, el import aborta con
+`SCH.TRACE_SCHEMA.CATEGORICAL_NOT_ALLOWED`.
+"""
+
 TRACE_ALLOWED_CONSTRAINTS = {"nullable", "range", "datetime", "pattern", "length", "unique"}
+"""
+Constraints reconocidas por el import de traces.
+
+Define el conjunto global de reglas declarativas que OP-14 acepta en
+`FieldSpec.constraints` antes de verificar si cada regla es compatible con el
+dtype específico del campo.
+
+Valores
+-------
+{"nullable", "range", "datetime", "pattern", "length", "unique"}
+
+Notes
+-----
+Una constraint fuera de este conjunto se considera error de schema y aborta con
+`SCH.CONSTRAINTS.UNKNOWN_RULE`.
+"""
+
 TRACE_CONSTRAINTS_BY_DTYPE = {
     "string": {"nullable", "pattern", "length", "unique"},
     "int": {"nullable", "range", "unique"},
@@ -40,25 +94,62 @@ TRACE_CONSTRAINTS_BY_DTYPE = {
     "datetime": {"nullable", "datetime", "unique"},
     "bool": {"nullable", "unique"},
 }
+"""
+Matriz de compatibilidad entre dtype de traces y constraints soportadas.
+
+La operación usa esta matriz durante el preflight de schema para rechazar reglas
+que existen en el catálogo global, pero no aplican al dtype declarado por el
+campo.
+
+Contenido
+---------
+"string"
+    {"nullable", "pattern", "length", "unique"}
+"int"
+    {"nullable", "range", "unique"}
+"float"
+    {"nullable", "range", "unique"}
+"datetime"
+    {"nullable", "datetime", "unique"}
+"bool"
+    {"nullable", "unique"}
+
+Notes
+-----
+Una constraint reconocida globalmente, pero no permitida para el dtype del campo,
+aborta con `SCH.CONSTRAINTS.NOT_ALLOWED_FOR_DTYPE`.
+"""
+
 OFFSET_RE = re.compile(r"^[+-](?:0\d|1\d|2[0-3]):[0-5]\d$")
 
 
 @dataclass(frozen=True)
 class ImportTraceOptions:
     """
-    Opciones de importación/estandarización para construir un TraceDataset.
+    Opciones para importar puntos discretos como `TraceDataset`.
+
+    Controla la conservación de campos extra, la selección explícita de columnas, la
+    política de escalamiento de errores recuperables y la zona horaria usada para
+    interpretar timestamps naive.
 
     Attributes
     ----------
     keep_extra_fields : bool, default=True
-        Si True, conserva columnas no estándar como campos extendidos del dataset.
+        Si es True, conserva columnas adicionales alcanzables después de aplicar
+        `field_correspondence`. Si es False, conserva solo el núcleo canónico y los
+        campos declarados en el `TraceSchema`.
     selected_fields : sequence of str, optional
-        Lista de campos a conservar. Si es None, se preservan todos los campos alcanzables
-        sujetos a `keep_extra_fields`. Si es [], se conserva solo el núcleo canónico.
+        Campos adicionales a conservar junto al núcleo canónico. Si es None, se usa
+        la política general de `keep_extra_fields`. Si es una secuencia vacía, la
+        salida conserva solo el núcleo canónico de traces.
     strict : bool, default=False
-        Si True, problemas recuperables de nivel error se escalan después de construir evidencia.
+        Si es True, errores recuperables emitidos durante el import se escalan a
+        `ImportError` después de construir dataset, metadata, evento y reporte.
+        Los errores fatales de preflight abortan independientemente de este valor.
     source_timezone : str, optional
-        Zona horaria de origen para interpretar timestamps naive.
+        Timezone usada para interpretar `time_utc` cuando la fuente entrega
+        timestamps naive. Acepta nombres IANA como `"America/Santiago"`, `"UTC"` o
+        offsets fijos como `"-03:00"`.
     """
 
     keep_extra_fields: bool = True
@@ -76,11 +167,70 @@ def import_traces_from_dataframe(
     provenance: Optional[Dict[str, Any]] = None,
 ) -> Tuple[TraceDataset, ImportReport]:
     """
-    Importa un DataFrame de puntos hacia un TraceDataset canónico y trazable.
+    Importa un `DataFrame` de puntos discretos como `TraceDataset`.
 
-    La operación asume que el input ya está "pointificado" y solo resuelve:
-    alineación de columnas, núcleo mínimo de traces, temporalidad básica,
-    metadata mínima, reporte y evento `import_traces`.
+    La operación alinea columnas mediante `field_correspondence`, materializa el
+    núcleo canónico de traces, genera `point_id` cuando falta, normaliza la columna
+    `time_utc` cuando existe una timezone interpretable, conserva campos extra según
+    `ImportTraceOptions` y construye metadata, provenance, evento e `ImportReport`.
+
+    No valida formalmente el dataset, no infiere viajes, no reconstruye trayectorias
+    continuas y no escribe artefactos en disco. El `TraceDataset` resultante queda
+    siempre con `metadata["is_validated"] = False`.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Tabla fuente de puntos discretos. Debe poder alcanzar el núcleo canónico
+        `user_id`, `time_utc`, `latitude` y `longitude` directamente o mediante
+        `field_correspondence`.
+    schema : TraceSchema
+        Schema de traces usado como contrato de campos y metadata. En OP-14 v1.1
+        solo se admiten dtypes simples: `"string"`, `"int"`, `"float"`,
+        `"datetime"` y `"bool"`.
+    source_name : str, optional
+        Nombre de la fuente. Si se entrega, queda registrado en
+        `metadata["source"]["name"]` y en los parámetros del reporte.
+    options : ImportTraceOptions, optional
+        Opciones de importación. Si es None, se usa `ImportTraceOptions()`.
+    field_correspondence : mapping, optional
+        Mapping `campo_canónico -> columna_fuente`. Solo las correspondencias
+        aplicables se ejecutan y quedan registradas en el reporte y en metadata.
+    provenance : dict, optional
+        Provenance externo a conservar en el `TraceDataset`. Si no es un mapping
+        serializable, se omite con warning.
+
+    Returns
+    -------
+    tuple[TraceDataset, ImportReport]
+        Dataset de traces importado y reporte estructurado. El reporte incluye
+        `ok`, `issues`, `summary`, `parameters`, `field_correspondence`,
+        `value_correspondence`, `schema_version` y `metadata`.
+
+    Raises
+    ------
+    ImportError
+        Si el input o la configuración impiden construir el dataset, por ejemplo
+        `df` no es `DataFrame`, existen columnas duplicadas, `selected_fields` no es
+        interpretable, `source_timezone` es inválida, falta el núcleo canónico no
+        generable, `time_utc` no puede parsearse o el mapping de campos es inválido.
+    SchemaError
+        Si el `TraceSchema` no es interpretable o viola el contrato de traces, por
+        ejemplo versión inválida, dtype desconocido, dtype categórico, required field
+        inexistente, constraint desconocida o constraint incompatible con el dtype.
+
+    Notes
+    -----
+    El núcleo canónico post-import es `point_id`, `user_id`, `time_utc`, `latitude`
+    y `longitude`. `point_id` puede ser generado por la operación; los otros cuatro
+    campos deben ser alcanzables desde el input.
+
+    La normalización temporal usa esta precedencia: timezone explícita en los datos,
+    `options.source_timezone`, `schema.timezone` y, finalmente, timezone no resuelta.
+    Cuando la timezone no se resuelve, la columna puede quedar parseada pero no
+    normalizada a UTC, y se registra evidencia en metadata.
+
+    La operación trabaja sobre una copia del `DataFrame` de entrada y no lo muta.
     """
     issues: List[Issue] = []
     rows_in = len(df) if isinstance(df, pd.DataFrame) else None

@@ -63,22 +63,38 @@ _DEFAULT_SAMPLE_ROWS_REMOVED = 10
 @dataclass(frozen=True)
 class FlowFilterOptions:
     """
-    Opciones para filtrar un FlowDataset por criterios declarativos (`where`) y/o por celdas H3.
+    Opciones declarativas para filtrar un `FlowDataset`.
+
+    Permite seleccionar subconjuntos de `FlowDataset.flows` mediante filtros por
+    atributos (`where`) y/o por celdas H3 (`h3_cells`). Todos los filtros presentes
+    se combinan por AND global. La operación no reconstruye flows, no recalcula
+    agregaciones y no escribe artefactos.
 
     Attributes
     ----------
-    where : Optional[WhereClause]
-        Filtro declarativo por columnas de `FlowDataset.flows`.
-    h3_cells : Optional[Iterable[str]]
-        Conjunto de celdas H3 para el eje espacial.
-    spatial_predicate : SpatialPredicate
-        Sobre qué extremo(s) del flujo se evalúa `h3_cells`.
-    keep_flow_to_trips : bool
-        Si True, intenta sincronizar `flow_to_trips` con los `flow_id` retenidos.
-    keep_metadata : bool
-        Si True, agrega evento `filter_flows` en `metadata["events"]` del resultado.
-    strict : bool
-        Si True, errores recuperables por eje escalan después de construir evidencia.
+    where : mapping, optional
+        Filtros por columnas de `FlowDataset.flows`. Cada cláusula puede expresarse
+        como escalar (`eq` implícito), secuencia no vacía (`in` implícito) o mapping
+        explícito `operador -> valor`. Los operadores soportados son `eq`, `ne`,
+        `in`, `not_in`, `is_null`, `not_null`, `gt`, `gte`, `lt`, `lte` y
+        `between`, según compatibilidad con el dtype lógico del campo.
+    h3_cells : iterable of str, optional
+        Celdas H3 usadas como whitelist espacial. Se normalizan y deduplican antes
+        de evaluar el filtro.
+    spatial_predicate : {"origin", "destination", "both", "either"}, default="origin"
+        Extremo del flujo evaluado por `h3_cells`. `"origin"` usa
+        `origin_h3_index`; `"destination"` usa `destination_h3_index`; `"both"`
+        exige ambos extremos en la whitelist; `"either"` exige al menos un extremo.
+    keep_flow_to_trips : bool, default=True
+        Si es True, intenta sincronizar `flow_to_trips` con los `flow_id` retenidos.
+        Si el auxiliar falta o no es usable, se retorna `None` con evidencia.
+    keep_metadata : bool, default=True
+        Si es True, copia metadata y agrega un evento `filter_flows`. Si es False,
+        conserva la metadata operativa excepto `events` y no agrega evento nuevo.
+    strict : bool, default=False
+        Si es True, errores recuperables por eje se escalan a `FilterError` después
+        de construir evidencia. Los errores fatales de configuración abortan
+        independientemente de este valor.
     """
 
     where: Optional[WhereClause] = None
@@ -96,21 +112,64 @@ def filter_flows(
     max_issues: int = 1000,
 ) -> Tuple[FlowDataset, OperationReport]:
     """
-    Filtra un FlowDataset combinando criterios por atributos (`where`) y/o por celdas H3.
+    Filtra un `FlowDataset` por atributos y/o por celdas H3.
+
+    `filter_flows` es una operación drop-only sobre `FlowDataset`: retorna un nuevo
+    dataset con los flujos que cumplen los filtros solicitados, sin reconstruir
+    flows desde trips, sin corregir valores, sin validar formalmente, sin escribir
+    en disco y sin mutar el input.
+
+    La operación trabaja sobre el contrato interno canónico de
+    `FlowDataset.flows`, que debe contener `flow_id`, `origin_h3_index`,
+    `destination_h3_index`, `flow_count` y `flow_value`. Los filtros presentes se
+    combinan por AND global en el orden contractual: `where` y luego `h3_cells`.
 
     Parameters
     ----------
-    flows:
-        Dataset de flujos de entrada.
-    options:
-        Request declarativo del filtrado. Si es None, se usan defaults efectivos.
-    max_issues:
-        Límite máximo de issues retenidos en el reporte final.
+    flows : FlowDataset
+        Dataset de flows a filtrar. Debe exponer `flows.flows` como
+        `pandas.DataFrame` y cumplir el núcleo canónico interno de flows.
+    options : FlowFilterOptions, optional
+        Request declarativo de filtrado. Si es None, se usa `FlowFilterOptions()`,
+        lo que retorna un nuevo dataset derivado sin cambios tabulares efectivos.
+    max_issues : int, default=1000
+        Número máximo de issues retenidos en el `OperationReport`. Si se detectan
+        más issues, el reporte agrega `FLT_FLOW.REPORT.ISSUES_TRUNCATED` y un bloque
+        `summary["limits"]`.
 
     Returns
     -------
-    (FlowDataset, OperationReport)
-        Nuevo dataset filtrado y reporte estructurado de la operación.
+    tuple[FlowDataset, OperationReport]
+        Nuevo dataset filtrado y reporte estructurado. El reporte incluye `ok`,
+        `issues`, `summary` y `parameters`. El `summary` contiene `rows_in`,
+        `rows_out`, `dropped_total`, `dropped_by_filter`, `filters_requested`,
+        `filters_applied`, `filters_omitted` y `flow_to_trips_status`.
+
+    Raises
+    ------
+    FilterError
+        Si el input o la configuración no son interpretables, por ejemplo un objeto
+        distinto de `FlowDataset`, ausencia de `flows.flows` como `DataFrame`,
+        columnas canónicas mínimas faltantes, `options` inválido, `max_issues <= 0`,
+        `where` no interpretable como mapping, `h3_cells` no interpretable o vacío
+        tras normalización, `spatial_predicate` inválido o parámetros no
+        serializables. También se lanza si `options.strict=True` y existen errores
+        recuperables por eje.
+
+    Notes
+    -----
+    En rutas retornables, la operación preserva `metadata["is_validated"]`. Si
+    `options.keep_metadata=True`, el resultado agrega un evento `filter_flows` con
+    `parameters`, `summary` e `issues_summary`. Si `keep_metadata=False`, se conserva
+    metadata operativa excepto `events`.
+
+    Si `options.keep_flow_to_trips=True`, el auxiliar se sincroniza por los
+    `flow_id` retenidos. Si falta, se retorna `None` con estado `"missing"`. Si
+    existe pero no contiene al menos `flow_id` y `movement_id`, se descarta con
+    estado `"discarded_invalid"`.
+
+    `dropped_by_filter` contiene conteos incrementales reales: cada eje se evalúa
+    sobre el subconjunto que sobrevivió a los ejes anteriores.
     """
     issues_all: List[Issue] = []
 
